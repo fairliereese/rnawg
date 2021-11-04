@@ -14,7 +14,7 @@ opref=$1
 ont=$2
 
 fastq=${opref}_demux.fastq
-ref=~/mortazavi_lab/ref/mm10/mm10.fa
+ref=~/mortazavi_lab/data/rnawg/refs/hg38_sirv4_ercc.fa
 sj_ref=~/mortazavi_lab/ref/gencode.vM21/gencode.vM21.bed
 sam=${opref}_mapped.sam
 log=${opref}_minimap.log

@@ -65,3 +65,36 @@ df.biosample = df.biosample.str.lower()
 
 df.to_csv('tissue_metadata.csv', index=False)
 ```
+
+## Extract splice junctions from the annotation
+```bash
+tc_path=~/mortazavi_lab/bin/TranscriptClean/accessory_scripts/
+gtf=~/mortazavi_lab/data/rnawg/refs/gencode_v29_sirv4_ercc.gtf
+genome=~/mortazavi_lab/data/rnawg/refs/hg38_sirv4_ercc.fa
+sjs=~/mortazavi_lab/data/rnawg/refs/hg38_SJs.tsv
+python ${tc_path}get_SJs_from_gtf.py \
+  --f ${gtf} \
+  --g ${genome} \
+  --o ${sjs}
+```
+
+## PC translations
+```bash
+wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_29/gencode.v29.pc_translations.fa.gz
+gunzip gencode.v29.pc_translations.fa.gz
+```
+
+## Make blast DB of PC translations
+```bash
+grep ">" gencode.v29.pc_translations.fa > gencode.v29.pc_translations_headers.txt
+python fix_pc_translation_headers.py
+blastdir=~/mortazavi_lab/bin/ncbi-blast-2.12.0+/bin/
+${blastdir}./makeblastdb -in gencode.v29.pc_translations_short_headers.fa -dbtype prot -parse_seqids -out gencode.v29.pc_translations
+```
+
+## Make splice junctions bed for Minimap2
+```bash
+module load minimap2
+gtf=~/mortazavi_lab/data/rnawg/refs/gencode.v29.primary_assembly.annotation_UCSC_names.gtf
+paftools.js gff2bed $gtf > ~/mortazavi_lab/data/rnawg/refs/gencode.v29.bed
+```

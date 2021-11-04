@@ -14,7 +14,7 @@
 # sbatch sbatch_talon_read_annot.sh <oprefix>
 
 opref=$1
-build=mm10
+build=hg38
 db=${opref}.db
 
 talon_fetch_reads \

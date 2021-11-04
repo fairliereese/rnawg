@@ -26,8 +26,8 @@ shift $((OPTIND - 1))
 config=$1
 opref=$2
 
-gtf=~/mortazavi_lab/ref/gencode.vM21/gencode.vM21.SIRV.ERCC.annotation.gtf
-build=mm10
+gtf=~/mortazavi_lab/
+build=hg38
 
 if [ -z "$db" ]
   then
@@ -36,9 +36,9 @@ if [ -z "$db" ]
     talon_initialize_database \
         --f ${gtf} \
         --g ${build} \
-        --a gencode_vM21 \
+        --a gencode_v29 \
         --l 0 \
-        --idprefix ENCODEM \
+        --idprefix ENCODEH \
         --5p 500 \
         --3p 300 \
         --o ${opref}

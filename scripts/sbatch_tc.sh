@@ -18,9 +18,8 @@ sam_noscaff=${opref}_sorted_no_scaff.sam
 
 # references
 tc_path=/dfs6/pub/freese/mortazavi_lab/bin/TranscriptClean/
-genome=/dfs6/pub/freese/mortazavi_lab/ref/mm10/mm10.fa
-sjs=/dfs6/pub/freese/mortazavi_lab/ref/mm10/mm10_SJs.tsv
-
+genome=~/mortazavi_lab/data/rnawg/refs/hg38_sirv4_ercc.fa
+sjs=~/mortazavi_lab/data/rnawg/refs/hg38_SJs.tsv
 
 # remove reads that mapped to scaffold chromosomes and sort
 grep -v '^@' $sam | awk ""'{if($3 !~ "_") print $0}'" "| \

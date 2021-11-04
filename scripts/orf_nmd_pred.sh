@@ -51,7 +51,7 @@ python ${tamadir}tama_orf_seeker.py \
 
 # blast protein sequences against known protein sequences
 blastdir=~/mortazavi_lab/bin/ncbi-blast-2.12.0+/bin/
-ref_pc=~/mortazavi_lab/ref/gencode.vM21/gencode.vM21.pc_translations
+ref_pc=~/mortazavi_lab/ref/gencode.v29.pc_translations
 out=${opref}_blastp.out
 ${blastdir}./blastp \
   -evalue 1e-10 \

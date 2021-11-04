@@ -30,16 +30,9 @@ sample=$2
 
 ipref=$(dirname $(dirname $opref))/processing/$(basename $opref)
 sam=${ipref}_merged_primers.sam
-gtf=~/mortazavi_lab/ref/gencode.vM21/gencode.vM21.primary_assembly.annotation_UCSC_names.gtf
+gtf=~/mortazavi_lab/data/rnawg/refs/gencode_v29_sirv4_ercc.gtf
 
-
-# deal with different annotation names for the different tissues
-if [ "$sample" == "adrenal" ]
-  then
-    build=mm10.fasta
-  else
-    build=mm10
-fi
+build=hg38
 
 if "$ont"
   then
@@ -55,9 +48,9 @@ if [ -z "$db" ]
     talon_initialize_database \
         --f ${gtf} \
         --g ${build} \
-        --a gencode_vM21 \
+        --a gencode_v29 \
         --l 0 \
-        --idprefix ENCODEM \
+        --idprefix ENCODEH \
         --5p 500 \
         --3p 300 \
         --o ${opref}
