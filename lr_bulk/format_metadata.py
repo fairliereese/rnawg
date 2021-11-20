@@ -22,10 +22,15 @@ temp['biorep'] = temp.groupby('biosamp_name').cumcount()+1
 temp = temp[['Experiment accession', 'biorep']]
 temp.biorep = temp.biorep.astype(str)
 df = df.merge(temp, on='Experiment accession')
-df['hr'] = df.new_biosamp_name+'_'+df.biorep+'_'+df['Biological replicate(s)'].astype(str)
+df['techrep'] = df.groupby('Experiment accession').cumcount()+1
+df['hr'] = df.new_biosamp_name+'_'+df.biorep+'_'+df.techrep.astype(str)
 df = df[['File accession', 'hr']]
 df.to_csv('file_to_hr.tsv', sep='\t', header=None, index=False)
 
+# df[['Experiment accession', 'biosamp_name', 'biorep', 'techrep', 'hr']].sort_values('Experiment accession')
+# len(df.hr.unique())
+# len(df['File accession'].unique())
+
 # make the samples file
-df = df['biosamp_name']
+df = df['hr']
 df.to_csv('samples.txt', header=None, index=None)

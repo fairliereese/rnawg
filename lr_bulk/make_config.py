@@ -1,16 +1,19 @@
+# TODO - have this sort by things that are already in the db so that
+# I can make config files for everything that's not 
+
 import pandas as pd
 
 df = pd.read_csv('samples.txt', header=None, names=['name'])
 df['sample'] = df['name']
 df['platform'] = 'PacBio'
 df['fname'] = 'processing/'+df.name+'_labeled.sam'
-range = len(df.index)
+n_samples = len(df.index)
 
 fname = 'talon/talon_config.csv'
 df.to_csv(fname, header=False, index=False)
 
 # more manageable chunks
-inds = [i for i in range(range) if i % 14 == 0]
+inds = [i for i in range(n_samples) if i % 14 == 0]
 if len(df.index) not in inds:
     inds += [len(df.index)]
 

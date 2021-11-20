@@ -26,7 +26,7 @@ shift $((OPTIND - 1))
 config=$1
 opref=$2
 
-gtf=~/mortazavi_lab/
+gtf=~/mortazavi_lab/data/rnawg/refs/gencode_v29_sirv4_ercc.gtf
 build=hg38
 
 if [ -z "$db" ]
