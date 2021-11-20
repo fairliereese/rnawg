@@ -27,3 +27,37 @@ do
 done < file_to_hr.tsv
 mv *bam processing/
 ```
+
+## TALON label reads
+```bash
+opref=~/mortazavi_lab/data/rnawg/lr_bulk/processing/
+samples=~/mortazavi_lab/data/rnawg/lr_bulk/samples.txt
+bash ../scripts/talon_label.sh $opref $samples
+```
+
+<!-- Check to see which things finished
+```bashqs
+tail processing/talon_label.o* | grep -B 8 "Run complete" | grep "talon_label.o"
+``` -->
+
+<!-- ## Create TALON config file
+```bash
+python make_config.py
+```
+
+## Run TALON
+```bash
+config=talon/talon_config.csv
+oprefix=talon/mouse
+sbatch ../scripts/sbatch_talon_bulk.sh $config $oprefix
+``` -->
+
+<!-- Using more manageable chunks of data for TALON - 14 datasets at a time
+```bash
+oprefix=talon/mouse
+sbatch ../scripts/sbatch_talon_bulk.sh talon/talon_config_1.csv $oprefix # done 10/25/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/mouse.db talon/talon_config_2.csv $oprefix # done 10/26/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/mouse.db talon/talon_config_3.csv $oprefix # done 10/27/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/mouse.db talon/talon_config_4.csv $oprefix # done 10/27/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/mouse.db talon/talon_config_5.csv $oprefix # done 10/27/21
+``` -->
