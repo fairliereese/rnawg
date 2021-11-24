@@ -32,5 +32,12 @@ df.to_csv('file_to_hr.tsv', sep='\t', header=None, index=False)
 # len(df['File accession'].unique())
 
 # make the samples file
+try:
+    old_samples = pd.read_csv('samples.txt', header=None)
+    old_samples.columns = ['hr']
+
+    # only include old samples
+    df = df.loc[~df.hr.isin(old_samples.hr.tolist())]
+
 df = df['hr']
 df.to_csv('samples.txt', header=None, index=None)

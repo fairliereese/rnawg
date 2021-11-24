@@ -49,16 +49,18 @@ python make_config.py
 ## Run TALON
 ```bash
 config=talon/talon_config.csv
-oprefix=talon/mouse
+oprefix=talon/human
 sbatch ../scripts/sbatch_talon_bulk.sh $config $oprefix
 ```
 
 <!-- Using more manageable chunks of data for TALON - 14 datasets at a time
 ```bash
 oprefix=talon/human
-sbatch ../scripts/sbatch_talon_bulk.sh talon/talon_config_1.csv $oprefix
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/mouse.db talon/talon_config_2.csv $oprefix # not done
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/mouse.db talon/talon_config_3.csv $oprefix # not done
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/mouse.db talon/talon_config_4.csv $oprefix # not done
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/mouse.db talon/talon_config_5.csv $oprefix # not done
+sbatch ../scripts/sbatch_talon_bulk.sh talon/talon_config_1.csv $oprefix # runnnng 11/23/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_2.csv $oprefix #
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_3.csv $oprefix # not done
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_4.csv $oprefix # not done
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_5.csv $oprefix # not done
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_6.csv $oprefix # not done
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_7.csv $oprefix # not done
 ``` -->

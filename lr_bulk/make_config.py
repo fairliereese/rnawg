@@ -1,5 +1,5 @@
 # TODO - have this sort by things that are already in the db so that
-# I can make config files for everything that's not 
+# I can make config files for everything that's not
 
 import pandas as pd
 

@@ -7,7 +7,7 @@
 #SBATCH --partition=standard
 #SBATCH --time=24:00:00
 #SBATCH --mail-type=START,END
-#SBATCH --mem=32G
+#SBATCH --mem=128G
 #SBATCH --mail-user=freese@uci.edu
 
 # usage
