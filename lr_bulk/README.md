@@ -56,11 +56,11 @@ sbatch ../scripts/sbatch_talon_bulk.sh $config $oprefix
 <!-- Using more manageable chunks of data for TALON - 14 datasets at a time
 ```bash
 oprefix=talon/human
-sbatch ../scripts/sbatch_talon_bulk.sh talon/talon_config_1.csv $oprefix # runnnng 11/24/21
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_2.csv $oprefix #
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_3.csv $oprefix # not done
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_4.csv $oprefix # not done
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_5.csv $oprefix # not done
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_6.csv $oprefix # not done
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_7.csv $oprefix # not done
+sbatch ../scripts/sbatch_talon_bulk.sh talon/talon_config_1.csv $oprefix # finished 11/24/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_2.csv $oprefix # done 11/25/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_3.csv $oprefix # done 11/25/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_4.csv $oprefix # done 11/27/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_5.csv $oprefix # done 11/27/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_6.csv $oprefix # done 11/28/21
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_7.csv $oprefix # done 11/29/21
 ``` -->
