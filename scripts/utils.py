@@ -4,6 +4,8 @@ import anndata
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
+import numpy as np
+import scipy.stats as st
 
 def rm_sirv_ercc(df):
     """From TALON ab file"""
@@ -64,7 +66,7 @@ def compute_detection(df, sample='cell_line',
     # get the celltype
     df['celltype'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
     
-    if sample == 'biosample':
+    if sample == 'tissue':
 
         # add in the tissue metadata
         d = os.path.dirname(__file__)
@@ -75,6 +77,9 @@ def compute_detection(df, sample='cell_line',
                         right_on='biosample')
         df.drop('celltype', axis=1, inplace=True)
         df.rename({'tissue': 'celltype'}, axis=1, inplace=True)
+        print('Found {} distinct tissues'.format(len(df.celltype.unique())))
+    else:
+        print('Found {} distinct cell lines'.format(len(df.celltype.unique())))   
 
     df.drop(['dataset'], axis=1, inplace=True)
 
@@ -134,10 +139,9 @@ def get_rank_order(df, how='max'):
 
     return temp
 
-def compute_corr(df, how='gene', nov='Known', groupby='celltype'):
+def compute_corr(df, how='gene', nov='Known', sample='cell_line'):
 
-    dataset_cols = get_dataset_cols(df)
-
+    dataset_cols = get_sample_datasets(sample)
     df = rm_sirv_ercc(df)
 
     if how == 'iso':
@@ -182,7 +186,8 @@ def compute_corr(df, how='gene', nov='Known', groupby='celltype'):
 
     corrs.reset_index(inplace=True)
 
-    if groupby == 'biosample':
+    if sample == 'tissue':
+
         # add in the tissue metadata
         d = os.path.dirname(__file__)
         fname = '{}/../refs/tissue_metadata.csv'.format(d)

@@ -20,6 +20,37 @@ def get_talon_nov_colors():
 
     return c_dict, order
 
+def plot_corr(df, sample='cell_line',
+              how='gene', nov='Known', 
+              opref='figures/', cluster=False):
+    
+    corrs = compute_corr(df, how=how, sample=sample)
+    if cluster == False:
+        g = sns.clustermap(corrs, cmap='viridis',
+                        xticklabels=True, yticklabels=True,
+                        row_cluster=False, col_cluster=False)
+    else:
+        g = sns.clustermap(corrs, cmap='viridis',
+                xticklabels=True, yticklabels=True)
+    
+    if how == 'iso':
+        if nov == 'Known':
+            title_txt = 'Known transcript'
+        else:
+            title_txt = '{} transcript'.format(nov)
+    elif how == 'gene':
+        title_txt = 'Known gene'
+    title = '{} expression correlations'.format(title_txt)
+             
+    g.fig.suptitle(title) 
+    
+    fname = '{}{}_{}_correlation.pdf'.format(opref, nov, how)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+    fname = '{}{}_{}_correlation.png'.format(opref, nov, how)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+
 def plot_ranked_biosamp(df, sample='cell_line', how='iso', nov='known',
                     ylim=None, opref='figures/'):
     sns.set_context('paper', font_scale=2)
