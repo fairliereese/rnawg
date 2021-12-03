@@ -5,6 +5,204 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 
+def rm_sirv_ercc(df):
+    """From TALON ab file"""
+    df = df.loc[~df.annot_gene_id.str.contains('SIRV')]
+    df.loc[~df.annot_gene_id.str.contains('ERCC-')]
+    return df
+
+def get_dataset_cols(df):
+    """From TALON ab file"""
+    non_dataset_columns = ['gene_ID', 'transcript_ID', 'annot_gene_id',
+                           'annot_transcript_id', 'annot_gene_name',
+                           'annot_transcript_name', 'n_exons', 'length',
+                           'gene_novelty', 'transcript_novelty', 'ISM_subtype']
+    dataset_cols = [ x for x in list(df.columns) \
+                        if x not in non_dataset_columns ]
+    return dataset_cols
+
+def get_sample_datasets(sample):
+    """
+    Get the human-readable names of the datasets belonging
+    to the input sample type.
+    
+    Parameters:
+        sample (str): 'cell_line' or 'tissue'
+        
+    Returns:
+        datasets (list of str): List of datasets belonging to that specific sample type
+    """
+    d = os.path.dirname(__file__)
+    fname = '{}/../lr_bulk/hr_to_biosample_type.tsv'.format(d)
+    df = pd.read_csv(fname, sep='\t')
+    datasets = df.loc[df.biosample_type == sample, 'hr'].tolist()
+    return datasets
+
+def compute_detection(df, sample='cell_line',
+                      how='iso', nov='Known'):
+    
+    df = rm_sirv_ercc(df)
+    
+    dataset_cols = get_sample_datasets(sample)
+    
+    if how == 'iso':
+        df.set_index('annot_transcript_id', inplace=True)
+        df = df.loc[df.transcript_novelty == nov]
+        df = df[dataset_cols]
+
+    # sum up counts across the same gene
+    if how == 'gene':
+        # only known genes
+        df = df.loc[df.gene_novelty == 'Known']
+        df = df[dataset_cols+['annot_gene_id']]
+        df = df.groupby('annot_gene_id').sum()
+
+    df = df.transpose()
+    df.reset_index(inplace=True)
+    df.rename({'index': 'dataset'}, axis=1, inplace=True)
+
+    # get the celltype
+    df['celltype'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
+    
+    if sample == 'biosample':
+
+        # add in the tissue metadata
+        d = os.path.dirname(__file__)
+        fname = '{}/../refs/tissue_metadata.csv'.format(d)
+        tissue = pd.read_csv(fname)
+        df = df.merge(tissue[['biosample', 'tissue']],
+                        how='left', left_on='celltype',
+                        right_on='biosample')
+        df.drop('celltype', axis=1, inplace=True)
+        df.rename({'tissue': 'celltype'}, axis=1, inplace=True)
+
+    df.drop(['dataset'], axis=1, inplace=True)
+
+    # sum over celltype
+    df = df.groupby('celltype').sum()
+    temp = df.copy(deep=True)
+
+    max_df = get_rank_order(temp, 'max')
+    temp = df.copy(deep=True)
+
+    min_df = get_rank_order(temp, 'min')
+
+    return max_df, min_df
+
+
+def get_rank_order(df, how='max'):
+    rank_order = ['n/a']
+    rank_exp = [0]
+    rank_cumulative = [0]
+
+    n_celltypes = len(df.index.unique().tolist())
+
+    while len(rank_order) < n_celltypes+1:
+
+        # how many are expressed?
+        df['n_expressed'] = df.gt(0).sum(axis=1)
+
+        # which celltype expresses most?
+        if how == 'max':
+            celltype = df.n_expressed.idxmax()
+        elif how == 'min':
+            celltype = df.n_expressed.idxmin()
+
+        n_exp = df.loc[celltype, 'n_expressed']
+
+        if len(rank_order) == 1:
+            rank_cumulative += [n_exp]
+        else:
+            rank_cumulative += [rank_cumulative[-1]+n_exp]
+
+        rank_order += [celltype]
+        rank_exp += [n_exp]
+
+        # subset matrix by those that aren't expressed in the stashed celltype
+        df.drop('n_expressed', axis=1, inplace=True)
+        temp = df.loc[celltype].gt(0).to_frame()
+        temp.rename({celltype: 'expressed'}, axis=1, inplace=True)
+        remove_cols = temp.loc[temp.expressed == True].index.tolist()
+        df.drop(remove_cols, axis=1, inplace=True)
+
+        # also remove the celltype that was just analyzed
+        df.drop(celltype, axis=0, inplace=True)
+
+    temp = pd.DataFrame(data=rank_cumulative, columns=['n_cumulative'])
+    temp['rank'] = temp.index+1
+    temp['celltype'] = rank_order
+
+    return temp
+
+def compute_corr(df, how='gene', nov='Known', groupby='celltype'):
+
+    dataset_cols = get_dataset_cols(df)
+
+    df = rm_sirv_ercc(df)
+
+    if how == 'iso':
+        df.set_index('annot_transcript_id', inplace=True)
+        df = df.loc[df.transcript_novelty == nov]
+        df = df[dataset_cols]
+
+    # sum up counts across the same gene
+    if how == 'gene':
+        # only known genes
+        df = df.loc[df.gene_novelty == 'Known']
+        df = df[dataset_cols+['annot_gene_id']]
+        df = df.groupby('annot_gene_id').sum()
+
+    # sanity check
+    print(len(df.index))
+
+    # compute TPM
+    tpm_cols = []
+    for d in dataset_cols:
+        tpm_col = '{}_tpm'.format(d)
+        total_col = '{}_total'.format(d)
+        df[total_col] = df[d].sum()
+        df[tpm_col] = (df[d]*1000000)/df[total_col]
+        tpm_cols.append(tpm_col)
+    df = df[tpm_cols]
+
+    # compute correlation between each set of datasets
+    data = [[np.nan for i in range(len(df.columns))] for j in range(len(df.columns))]
+    corrs = pd.DataFrame(data=data, index=df.columns, columns=df.columns)
+
+    tested = []
+    for d1 in df.columns.tolist():
+        for d2 in df.columns.tolist():
+            if [d1, d2] in tested:
+                continue
+            tested.append([d1, d2])
+            tested.append([d2, d1])
+            corr = st.pearsonr(df[d1].tolist(), df[d2].tolist())
+            corrs.at[d1, d2] = corr[0]
+            corrs.at[d2, d1] = corr[0]
+
+    corrs.reset_index(inplace=True)
+
+    if groupby == 'biosample':
+        # add in the tissue metadata
+        d = os.path.dirname(__file__)
+        fname = '{}/../refs/tissue_metadata.csv'.format(d)
+        tissue = pd.read_csv(fname)
+        corrs['celltype'] = corrs['index'].str.rsplit('_', n=2, expand=True)[0]
+        corrs = corrs.merge(tissue[['biosample', 'tissue']],
+                        how='left', left_on='celltype',
+                        right_on='biosample')
+
+        corrs.sort_values(by='tissue', inplace=True)
+        corrs.drop(['tissue', 'celltype'], axis=1, inplace=True)
+        corrs.set_index('index', inplace=True)
+        corrs = corrs[corrs.index.tolist()]
+    else:
+        corrs.sort_values(by='index', inplace=True)
+        corrs.set_index('index', inplace=True)
+        corrs = corrs[corrs.index.tolist()]
+    return corrs
+
+
 def filter_cells(adata, min_umi,
                  max_umi,
                  max_mt,

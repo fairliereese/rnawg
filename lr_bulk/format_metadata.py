@@ -10,7 +10,7 @@ df.to_csv('biosample_exp_table.txt', index=False, header=False)
 
 # commands to make the file accession <-> sample ID
 df = pd.read_csv('metadata.tsv', sep='\t')
-df = df[['File accession', 'Experiment accession', 'Biosample term name', 'Technical replicate(s)', 'Biological replicate(s)']]
+df = df[['File accession', 'Experiment accession', 'Biosample term name', 'Biosample type', 'Technical replicate(s)', 'Biological replicate(s)']]
 map = pd.read_csv('biosamp_term_name_map.tsv', sep='\t', header=None, usecols=[1,2])
 map.columns = ['biosamp_name', 'new_biosamp_name']
 map.drop_duplicates(inplace=True)
@@ -24,8 +24,17 @@ temp.biorep = temp.biorep.astype(str)
 df = df.merge(temp, on='Experiment accession')
 df['techrep'] = df.groupby('Experiment accession').cumcount()+1
 df['hr'] = df.new_biosamp_name+'_'+df.biorep+'_'+df.techrep.astype(str)
-df = df[['File accession', 'hr']]
-df.to_csv('file_to_hr.tsv', sep='\t', header=None, index=False)
+temp = df[['File accession', 'hr']]
+temp.to_csv('file_to_hr.tsv', sep='\t', header=None, index=False)
+
+# save info about whether each dataset is a cell line or tissue
+temp = df[['hr', 'Biosample type']].copy(deep=True)
+d = {'cell line': 'cell_line',
+     'in vitro differentiated cells': 'cell_line',
+     'tissue': 'tissue'}
+temp['biosample_type'] = df['Biosample type'].map(d)
+temp = temp[['hr', 'biosample_type']]
+temp.to_csv('hr_to_biosample_type.tsv', sep='\t', index=False)
 
 # df[['Experiment accession', 'biosamp_name', 'biorep', 'techrep', 'hr']].sort_values('Experiment accession')
 # len(df.hr.unique())
