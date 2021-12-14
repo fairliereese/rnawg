@@ -20,6 +20,91 @@ def get_talon_nov_colors():
 
     return c_dict, order
 
+def plot_biosamp_det(df, how='gene',
+                     sample='cell_line',
+                     nov='Known',
+                     opref='figures/'):
+    df = rm_sirv_ercc(df)
+    
+    dataset_cols = get_sample_datasets(sample)
+
+    if how == 'iso':
+        df.set_index('annot_transcript_id', inplace=True)
+        df = df.loc[df.transcript_novelty == nov]
+        df = df[dataset_cols]
+
+    # sum up counts across the same gene
+    if how == 'gene':
+        # only known genes
+        df = df.loc[df.gene_novelty == 'Known']
+        df = df[dataset_cols+['annot_gene_id']]
+        df = df.groupby('annot_gene_id').sum()
+
+    df = df.transpose()
+    df.reset_index(inplace=True)
+    df.rename({'index': 'dataset'}, axis=1, inplace=True)
+
+    # get the celltype
+    df['celltype'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
+
+    if sample == 'tissue':
+
+        # add in the tissue metadata
+        d = os.path.dirname(__file__)
+        fname = '{}/../refs/tissue_metadata.csv'.format(d)
+        tissue = pd.read_csv(fname)
+        df = df.merge(tissue[['biosample', 'tissue']],
+                        how='left', left_on='celltype',
+                        right_on='biosample')
+        df.drop('celltype', axis=1, inplace=True)
+        df.rename({'tissue': 'celltype'}, axis=1, inplace=True)
+        print('Found {} distinct tissues'.format(len(df.celltype.unique())))
+    else:
+        print('Found {} distinct cell lines'.format(len(df.celltype.unique())))   
+
+    df.drop(['dataset'], axis=1, inplace=True)
+
+    # sum over celltype
+    df = df.groupby('celltype').sum()
+    temp = df.copy(deep=True)
+    
+    # convert counts to bools + other formatting
+    temp = temp.astype(bool)
+    temp.index.name = None
+    temp = temp.transpose()
+    ind_cols = temp.columns.tolist()
+    temp.reset_index(inplace=True)
+    
+    # number of samples this iso / gene was expressed in
+    temp['n_samples'] = temp[ind_cols].sum(1)
+    
+    # histogram of number of biosamples this shows up in 
+    c_dict, order = get_talon_nov_colors()
+    color = c_dict[nov]
+    sns.set_context('paper', font_scale=2)
+    ax = sns.displot(data=temp, x='n_samples', kind='hist',
+                color=color, binwidth=1)
+    
+    # titles
+    if how == 'gene':
+        ylabel = 'Known genes'
+    elif how == 'iso':
+        if nov == 'Known':
+            ylabel = 'Known transcripts'
+        elif nov == 'NIC':
+            ylabel = 'NIC transcripts'
+        elif nov == 'NNC':
+            ylabel = 'NNC transcripts'
+    
+    if sample == 'tissue':
+        xlabel = 'Number of tissues'
+    elif sample == 'cell_line':
+        xlabel = 'Number of celltypes'
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+    
+    fname = '{}_{}_{}_{}_detection.png'.format(opref, sample, nov, how)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')  
+
 def plot_corr(df, sample='cell_line',
               how='gene', nov='Known', 
               opref='figures/', cluster=False):
