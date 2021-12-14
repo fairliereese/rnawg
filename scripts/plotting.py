@@ -8,7 +8,7 @@ import upsetplot
 from scipy import stats
 from .utils import *
 
-def get_talon_nov_colors():
+def get_talon_nov_colors(cats=None):
     c_dict = {'Known': '#009E73',
               'ISM': '#0072B2',
               'NIC': '#D55E00',
@@ -17,13 +17,133 @@ def get_talon_nov_colors():
               'Intergenic': '#CC79A7',
               'Genomic': '#F0E442'}
     order = ['Known', 'ISM', 'NIC', 'NNC', 'Antisense', 'Intergenic', 'Genomic']
-
+    
+    if cats:
+        keys = c_dict.keys()
+        pop_list = []
+        for key in keys:
+            if key not in cats:
+                pop_list.append(key)
+        for p in pop_list:
+            del c_dict[p]
+        order = [o for o in order if o in cats]            
     return c_dict, order
 
+def plot_gene_v_iso_det(df, filt_df,
+                        sample='cell_line',
+                        opref='figures/'):
+    """
+    Plot a scatterplot of the number of genes detected per library
+        versus the number of transcripts detected, by novelty type
+
+    Parameters:
+        df (pandas DataFrame): TALON abundance, unfiltered
+        filt_df (pandas DataFrame): TALON abundance, filtered
+        sample (str): Either "tissue", "cell_line"
+        opref (str): Output prefix to save figure
+    """
+        
+    df = rm_sirv_ercc(df)
+    filt_df = rm_sirv_ercc(filt_df)
+    dataset_cols = get_sample_datasets(sample)
+
+    # only known genes
+    gene_df = df.loc[df.gene_novelty == 'Known'].copy(deep=True)
+    gene_df = gene_df[dataset_cols+['annot_gene_id']]
+    gene_df = gene_df.groupby('annot_gene_id').sum()
+
+    gene_df = gene_df.astype(bool)
+    ind_cols = gene_df.columns
+    gene_df = gene_df.transpose()
+    gene_df['n_genes'] = gene_df.sum(1)
+    gene_df = gene_df['n_genes'].to_frame()
+
+    # known transcripts
+    t_df = filt_df.loc[filt_df.transcript_novelty == 'Known'].copy(deep=True)
+    t_df = t_df[dataset_cols+['annot_transcript_id']]
+    t_df = t_df.astype(bool)
+    ind_cols = t_df.columns
+    t_df = t_df.transpose()
+    t_df['Known'] = t_df.sum(1)
+    t_df = t_df['Known'].to_frame()
+
+    gene_df = gene_df.merge(t_df, left_index=True, right_index=True)
+
+    # nic transcripts
+    t_df = filt_df.loc[filt_df.transcript_novelty == 'NIC'].copy(deep=True)
+    t_df = t_df[dataset_cols+['annot_transcript_id']]
+    t_df = t_df.astype(bool)
+    ind_cols = t_df.columns
+    t_df = t_df.transpose()
+    t_df['NIC'] = t_df.sum(1)
+    t_df = t_df['NIC'].to_frame()
+
+    gene_df = gene_df.merge(t_df, left_index=True, right_index=True)
+
+    # nnc transcripts
+    t_df = filt_df.loc[filt_df.transcript_novelty == 'NNC'].copy(deep=True)
+    t_df = t_df[dataset_cols+['annot_transcript_id']]
+    t_df = t_df.astype(bool)
+    ind_cols = t_df.columns
+    t_df = t_df.transpose()
+    t_df['NNC'] = t_df.sum(1)
+    t_df = t_df['NNC'].to_frame()
+
+    gene_df = gene_df.merge(t_df, left_index=True, right_index=True)
+    gene_df.reset_index(inplace=True)
+    
+    df = gene_df.melt(id_vars=['index', 'n_genes'],
+                  value_vars=['Known','NIC','NNC'])
+    df.rename({'value': 'transcript_counts'}, axis=1, inplace=True)
+    df.rename({'variable': 'novelty'}, axis=1, inplace=True)
+    
+    c_dict, order = get_talon_nov_colors(['Known', 'NIC', 'NNC'])
+    sns.set_context('paper', font_scale=1.6)
+
+    ax = sns.jointplot(data=df, x='transcript_counts', y='n_genes',
+                     hue='novelty', palette=c_dict,
+    #                  xlim=(0,xlim), ylim=(0,ylim), 
+                     joint_kws={'data':df, 's':40, 'alpha':1})
+    ax = ax.ax_joint
+
+    ax.legend(title='')
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.get_legend().remove()
+
+    if sample == 'tissue':
+        ylabel = 'Known genes per tissue library'
+        xlabel = 'Transcripts per tissue library'
+    elif sample == 'cell_line':
+        ylabel = 'Known genes per cell line library'
+        xlabel = 'Transcripts per cell line library'
+
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+    
+    fname = '{}{}_gene_v_iso_det.png'.format(opref, sample)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')  
+    
 def plot_biosamp_det(df, how='gene',
                      sample='cell_line',
+                     groupby='cell_line',
                      nov='Known',
                      opref='figures/'):
+    
+    """
+    Plot a hist of the number of tissues, cell lines, or datasets each gene or 
+    isoform occurs in.
+    
+    Parameters:
+        df (pandas DataFrame): TALON abundance
+        how (str): Either "gene" or "iso"
+        sample (str): Either "tissue", "cell_line", or "library", 
+            used to limit datasets displayed
+        groupby (str): Either "tissue", "cell_line", or "library", 
+            used to groupby datasets displayed
+        nov (str): Only used with how='iso', novelty category of 
+            isoforms to consider
+        opref (str): Output prefix to save figure
+    """
     df = rm_sirv_ercc(df)
     
     dataset_cols = get_sample_datasets(sample)
@@ -47,7 +167,7 @@ def plot_biosamp_det(df, how='gene',
     # get the celltype
     df['celltype'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
 
-    if sample == 'tissue':
+    if groupby == 'tissue':
 
         # add in the tissue metadata
         d = os.path.dirname(__file__)
@@ -59,9 +179,13 @@ def plot_biosamp_det(df, how='gene',
         df.drop('celltype', axis=1, inplace=True)
         df.rename({'tissue': 'celltype'}, axis=1, inplace=True)
         print('Found {} distinct tissues'.format(len(df.celltype.unique())))
-    else:
-        print('Found {} distinct cell lines'.format(len(df.celltype.unique())))   
-
+    elif groupby == 'cell_line':
+        print('Found {} distinct cell lines'.format(len(df.celltype.unique()))) 
+        
+    elif groupby == 'library':
+        df['celltype'] = df.dataset
+        print('Found {} distinct libraries'.format(len(df.dataset.unique())))
+        
     df.drop(['dataset'], axis=1, inplace=True)
 
     # sum over celltype
@@ -96,13 +220,23 @@ def plot_biosamp_det(df, how='gene',
         elif nov == 'NNC':
             ylabel = 'NNC transcripts'
     
-    if sample == 'tissue':
+    if groupby == 'tissue':
         xlabel = 'Number of tissues'
-    elif sample == 'cell_line':
+    elif groupby == 'cell_line':
         xlabel = 'Number of celltypes'
+    elif groupby == 'library':
+        if sample == 'cell_line':
+            xlabel = 'Number of cell line libraries'
+        elif sample == 'tissue':
+            xlabel = 'Number of tissue libraries'
+        
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
     
-    fname = '{}_{}_{}_{}_detection.png'.format(opref, sample, nov, how)
+    if groupby == sample:
+        fname = '{}{}_{}_{}_detection.png'.format(opref, sample, nov, how)
+    else:
+        fname = '{}{}_{}_{}_library_detection.png'.format(opref, sample, nov, how)
+        
     plt.savefig(fname, dpi=300, bbox_inches='tight')  
 
 def plot_corr(df, sample='cell_line',
