@@ -29,6 +29,69 @@ def get_talon_nov_colors(cats=None):
         order = [o for o in order if o in cats]            
     return c_dict, order
 
+def plot_gene_v_iso_sample_det(df,
+                               sample='cell_line', 
+                               opref='figures/'):
+    """
+    Plot a hexbin density plot of the number of samples each gene and transcript is detected per librarygenes detected per library, by novelty type
+
+    Parameters:
+        df (pandas DataFrame): TALON abundance, unfiltered
+        sample (str): Either "tissue", "cell_line"
+        opref (str): Output prefix to save figure
+    """
+    df = rm_sirv_ercc(df)
+    dataset_cols = get_sample_datasets(sample)
+
+    t_df = df[dataset_cols+['annot_transcript_id']].copy(deep=True)
+    t_df.set_index('annot_transcript_id', inplace=True)
+    t_df = t_df.astype(bool)
+    t_df['n_samples_transcript'] = t_df.sum(1)
+    t_df = t_df['n_samples_transcript'].to_frame()
+    t_df.reset_index(inplace=True)
+
+    g_df = df.loc[df.gene_novelty == 'Known'].copy(deep=True)
+    g_df = g_df[dataset_cols+['annot_gene_id']]
+    g_df = g_df.groupby('annot_gene_id').sum()
+    g_df = g_df.astype(bool)
+    g_df['n_samples_gene'] = g_df.sum(1)
+    g_df = g_df['n_samples_gene'].to_frame()
+    g_df.reset_index(inplace=True)
+
+    cols = ['annot_gene_id', 'annot_transcript_id', 'transcript_novelty']
+    t_df = t_df.merge(df[cols], how='left', on='annot_transcript_id')
+    t_df = t_df.merge(g_df, how='left', on='annot_gene_id')
+
+    # c_dict, order = get_talon_nov_colors(['Known', 'NIC', 'NNC'])
+    c_dict, order = get_talon_nov_colors()
+    sns.set_context('paper', font_scale=1.6)
+
+    for nov in ['Known', 'NIC', 'NNC']:
+        temp = t_df.loc[t_df.transcript_novelty == nov].copy(deep=True)
+        ax = sns.jointplot(data=temp, x='n_samples_transcript', 
+                         y='n_samples_gene',
+                         kind='hex',
+                         color=c_dict[nov],
+                         bins='log',
+                         gridsize=25)
+        ax = ax.ax_joint
+
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+
+        if sample == 'tissue':
+            ylabel = '# tissue libraries gene was detected in'
+            xlabel = '# tissue libraries transcript was detected in'
+        elif sample == 'cell_line':
+            ylabel = '# cell line libraries gene was detected in'
+            xlabel = '# cell line libraries transcript was detected in'
+
+        _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+
+        fname = '{}{}_gene_v_{}_iso_n_samp_det.png'.format(opref, sample, nov)
+        plt.savefig(fname, dpi=300, bbox_inches='tight')
+
+
 def plot_gene_v_iso_det(df, filt_df,
                         sample='cell_line',
                         opref='figures/'):
