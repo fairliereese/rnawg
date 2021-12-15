@@ -822,7 +822,7 @@ def plot_transcript_novelty(df, oprefix, \
         g.fig.suptitle('{} transcript models per novelty category'.format(title))
 
     # save figure
-    fname = '{}_isoform_novelty'.format(oprefix)
+    fname = '{}{}_isoform_novelty'.format(oprefix,sample)
     if save_type == 'png':
         g.savefig(fname+'.png', dpi=300)
     elif save_type == 'pdf':
