@@ -13,15 +13,12 @@ def rm_sirv_ercc(df):
     df.loc[~df.annot_gene_id.str.contains('ERCC-')]
     return df
 
-def get_dataset_cols(df):
-    """From TALON ab file"""
-    non_dataset_columns = ['gene_ID', 'transcript_ID', 'annot_gene_id',
-                           'annot_transcript_id', 'annot_gene_name',
-                           'annot_transcript_name', 'n_exons', 'length',
-                           'gene_novelty', 'transcript_novelty', 'ISM_subtype']
-    dataset_cols = [ x for x in list(df.columns) \
-                        if x not in non_dataset_columns ]
-    return dataset_cols
+def get_dataset_cols():
+    d = os.path.dirname(__file__)
+    fname = '{}/../lr_bulk/hr_to_biosample_type.tsv'.format(d)
+    df = pd.read_csv(fname, sep='\t')
+    datasets = df.hr.tolist()
+    return datasets
 
 def get_sample_datasets(sample):
     """

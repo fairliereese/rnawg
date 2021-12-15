@@ -29,6 +29,94 @@ def get_talon_nov_colors(cats=None):
         order = [o for o in order if o in cats]            
     return c_dict, order
 
+def plot_cell_line_tissue_det_venn(df, how='gene', 
+                                   nov='Known', 
+                                   opref='figures/'):
+    """
+    Plot a venn diagram showing how many genes / transcripts
+    are detected between the cell line and tissue datasets
+        
+    Parameters:
+        df (pandas DataFrame): TALON abundance, unfiltered
+            or filtered (for gene)
+        how (str): Either 'gene' or 'iso'
+        nov (str): Novelty, either 'Known', 'NIC', or 'NNC'
+        opref (str): Where to save output figures
+    """
+    sns.set_context('paper', font_scale=1.8)
+    
+    if how == 'gene':
+        df = df.loc[df.gene_novelty == 'Known']
+        dataset_cols = get_dataset_cols()
+        df = df[['annot_gene_id']+dataset_cols]
+        df = df.groupby('annot_gene_id').sum().reset_index()
+        
+    tissues = get_sample_datasets('tissue')
+    cell_lines = get_sample_datasets('cell_line')
+
+    df['tissue'] = df[tissues].sum(1).astype(bool)
+    df['cell_line'] = df[cell_lines].sum(1).astype(bool)
+    
+    if how == 'iso':
+        df = df[['transcript_novelty', 'tissue', 'cell_line']]
+        df = df.loc[df.transcript_novelty == nov]
+    else:
+        print(df.head())
+        df = df[['annot_gene_id', 'tissue', 'cell_line']]
+    
+    known_out_green = '#90D6C3'
+    known_int_green = '#009E73'
+    nnc_out_gold = '#F5DFAE'
+    nnc_int_gold = '#E69F00'
+    nic_out_orange = '#DEA67A'
+    nic_int_orange = '#D55E00'
+    
+    if nov == 'Known':
+        out_color = known_out_green
+        int_color = known_int_green
+    elif nov == 'NNC':
+        out_color = nnc_out_gold
+        int_color = nnc_int_gold
+    elif nov == 'NIC':
+        out_color = nic_out_orange
+        int_color = nic_int_orange
+        
+    df = df.groupby(['tissue', 'cell_line']).count().reset_index()
+    if how == 'iso':
+        df.rename({'transcript_novelty': 'counts'}, axis=1, inplace=True)
+    elif how == 'gene':
+        df.rename({'annot_gene_id': 'counts'}, axis=1, inplace=True)
+    print(df)
+    intersection = df.loc[(df.cell_line)&(df.tissue), 'counts'].values[0]
+    tissue = df.loc[(~df.cell_line)&(df.tissue), 'counts'].values[0]
+    cell_line = df.loc[(df.cell_line)&(~df.tissue), 'counts'].values[0]
+    
+    counts = [cell_line, tissue, intersection]
+    log_counts = [np.log2(n) for n in counts]
+    log_counts = tuple(counts)
+    
+    v = venn2(subsets=log_counts, set_labels=('',''))
+    v.get_patch_by_id('10').set_color(out_color)
+    v.get_patch_by_id('01').set_color(out_color)
+    v.get_patch_by_id('11').set_color(int_color)
+    v.get_patch_by_id('10').set_edgecolor(int_color)
+    v.get_patch_by_id('01').set_edgecolor(int_color)
+    v.get_patch_by_id('11').set_edgecolor(int_color)
+    v.get_patch_by_id('10').set_linewidth(5)
+    v.get_patch_by_id('01').set_linewidth(5)
+    v.get_patch_by_id('11').set_linewidth(5)
+    v.get_patch_by_id('10').set_alpha(1)
+    v.get_patch_by_id('01').set_alpha(1)
+    v.get_patch_by_id('11').set_alpha(1)
+    v.get_label_by_id('10').set_text(counts[0])
+    v.get_label_by_id('01').set_text(counts[1])
+    v.get_label_by_id('11').set_text(counts[2])
+    
+    fname = '{}{}_{}_venn.png'.format(opref, how, nov)
+    plt.savefig(fname, dpi=300, bbox_inches='tight') 
+    
+    
+
 def plot_n_reps_per_biosamp(df,
                             sample='cell_line',
                             opref='figures/'):
@@ -70,6 +158,15 @@ def plot_n_reps_per_biosamp(df,
     ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
+    
+    if sample == 'tissue':
+        ylabel = '# libraries'
+        xlabel = 'Tissue'
+    elif sample == 'cell_line':
+        ylabel = '# libraries'
+        xlabel = 'Cell line'
+
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
     
     fname = '{}{}_libs_per_biosamp.png'.format(opref, sample)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
@@ -257,7 +354,10 @@ def plot_biosamp_det(df, how='gene',
     """
     df = rm_sirv_ercc(df)
     
-    dataset_cols = get_sample_datasets(sample)
+    if sample:
+        dataset_cols = get_sample_datasets(sample)
+    else:
+        dataset_cols = get_dataset_cols()
 
     if how == 'iso':
         df.set_index('annot_transcript_id', inplace=True)
@@ -340,6 +440,8 @@ def plot_biosamp_det(df, how='gene',
             xlabel = 'Number of cell line libraries'
         elif sample == 'tissue':
             xlabel = 'Number of tissue libraries'
+        else: 
+            xlabel = 'Number of libraries'
         
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
     
@@ -664,25 +766,35 @@ def plot_read_novelty(df, opref, c_dict, order,
     fname = '{}_read_novelty'.format(opref)
     g.savefig(fname+'.pdf', dpi=300)
 
-def plot_transcript_novelty(df, oprefix, c_dict, order, \
+def plot_transcript_novelty(df, oprefix, \
                             ylim=None, title=None,
-                            whitelist=None, datasets='all', save_type='pdf'):
+                            whitelist=None, sample=None, save_type='pdf'):
     sns.set_context('paper', font_scale=1.6)
 
     temp = df.copy(deep=True)
+    
+    c_dict, order = get_talon_nov_colors()
 
     # remove transcripts that are not on whitelist
     if whitelist:
         temp = temp.loc[temp.transcript_ID.isin(whitelist)]
 
     # filter on datasets
-    if datasets != 'all':
-        temp = temp.loc[temp.dataset.isin(datasets)]
+    if sample:
+        datasets = get_sample_datasets(sample)
+    else:
+        datasets = get_dataset_cols()
+    cols = ['transcript_ID', 'transcript_novelty']
+    temp = temp[cols+datasets]
+    
+    temp['total_counts'] = temp[datasets].sum(1)
+    temp = temp.loc[temp.total_counts > 0]
 
     # count number of isoforms per cat
-    temp = temp[['transcript_ID', 'transcript_novelty', 'read_name']].groupby(['transcript_ID', 'transcript_novelty']).count()
-    temp.reset_index(inplace=True)
-    temp.drop('read_name', axis=1, inplace=True)
+#     temp = temp[['transcript_ID', 'transcript_novelty', 'read_name']].groupby(['transcript_ID', 'transcript_novelty']).count()
+#     temp.reset_index(inplace=True)
+#     temp.drop('read_name', axis=1, inplace=True)
+    temp = temp[['transcript_ID', 'transcript_novelty']]
     temp = temp.groupby('transcript_novelty').count()
     temp.reset_index(inplace=True)
     temp.rename({'transcript_ID': 'counts'}, axis=1, inplace=True)
