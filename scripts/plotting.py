@@ -29,6 +29,52 @@ def get_talon_nov_colors(cats=None):
         order = [o for o in order if o in cats]            
     return c_dict, order
 
+def plot_n_reps_per_biosamp(df,
+                            sample='cell_line',
+                            opref='figures/'):
+    """
+    Plot a bar plot showing the number of libraries
+        that went into each sample 
+        
+    Parameters:
+        df (pandas DataFrame): TALON abundance, unfiltered
+        sample (str): Either "tissue", "cell_line"
+        opref (str): Output prefix to save figure
+    """
+    
+    dataset_cols = get_sample_datasets(sample)
+    df = df[dataset_cols]
+    df = df.transpose()
+    df.reset_index(inplace=True)
+    df.rename({'index': 'dataset'}, axis=1, inplace=True)
+    df['celltype'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
+
+    if sample == 'tissue':
+        # add in the tissue metadata
+        d = os.path.dirname(__file__)
+        fname = '{}/../refs/tissue_metadata.csv'.format(d)
+    #     fname = '../../refs/tissue_metadata.csv'.format(d)
+        tissue = pd.read_csv(fname)
+        df = df.merge(tissue[['biosample', 'tissue']],
+                        how='left', left_on='celltype',
+                        right_on='biosample')
+        df.drop('celltype', axis=1, inplace=True)
+        df.rename({'tissue': 'celltype'}, axis=1, inplace=True)
+        print('Found {} distinct tissues'.format(len(df.celltype.unique())))
+    elif sample == 'cell_line':
+        print('Found {} distinct cell lines'.format(len(df.celltype.unique()))) 
+
+    df = df[['dataset', 'celltype']]
+
+    ax = sns.countplot(data=df, x='celltype')
+    ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    
+    fname = '{}{}_libs_per_biosamp.png'.format(opref, sample)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+
 def plot_gene_v_iso_sample_det(df,
                                sample='cell_line', 
                                opref='figures/'):
@@ -42,6 +88,8 @@ def plot_gene_v_iso_sample_det(df,
     """
     df = rm_sirv_ercc(df)
     dataset_cols = get_sample_datasets(sample)
+    gridsize = int(len(dataset_cols)/2)
+    print('Gridsize: {}'.format(gridsize))
 
     t_df = df[dataset_cols+['annot_transcript_id']].copy(deep=True)
     t_df.set_index('annot_transcript_id', inplace=True)
@@ -73,7 +121,7 @@ def plot_gene_v_iso_sample_det(df,
                          kind='hex',
                          color=c_dict[nov],
                          bins='log',
-                         gridsize=25)
+                         gridsize=gridsize)
         ax = ax.ax_joint
 
         ax.spines['right'].set_visible(False)
