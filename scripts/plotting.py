@@ -482,6 +482,9 @@ def plot_corr(df, sample='cell_line',
     fname = '{}{}_{}_correlation.png'.format(opref, nov, how)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
     
+    fname = '{}{}_{}_correlation.tsv'.format(opref, nov, how)
+    corrs.to_csv(fname, sep='\t')
+    
 
 def plot_ranked_biosamp(df, sample='cell_line', how='iso', nov='known',
                     ylim=None, opref='figures/'):

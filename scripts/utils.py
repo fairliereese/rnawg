@@ -136,6 +136,46 @@ def get_rank_order(df, how='max'):
 
     return temp
 
+def get_tpm_table(df, sample='cell_line',
+                    how='gene',
+                    save=False):
+    
+    dataset_cols = get_sample_datasets(sample)
+    df = rm_sirv_ercc(df)
+
+    if how == 'iso':
+        df.set_index('annot_transcript_id', inplace=True)
+        df = df.loc[df.transcript_novelty == nov]
+        df = df[dataset_cols]
+
+    # sum up counts across the same gene
+    if how == 'gene':
+        # only known genes
+        df = df.loc[df.gene_novelty == 'Known']
+        df = df[dataset_cols+['annot_gene_id']]
+        df = df.groupby('annot_gene_id').sum()
+
+    # sanity check
+    print(len(df.index))
+
+    # compute TPM
+    tpm_cols = []
+    for d in dataset_cols:
+        tpm_col = '{}_tpm'.format(d)
+        total_col = '{}_total'.format(d)
+        df[total_col] = df[d].sum()
+        df[tpm_col] = (df[d]*1000000)/df[total_col]
+        tpm_cols.append(tpm_col)
+    df = df[tpm_cols]
+    
+    df.columns = [c.rsplit('_', maxsplit=1)[0] for c in df.columns] 
+    
+    if save:
+        fname = '{}_{}_tpm.tsv'.format(sample, how)
+        df.to_csv(fname, sep='\t')
+        
+    return df
+
 def compute_corr(df, how='gene', nov='Known', sample='cell_line'):
 
     dataset_cols = get_sample_datasets(sample)
