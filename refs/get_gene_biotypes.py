@@ -2,8 +2,8 @@ import pandas as pd
 
 fname = '/dfs6/pub/freese/mortazavi_lab/data/rnawg/refs/gencode_v29_sirv4_ercc.gtf'
 
-df = pd.read_csv(fname, sep='\t', usecols=[0,2,8], comment='#')
-df.columns = ['chr', 'entry_type', 'fields']
+df = pd.read_csv(fname, sep='\t', usecols=[0,2,3,4,8], comment='#')
+df.columns = ['chr', 'start', 'stop', 'entry_type', 'fields']
 
 # remove sirvs and erccs
 print(len(df.index))
@@ -70,9 +70,12 @@ for key, biotypes in map.items():
 # then add map to df
 df['biotype_category'] = df.biotype.map(biotype_map)
 
+# gene length
+df['length'] = (df.start-df.stop).abs()
+
 # and save
-df = df[['gid', 'biotype', 'biotype_category']]
-fname = 'gencode_v29_gene_biotypes.tsv'
+df = df[['gid', 'length', 'biotype', 'biotype_category']]
+fname = 'gencode_v29_gene_metadata.tsv'
 df.to_csv(fname, sep='\t', index=False)
 
 # # only transcripts
