@@ -20,7 +20,7 @@ def get_dataset_cols():
     datasets = df.hr.tolist()
     return datasets
 
-def get_sample_datasets(sample):
+def get_sample_datasets(sample=None):
     """
     Get the human-readable names of the datasets belonging
     to the input sample type.
@@ -34,7 +34,11 @@ def get_sample_datasets(sample):
     d = os.path.dirname(__file__)
     fname = '{}/../lr_bulk/hr_to_biosample_type.tsv'.format(d)
     df = pd.read_csv(fname, sep='\t')
-    datasets = df.loc[df.biosample_type == sample, 'hr'].tolist()
+    if sample:
+        datasets = df.loc[df.biosample_type == sample, 'hr'].tolist()
+    else: 
+        datasets = df.hr.tolist()
+        
     return datasets
 
 def compute_detection(df, sample='cell_line',
@@ -136,9 +140,42 @@ def get_rank_order(df, how='max'):
 
     return temp
 
-def get_tpm_table(df, sample='cell_line',
+def get_gtf_info(how='gene'):
+    """
+    Gets the info from the annotation about genes / transcripts
+    
+    Parameters:
+        how (str): 'gene' or 'iso'
+        
+    Returns:
+        df (pandas DataFrame): DataFrame with info for gene / transcript
+    """
+    d = os.path.dirname(__file__)
+    if how == 'gene':
+        fname = '{}/../refs/gencode_v29_gene_metadata.tsv'.format(d)
+        
+    df = pd.read_csv(fname, sep='\t')
+    return df
+
+def get_tpm_table(df, sample=None,
                     how='gene',
+                    min_tpm=None,
+                    gene_subset=None,
                     save=False):
+    """
+    Parameters:
+        df (pandas DataFrame): TALON abundance table
+        sample (str): Choose from 'cell_line', 'tissue', or None
+        how (str): Choose from 'gene' or 'iso'
+        min_tpm (float): Keep only genes / isos that have at least one
+            TPM >= the value across the libraries
+        gene_subset (str): 
+        save (bool): Whether or not to save the output matrix
+        
+    Returns:
+        df (pandas DataFrame): TPMs for gene or isoforms in the requested
+            samples above the input detection threshold.
+    """
     
     dataset_cols = get_sample_datasets(sample)
     df = rm_sirv_ercc(df)
@@ -169,6 +206,12 @@ def get_tpm_table(df, sample='cell_line',
     df = df[tpm_cols]
     
     df.columns = [c.rsplit('_', maxsplit=1)[0] for c in df.columns] 
+    
+    # enforce tpm threshold
+    if min_tpm:
+        print('Total # {}s detected: {}'.format(how, len(df.index)))
+        df = df.loc[(df >= min_tpm).any(axis=1)]
+        print('# {}s >= {} tpm: {}'.format(how, min_tpm, len(df.index)))
     
     if save:
         fname = '{}_{}_tpm.tsv'.format(sample, how)

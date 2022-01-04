@@ -29,6 +29,9 @@ def get_talon_nov_colors(cats=None):
         order = [o for o in order if o in cats]            
     return c_dict, order
 
+def plot_det_gene_len(df, opref='figures/'):
+    pass
+
 def plot_cell_line_tissue_det_venn(df, how='gene', 
                                    nov='Known', 
                                    opref='figures/'):
@@ -802,6 +805,10 @@ def plot_transcript_novelty(df, oprefix, \
     temp.reset_index(inplace=True)
     temp.rename({'transcript_ID': 'counts'}, axis=1, inplace=True)
     print(temp)
+    novs = ['NIC', 'Known', 'NNC']
+    complete = temp.loc[temp.transcript_novelty.isin(novs), 'counts'].sum(axis=0)
+    print('Number of complete isoforms: {}'.format(complete))
+    
 
     # actual plotting
     g = sns.catplot(data=temp, x='transcript_novelty',

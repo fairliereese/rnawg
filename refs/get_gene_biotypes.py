@@ -3,7 +3,8 @@ import pandas as pd
 fname = '/dfs6/pub/freese/mortazavi_lab/data/rnawg/refs/gencode_v29_sirv4_ercc.gtf'
 
 df = pd.read_csv(fname, sep='\t', usecols=[0,2,3,4,8], comment='#')
-df.columns = ['chr', 'start', 'stop', 'entry_type', 'fields']
+df.columns = ['chr', 'entry_type', 'start', 'stop', 'fields']
+print(df.head())
 
 # remove sirvs and erccs
 print(len(df.index))
@@ -28,7 +29,8 @@ map = {'protein_coding': ['protein_coding'],
                   'bidirectional_promoter_lncRNA',
                   'sense_overlapping',
                   'non_coding',
-                  'macro_lncRNA'],
+                  'macro_lncRNA',
+                  'antisense'],
        'pseudogene': ['unprocessed_pseudogene',
                       'transcribed_unprocessed_pseudogene',
                       'processed_pseudogene',
@@ -39,7 +41,7 @@ map = {'protein_coding': ['protein_coding'],
                       'pseudogene',
                       'translated_processed_pseudogene'],
        'miRNA': ['miRNA'],
-       'other': ['antisense', 'snRNA',
+       'other': ['snRNA',
                  'misc_RNA', 'TEC',
                  'snoRNA', 'scaRNA',
                  'rRNA_pseudogene', 'rRNA',
