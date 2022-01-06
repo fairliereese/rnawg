@@ -140,25 +140,67 @@ def get_rank_order(df, how='max'):
 
     return temp
 
-def get_gtf_info(how='gene'):
+def get_tissue_metadata():
+    """
+    Get the biosample <--> higher level biosample mapping
+    
+    Returns:
+        tissue (pandas DataFrame): DataFrame containing original
+            biosample_term_name as well as higher level version
+    """
+    
+    d = os.path.dirname(__file__)
+    fname = '{}/../refs/tissue_metadata.csv'.format(d)
+    tissue = pd.read_csv(fname)
+    return tissue
+
+def get_gtf_info(how='gene',
+                 subset=None):
     """
     Gets the info from the annotation about genes / transcripts
     
     Parameters:
         how (str): 'gene' or 'iso'
+        subset (str): 'polya' or None
         
     Returns:
         df (pandas DataFrame): DataFrame with info for gene / transcript
+        biotype_counts (pandas DataFrame): DataFrame with the counts 
+            per biotype reported in gencode
+        biotype_cat_counts (pandas DataFrame): DataFrame with the counts
+            per meta biotype reported in gencode
     """
     d = os.path.dirname(__file__)
     if how == 'gene':
         fname = '{}/../refs/gencode_v29_gene_metadata.tsv'.format(d)
-        
+    elif how == 'iso':
+        fname = '{}/../refs/gencode_v29_transcript_metadata.tsv'.format(d)
+            
     df = pd.read_csv(fname, sep='\t')
-    return df
+    
+    if how == 'gene':
+        id_col = 'gid'
+    elif how == 'iso':
+        id_col = 'tid'
+    
+    if subset == 'polya':
+        polya_cats = ['protein_coding', 'lncRNA', 'pseudogene']
+        df = df.loc[df.biotype_category.isin(polya_cats)]
+        
+    biotype_counts = df[[id_col, 'biotype']].groupby('biotype').count()
+    biotype_counts.reset_index(inplace=True)
+    biotype_counts.rename({id_col: 'gencode_counts'}, axis=1, inplace=True)
+    
+    biotype_cat_counts = df[[id_col, 'biotype_category']].groupby('biotype_category').count()
+    biotype_cat_counts.reset_index(inplace=True)
+    biotype_cat_counts.rename({id_col: 'gencode_counts'}, axis=1, inplace=True)
+    
+    return df, biotype_counts, biotype_cat_counts
 
-def get_tpm_table(df, sample=None,
+def get_tpm_table(df,
+                    sample=None,
                     how='gene',
+                    nov=None,
                     min_tpm=None,
                     gene_subset=None,
                     save=False):
@@ -167,22 +209,41 @@ def get_tpm_table(df, sample=None,
         df (pandas DataFrame): TALON abundance table
         sample (str): Choose from 'cell_line', 'tissue', or None
         how (str): Choose from 'gene' or 'iso'
+        nov (list of str): List of accepted novelty types (w/ how='iso')
         min_tpm (float): Keep only genes / isos that have at least one
             TPM >= the value across the libraries
-        gene_subset (str): 
+        gene_subset (str): Choose from 'polya' or None 
         save (bool): Whether or not to save the output matrix
         
     Returns:
         df (pandas DataFrame): TPMs for gene or isoforms in the requested
             samples above the input detection threshold.
     """
+    print('Calculating {} TPM values'.format(how))
     
+    if sample == 'cell_line' or sample == 'tissue':
+        print('Subsetting for {} datasets'.format(sample))
+        
     dataset_cols = get_sample_datasets(sample)
     df = rm_sirv_ercc(df)
+    
+    if gene_subset:
+        gene_df, _, _ = get_gtf_info(how='gene')
+        gene_df = gene_df[['gid', 'biotype_category']]
+        df = df.merge(gene_df, how='left', left_on='annot_gene_id', right_on='gid')
+        if gene_subset == 'polya':
+            print('Subsetting for polyA genes')
+            polya_cats = ['protein_coding', 'pseudogene', 'lncRNA']
+            
+        if how == 'gene':
+            subset_inds = df.loc[df.biotype_category.isin(polya_cats), 'annot_gene_id'].tolist()
+        elif how == 'iso':
+            subset_inds = df.loc[df.biotype_category.isin(polya_cats), 'annot_transcript_id'].tolist()
 
+    # get relevant columns
     if how == 'iso':
         df.set_index('annot_transcript_id', inplace=True)
-        df = df.loc[df.transcript_novelty == nov]
+        df = df.loc[df.transcript_novelty.isin(nov)]
         df = df[dataset_cols]
 
     # sum up counts across the same gene
@@ -192,8 +253,8 @@ def get_tpm_table(df, sample=None,
         df = df[dataset_cols+['annot_gene_id']]
         df = df.groupby('annot_gene_id').sum()
 
-    # sanity check
-    print(len(df.index))
+#     # sanity check
+#     print(len(df.index))
 
     # compute TPM
     tpm_cols = []
@@ -205,13 +266,22 @@ def get_tpm_table(df, sample=None,
         tpm_cols.append(tpm_col)
     df = df[tpm_cols]
     
+    # reformat column names
     df.columns = [c.rsplit('_', maxsplit=1)[0] for c in df.columns] 
     
     # enforce tpm threshold
     if min_tpm:
+        print('Enforcing minimum TPM')
         print('Total # {}s detected: {}'.format(how, len(df.index)))
         df = df.loc[(df >= min_tpm).any(axis=1)]
         print('# {}s >= {} tpm: {}'.format(how, min_tpm, len(df.index)))
+        
+    # subset if necessary
+    if gene_subset:
+        print('Subsetting on {} genes'.format(gene_subset))
+        df = df.loc[df.index.isin(subset_inds)]
+        
+    print('Number of {}s reported: {}'.format(how, len(df.index)))
     
     if save:
         fname = '{}_{}_tpm.tsv'.format(sample, how)
