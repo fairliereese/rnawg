@@ -117,8 +117,6 @@ def plot_cell_line_tissue_det_venn(df, how='gene',
     
     fname = '{}{}_{}_venn.png'.format(opref, how, nov)
     plt.savefig(fname, dpi=300, bbox_inches='tight') 
-    
-    
 
 def plot_n_reps_per_biosamp(df,
                             sample='cell_line',
@@ -349,7 +347,7 @@ def plot_biosamp_det(df, how='gene',
         how (str): Either "gene" or "iso"
         sample (str): Either "tissue", "cell_line", or "library", 
             used to limit datasets displayed
-        groupby (str): Either "tissue", "cell_line", or "library", 
+        groupby (str): Either "tissue", "cell_line", "sample", or "library", 
             used to groupby datasets displayed
         nov (str): Only used with how='iso', novelty category of 
             isoforms to consider
@@ -631,6 +629,70 @@ def plot_reads_per_bc(df, title, oprefix):
 
     fname = '{}_{}_umis_v_barcodes.png'.format(oprefix, title)
     plt.savefig(fname)
+    
+def plot_det_len_kde(df,
+                     how='gene',
+                     subset='polya',
+                     min_tpm=1,
+                     xlim=None,
+                     opref='figures/'):
+    """
+    Plots dist. of gene or transcript length based on whether 
+    gene or transcript was detected at the given TPM value.
+    
+    Parameters:
+        df (pandas DataFrame): TALON abundance file
+        how (str): Choose from 'gene' or 'iso'
+        subset (str): Choose from None or 'polya'
+        min_tpm (float): Min. TPM val for at least one library
+        
+    Returns:
+        df (pandas DataFrame): DataFrame used to plot from
+    """
+    df = get_tpm_table(df,
+                   how=how,
+                   min_tpm=min_tpm,
+                   gene_subset=subset)
+    gene_df, _, _ = get_gtf_info(how=how, subset=subset)   
+    df.reset_index(inplace=True)
+    
+    if how == 'gene':
+        col = 'annot_gene_id'
+        ref_col = 'gid'
+    elif how == 'iso':
+        col == 'annot_transcript_id'
+        ref_col = 'tid'
+    df = df[col].to_frame()
+
+    df = df.merge(gene_df, how='outer',
+                  left_on=col, right_on=ref_col)
+    
+    df['detected'] = True
+    print(col)
+    print(df.loc[df[col].isnull()].head())
+    df.loc[df[col].isnull(), 'detected'] = False
+    print(df.loc[df[col].isnull()].head())
+    
+    sns.set_context('paper', font_scale=2)
+
+    ax = sns.displot(data=df, x='length', kind='kde',
+                     linewidth=3, hue='detected', common_norm=True)
+
+    if how == 'gene':
+        xlabel = 'Gene length'
+        ylabel = 'Detected GENCODE genes'
+    elif how == 'iso':
+        xlabel = 'Transcript length'
+        ylabel = 'Detected GENCODE transcripts'
+        
+    if xlim:
+        _ = ax.set(xlabel=xlabel, ylabel=ylabel, xlim=(0,xlim))
+    else:
+        _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+        
+    plt.savefig('{}_{}_det_{}_tpm_length.pdf'.format(opref, how, min_tpm), \
+                dpi=300, bbox_inches='tight')
+    return df
 
 def plot_read_len_kde(df, opref):
     sns.set_context('paper', font_scale=2)
@@ -724,9 +786,11 @@ def plot_depth_by_tech(adata, how, opref,
 def add_perc(ax, data, feature):
     total = data[feature].sum()
     ylim = ax.get_ylim()[1]
+    n_cats = len(ax.patches)
     for p in ax.patches:
         percentage = '{:.1f}%'.format(100 * p.get_height()/total)
-        x = p.get_x() + p.get_width() / 2 - 0.45
+#         x = p.get_x() + p.get_width() / 2 - 0.45
+        x = p.get_x() + p.get_width() / 2 - (0.065)*n_cats
         y = p.get_y() + p.get_height() + ylim*0.00625
         ax.annotate(percentage, (x, y), size = 12)
 
@@ -772,19 +836,39 @@ def plot_read_novelty(df, opref, c_dict, order,
     fname = '{}_read_novelty'.format(opref)
     g.savefig(fname+'.pdf', dpi=300)
 
-def plot_transcript_novelty(df, oprefix, \
-                            ylim=None, title=None,
-                            whitelist=None, sample=None, save_type='pdf'):
+
+def plot_transcript_novelty(df, oprefix,
+                            ylim=None,
+                            title=None,
+                            whitelist=None,
+                            sample=None,
+                            novs=None,
+                            save_type='pdf'):
+    """
+    Plot number of transcripts per novelty category.
+    
+    Parameters: 
+        df (pandas DataFrame): TALON read annot file or 
+        oprefix (str): Place to save
+        ylim (int): y limit of resultant plot
+        title (str): Title of resultant plot
+        whitelist (list of str): List of transcript IDs to retain
+        sample (str): Choose from 'cell_line' or 'tissue'
+        save_type (str): Choose from 'pdf' or 'png'
+    """
     sns.set_context('paper', font_scale=1.6)
 
     temp = df.copy(deep=True)
     
-    c_dict, order = get_talon_nov_colors()
+    c_dict, order = get_talon_nov_colors(cats=novs)
 
     # remove transcripts that are not on whitelist
     if whitelist:
-        temp = temp.loc[temp.transcript_ID.isin(whitelist)]
-
+        beep = temp.loc[temp.transcript_ID.isin(whitelist)].index.tolist()
+        if len(beep) == 0:
+            beep = temp.loc[temp.annot_transcript_id.isin(whitelist)].index.tolist()
+        temp = temp.loc[beep]
+        
     # filter on datasets
     if sample:
         datasets = get_sample_datasets(sample)
