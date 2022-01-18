@@ -17,6 +17,9 @@ df = df.loc[df.entry_type == 'exon'].copy(deep=True)
 df['tid'] = df.fields.str.split('transcript_id "', n=1, expand=True)[1]
 df['tid'] = df.tid.str.split('";', n=1, expand=True)[0]
 
+df['gid'] = df.fields.str.split('gene_id "', n=1, expand=True)[1]
+df['gid'] = df.gid.str.split('";', n=1, expand=True)[0]
+
 df['biotype'] = df.fields.str.split('gene_type "', n=1, expand=True)[1]
 df['biotype'] = df.biotype.str.split('";', n=1, expand=True)[0]
 
@@ -74,8 +77,8 @@ df['biotype_category'] = df.biotype.map(biotype_map)
 
 df['exon_len'] = (df.start-df.stop).abs()+1
 
-df = df[['tid', 'exon_len', 'biotype', 'biotype_category']]
-df_copy = df[['tid', 'biotype', 'biotype_category']].copy(deep=True)
+df = df[['gid', 'tid', 'exon_len', 'biotype', 'biotype_category']]
+df_copy = df[['gid', 'tid', 'biotype', 'biotype_category']].copy(deep=True)
 df_copy = df_copy.drop_duplicates(keep='first')
 
 print(df.loc[df.tid == 'ENST00000456328.2'])
