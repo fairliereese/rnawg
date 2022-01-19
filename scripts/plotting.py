@@ -172,6 +172,52 @@ def plot_n_reps_per_biosamp(df,
     fname = '{}{}_libs_per_biosamp.png'.format(opref, sample)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
     
+def plot_exons_per_iso(df,
+                       nov=['Known'],
+                       min_tpm=1,
+                       gene_subset=None,
+                       opref='figures/'):
+    """
+    Plots a boxplot showing # exons per isoform.
+    
+    Parameters:
+        df (pandas DataFrame): TALON abundance file
+        nov (list of str): Novelty categories to include
+        min_tpm (float): Mininmum TPM to include isoform
+        gene_subset (str): Choose from 'polya' or None
+        opref (str): Output file prefix
+    """
+    
+    t_df = df.copy(deep=True)
+    
+    # filter based on TPM, novelty, gene subset
+    df, tids = get_tpm_table(df,
+                             how='iso',
+                             nov=nov,
+                             min_tpm=min_tpm,
+                             gene_subset=gene_subset)
+
+    # add back in novelty and n exon info 
+    t_df = t_df[['annot_transcript_id', 'n_exons', 'transcript_novelty']]
+    df = df.merge(t_df, how='left', left_index=True, right_on='annot_transcript_id')   
+    
+    # plot the plot
+    sns.set_context('paper', font_scale=2)
+
+    c_dict, order = get_talon_nov_colors(cats=nov)
+    ax = sns.boxplot(data=df, x='transcript_novelty', y='n_exons',
+                     order=order, palette=c_dict)
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    xlabel = 'Transcript novelty'
+    ylabel = '# exons'
+
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+
+    fname = '{}_exons_per_iso.png'.format(opref)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
 
 def plot_gene_v_iso_sample_det(df,
                                sample='cell_line', 
@@ -356,6 +402,10 @@ def plot_biosamp_det(df,
         nov (str): Only used with how='iso', novelty category of 
             isoforms to consider
         opref (str): Output prefix to save figure
+        
+    Returns: 
+        df (pandas DataFrame): DataFrame detailing how many samples
+            each gene or isoform was seen in
     """
     
     # calc TPM per library on desired samples
@@ -439,7 +489,9 @@ def plot_biosamp_det(df,
     else:
         fname = '{}{}_{}_{}_library_detection.png'.format(opref, sample, nov, how)
 
-    plt.savefig(fname, dpi=300, bbox_inches='tight') 
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+    return df
 
 def plot_corr(df, sample='cell_line',
               how='gene', nov='Known', 
