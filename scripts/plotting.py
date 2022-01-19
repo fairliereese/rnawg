@@ -332,7 +332,10 @@ def plot_gene_v_iso_det(df, filt_df,
     fname = '{}{}_gene_v_iso_det.png'.format(opref, sample)
     plt.savefig(fname, dpi=300, bbox_inches='tight')  
     
-def plot_biosamp_det(df, how='gene',
+def plot_biosamp_det(df,
+                     how='gene',
+                     min_tpm=1, 
+                     gene_subset='polya',
                      sample='cell_line',
                      groupby='cell_line',
                      nov='Known',
@@ -345,82 +348,65 @@ def plot_biosamp_det(df, how='gene',
     Parameters:
         df (pandas DataFrame): TALON abundance
         how (str): Either "gene" or "iso"
-        sample (str): Either "tissue", "cell_line", or "library", 
-            used to limit datasets displayed
-        groupby (str): Either "tissue", "cell_line", "sample", or "library", 
+        min_tpm (float): Minimum TPM to call a gene / iso as detected
+        gene_subset (str): Subset of genes to use, 'polya' or None
+        sample (str): Either "tissue", "cell_line", or None
+        groupby (str): Either "sample", or "library", 
             used to groupby datasets displayed
         nov (str): Only used with how='iso', novelty category of 
             isoforms to consider
         opref (str): Output prefix to save figure
     """
-    df = rm_sirv_ercc(df)
     
-    if sample:
-        dataset_cols = get_sample_datasets(sample)
-    else:
-        dataset_cols = get_dataset_cols()
-
-    if how == 'iso':
-        df.set_index('annot_transcript_id', inplace=True)
-        df = df.loc[df.transcript_novelty == nov]
-        df = df[dataset_cols]
-
-    # sum up counts across the same gene
-    if how == 'gene':
-        # only known genes
-        df = df.loc[df.gene_novelty == 'Known']
-        df = df[dataset_cols+['annot_gene_id']]
-        df = df.groupby('annot_gene_id').sum()
-
+    # calc TPM per library on desired samples
+    df, tids = get_tpm_table(df,
+                   sample=sample,
+                   how=how,
+                   nov=[nov],
+                   min_tpm=min_tpm,
+                   gene_subset=gene_subset)
+    
     df = df.transpose()
+    df.index.name = 'dataset'
     df.reset_index(inplace=True)
-    df.rename({'index': 'dataset'}, axis=1, inplace=True)
 
-    # get the celltype
-    df['celltype'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
+    # set up df to groupby sample or library
+    if groupby == 'sample':
 
-    if groupby == 'tissue':
+        # add biosample name (ie without rep information)
+        df['biosample'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
+        df.drop(['dataset'], axis=1, inplace=True)
 
-        # add in the tissue metadata
-        d = os.path.dirname(__file__)
-        fname = '{}/../refs/tissue_metadata.csv'.format(d)
-        tissue = pd.read_csv(fname)
-        df = df.merge(tissue[['biosample', 'tissue']],
-                        how='left', left_on='celltype',
-                        right_on='biosample')
-        df.drop('celltype', axis=1, inplace=True)
-        df.rename({'tissue': 'celltype'}, axis=1, inplace=True)
-        print('Found {} distinct tissues'.format(len(df.celltype.unique())))
-    elif groupby == 'cell_line':
-        print('Found {} distinct cell lines'.format(len(df.celltype.unique()))) 
-        
+        # record the highest TPM value per biosample
+        tissue_df = get_tissue_metadata()
+        tissue_df = tissue_df[['tissue', 'biosample']]
+
+        df = df.merge(tissue_df, how='left', on='biosample')
+        df.loc[df.tissue.isnull(), 'tissue'] = df.loc[df.tissue.isnull(), 'biosample']
+        df.drop('biosample', axis=1, inplace=True)
+        df.rename({'tissue': 'biosample'}, axis=1, inplace=True)
+
+        print('Found {} total samples'.format(len(df.biosample.unique().tolist())))
+        df = df.groupby('biosample').max()
+
     elif groupby == 'library':
-        df['celltype'] = df.dataset
-        print('Found {} distinct libraries'.format(len(df.dataset.unique())))
-        
-    df.drop(['dataset'], axis=1, inplace=True)
-
-    # sum over celltype
-    df = df.groupby('celltype').sum()
-    temp = df.copy(deep=True)
+        df.rename({'dataset': 'library'}, axis=1, inplace=True)
+        print('Found {} total libraries'.format(len(df.library.unique().tolist())))
+        df = df.groupby('library').max()
     
-    # convert counts to bools + other formatting
-    temp = temp.astype(bool)
-    temp.index.name = None
-    temp = temp.transpose()
-    ind_cols = temp.columns.tolist()
-    temp.reset_index(inplace=True)
+    # finally, calculate the number of biosamples / libraries these 
+    # genes or transcripts are expressed >= min TPM
+    df = df.transpose()
+    df['n_samples'] = (df >= min_tpm).astype(int).sum(axis=1)
     
-    # number of samples this iso / gene was expressed in
-    temp['n_samples'] = temp[ind_cols].sum(1)
+    # and make a beautiful plot
+    sns.set_context('paper', font_scale=2)
     
-    # histogram of number of biosamples this shows up in 
     c_dict, order = get_talon_nov_colors()
     color = c_dict[nov]
-    sns.set_context('paper', font_scale=2)
-    ax = sns.displot(data=temp, x='n_samples', kind='hist',
-                color=color, binwidth=1)
-    
+    ax = sns.displot(data=df, x='n_samples', kind='hist',
+                 color=color, binwidth=1)
+
     # titles
     if how == 'gene':
         ylabel = 'Known genes'
@@ -431,8 +417,10 @@ def plot_biosamp_det(df, how='gene',
             ylabel = 'NIC transcripts'
         elif nov == 'NNC':
             ylabel = 'NNC transcripts'
-    
-    if groupby == 'tissue':
+
+    if groupby == 'sample':
+        xlabel = 'Number of cell lines and tissues'
+    elif groupby == 'tissue':
         xlabel = 'Number of tissues'
     elif groupby == 'cell_line':
         xlabel = 'Number of celltypes'
@@ -443,15 +431,15 @@ def plot_biosamp_det(df, how='gene',
             xlabel = 'Number of tissue libraries'
         else: 
             xlabel = 'Number of libraries'
-        
+
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-    
+
     if groupby == sample:
         fname = '{}{}_{}_{}_detection.png'.format(opref, sample, nov, how)
     else:
         fname = '{}{}_{}_{}_library_detection.png'.format(opref, sample, nov, how)
-        
-    plt.savefig(fname, dpi=300, bbox_inches='tight')  
+
+    plt.savefig(fname, dpi=300, bbox_inches='tight') 
 
 def plot_corr(df, sample='cell_line',
               how='gene', nov='Known', 
@@ -645,13 +633,16 @@ def plot_det_len_kde(df,
         how (str): Choose from 'gene' or 'iso'
         subset (str): Choose from None or 'polya'
         min_tpm (float): Min. TPM val for at least one library
+        xlim (float): Maximum length to display
+        opref (str): Output file prefix
         
     Returns:
         df (pandas DataFrame): DataFrame used to plot from
     """
-    df = get_tpm_table(df,
+    df, ids = get_tpm_table(df,
                    how=how,
                    min_tpm=min_tpm,
+                   nov=['Known'],
                    gene_subset=subset)
     gene_df, _, _ = get_gtf_info(how=how, subset=subset)   
     df.reset_index(inplace=True)
@@ -659,23 +650,22 @@ def plot_det_len_kde(df,
     if how == 'gene':
         col = 'annot_gene_id'
         ref_col = 'gid'
+        x_col = 'length'
     elif how == 'iso':
-        col == 'annot_transcript_id'
+        col = 'annot_transcript_id'
         ref_col = 'tid'
+        x_col = 't_len'
     df = df[col].to_frame()
 
     df = df.merge(gene_df, how='outer',
                   left_on=col, right_on=ref_col)
     
     df['detected'] = True
-    print(col)
-    print(df.loc[df[col].isnull()].head())
     df.loc[df[col].isnull(), 'detected'] = False
-    print(df.loc[df[col].isnull()].head())
     
     sns.set_context('paper', font_scale=2)
 
-    ax = sns.displot(data=df, x='length', kind='kde',
+    ax = sns.displot(data=df, x=x_col, kind='kde',
                      linewidth=3, hue='detected', common_norm=True)
 
     if how == 'gene':

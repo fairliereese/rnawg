@@ -218,6 +218,7 @@ def get_tpm_table(df,
     Returns:
         df (pandas DataFrame): TPMs for gene or isoforms in the requested
             samples above the input detection threshold.
+        ids (list of str): List of str indexing the table 
     """
     print('Calculating {} TPM values'.format(how))
     
@@ -286,8 +287,10 @@ def get_tpm_table(df,
     if save:
         fname = '{}_{}_tpm.tsv'.format(sample, how)
         df.to_csv(fname, sep='\t')
+    
+    ids = df.index.tolist()
         
-    return df
+    return df, ids
 
 def compute_corr(df, how='gene', nov='Known', sample='cell_line'):
 
