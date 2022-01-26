@@ -197,6 +197,73 @@ def get_gtf_info(how='gene',
     
     return df, biotype_counts, biotype_cat_counts
 
+def get_det_table(df,
+                  how='gene',
+                  min_tpm=1, 
+                  gene_subset='polya',
+                  sample=None,
+                  groupby='library',
+                  nov='Known'):
+    """
+    Get a dataframe of True / False whether or not a gene / isoform
+    was detected in a specific library or sample
+    
+    Parameters:
+        df (pandas DataFrame): TALON abundance
+        how (str): Either "gene" or "iso"
+        min_tpm (float): Minimum TPM to call a gene / iso as detected
+        gene_subset (str): Subset of genes to use, 'polya' or None
+        sample (str): Either "tissue", "cell_line", or None
+        groupby (str): Either "sample", or "library", 
+            used to groupby datasets displayed
+        nov (list of str): Only used with how='iso', novelty categories of 
+            isoforms to consider
+        
+    Returns: 
+        df (pandas DataFrame): DataFrame with True / False entries 
+            for each isoform / gene per library / sample
+    """
+    
+    # calc TPM per library on desired samples
+    df, tids = get_tpm_table(df,
+                   sample=sample,
+                   how=how,
+                   nov=nov,
+                   min_tpm=min_tpm,
+                   gene_subset=gene_subset)
+    
+    df = df.transpose()
+    df.index.name = 'dataset'
+    df.reset_index(inplace=True)
+    
+    # set up df to groupby sample or library
+    if groupby == 'sample':
+
+        # add biosample name (ie without rep information)
+        df['biosample'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
+        df.drop(['dataset'], axis=1, inplace=True)
+
+        # record the highest TPM value per biosample
+        tissue_df = get_tissue_metadata()
+        tissue_df = tissue_df[['tissue', 'biosample']]
+
+        df = df.merge(tissue_df, how='left', on='biosample')
+        df.loc[df.tissue.isnull(), 'tissue'] = df.loc[df.tissue.isnull(), 'biosample']
+        df.drop('biosample', axis=1, inplace=True)
+        df.rename({'tissue': 'biosample'}, axis=1, inplace=True)
+
+        print('Found {} total samples'.format(len(df.biosample.unique().tolist())))
+        df = df.groupby('biosample').max()
+
+    elif groupby == 'library':
+        df.rename({'dataset': 'library'}, axis=1, inplace=True)
+        print('Found {} total libraries'.format(len(df.library.unique().tolist())))
+        df = df.groupby('library').max()
+        
+    df = (df >= min_tpm)
+    return df
+    
+
 def get_tpm_table(df,
                     sample=None,
                     how='gene',

@@ -202,11 +202,13 @@ def plot_exons_per_iso(df,
     df = df.merge(t_df, how='left', left_index=True, right_on='annot_transcript_id')   
     
     # plot the plot
-    sns.set_context('paper', font_scale=2)
+    sns.set_context('paper', font_scale=1.6)
+    plt.figure(figsize=(4,6))
 
     c_dict, order = get_talon_nov_colors(cats=nov)
     ax = sns.boxplot(data=df, x='transcript_novelty', y='n_exons',
-                     order=order, palette=c_dict)
+                     order=order, palette=c_dict,
+                     saturation=1)
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -408,46 +410,54 @@ def plot_biosamp_det(df,
             each gene or isoform was seen in
     """
     
-    # calc TPM per library on desired samples
-    df, tids = get_tpm_table(df,
-                   sample=sample,
-                   how=how,
-                   nov=[nov],
-                   min_tpm=min_tpm,
-                   gene_subset=gene_subset)
+    df = get_det_table(df,
+                     how=how,
+                     min_tpm=min_tpm,
+                     gene_subset=gene_subset,
+                     sample=sample,
+                     groupby=groupby,
+                     nov=[nov])
     
-    df = df.transpose()
-    df.index.name = 'dataset'
-    df.reset_index(inplace=True)
+#     # calc TPM per library on desired samples
+#     df, tids = get_tpm_table(df,
+#                    sample=sample,
+#                    how=how,
+#                    nov=[nov],
+#                    min_tpm=min_tpm,
+#                    gene_subset=gene_subset)
+    
+#     df = df.transpose()
+#     df.index.name = 'dataset'
+#     df.reset_index(inplace=True)
 
-    # set up df to groupby sample or library
-    if groupby == 'sample':
+#     # set up df to groupby sample or library
+#     if groupby == 'sample':
 
-        # add biosample name (ie without rep information)
-        df['biosample'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
-        df.drop(['dataset'], axis=1, inplace=True)
+#         # add biosample name (ie without rep information)
+#         df['biosample'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
+#         df.drop(['dataset'], axis=1, inplace=True)
 
-        # record the highest TPM value per biosample
-        tissue_df = get_tissue_metadata()
-        tissue_df = tissue_df[['tissue', 'biosample']]
+#         # record the highest TPM value per biosample
+#         tissue_df = get_tissue_metadata()
+#         tissue_df = tissue_df[['tissue', 'biosample']]
 
-        df = df.merge(tissue_df, how='left', on='biosample')
-        df.loc[df.tissue.isnull(), 'tissue'] = df.loc[df.tissue.isnull(), 'biosample']
-        df.drop('biosample', axis=1, inplace=True)
-        df.rename({'tissue': 'biosample'}, axis=1, inplace=True)
+#         df = df.merge(tissue_df, how='left', on='biosample')
+#         df.loc[df.tissue.isnull(), 'tissue'] = df.loc[df.tissue.isnull(), 'biosample']
+#         df.drop('biosample', axis=1, inplace=True)
+#         df.rename({'tissue': 'biosample'}, axis=1, inplace=True)
 
-        print('Found {} total samples'.format(len(df.biosample.unique().tolist())))
-        df = df.groupby('biosample').max()
+#         print('Found {} total samples'.format(len(df.biosample.unique().tolist())))
+#         df = df.groupby('biosample').max()
 
-    elif groupby == 'library':
-        df.rename({'dataset': 'library'}, axis=1, inplace=True)
-        print('Found {} total libraries'.format(len(df.library.unique().tolist())))
-        df = df.groupby('library').max()
+#     elif groupby == 'library':
+#         df.rename({'dataset': 'library'}, axis=1, inplace=True)
+#         print('Found {} total libraries'.format(len(df.library.unique().tolist())))
+#         df = df.groupby('library').max()
     
     # finally, calculate the number of biosamples / libraries these 
     # genes or transcripts are expressed >= min TPM
     df = df.transpose()
-    df['n_samples'] = (df >= min_tpm).astype(int).sum(axis=1)
+    df['n_samples'] = df.astype(int).sum(axis=1)
     
     # and make a beautiful plot
     sns.set_context('paper', font_scale=2)
@@ -675,6 +685,7 @@ def plot_det_len_kde(df,
                      subset='polya',
                      min_tpm=1,
                      xlim=None,
+                     split_biotypes=False,
                      opref='figures/'):
     """
     Plots dist. of gene or transcript length based on whether 
@@ -686,6 +697,8 @@ def plot_det_len_kde(df,
         subset (str): Choose from None or 'polya'
         min_tpm (float): Min. TPM val for at least one library
         xlim (float): Maximum length to display
+        split_biotypes (bool): Split detected and undetected 
+            transcripts by biotype
         opref (str): Output file prefix
         
     Returns:
@@ -937,8 +950,11 @@ def plot_transcript_novelty(df, oprefix,
     
 
     # actual plotting
+    sns.set_context('paper', font_scale=1.8)
+    plt.figure(figsize=(4,6))
     g = sns.catplot(data=temp, x='transcript_novelty',
                 y='counts', kind='bar',
+                saturation=1,
                 palette=c_dict, order=order)
     [plt.setp(ax.get_xticklabels(), rotation=90) for ax in g.axes.flat]
     g.set_ylabels('Isoforms')
@@ -951,18 +967,21 @@ def plot_transcript_novelty(df, oprefix,
     if ylim:
         g.set(ylim=(0,ylim))
 
-    # add title
-    if not title:
-        g.fig.suptitle('Transcript models per novelty category')
-    else:
-        g.fig.suptitle('{} transcript models per novelty category'.format(title))
+#     # add title
+#     if not title:
+#         g.fig.suptitle('Transcript models per novelty category')
+#     else:
+#         g.fig.suptitle('{} transcript models per novelty category'.format(title))
 
     # save figure
     fname = '{}{}_isoform_novelty'.format(oprefix,sample)
     if save_type == 'png':
-        g.savefig(fname+'.png', dpi=300)
+        g.savefig(fname+'.png', dpi=300, bbox_inches='tight')
     elif save_type == 'pdf':
-        g.savefig(fname+'.pdf', dpi=300)
+        g.savefig(fname+'.pdf', dpi=300, bbox_inches='tight')
 
     plt.show()
     plt.clf()
+
+
+    
