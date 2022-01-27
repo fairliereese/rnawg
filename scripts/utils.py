@@ -297,19 +297,25 @@ def get_tpm_table(df,
     dataset_cols = get_sample_datasets(sample)
     df = rm_sirv_ercc(df)
     
-    if gene_subset:
+    if gene_subset == 'polya':
         gene_df, _, _ = get_gtf_info(how='gene')
         gene_df = gene_df[['gid', 'biotype_category']]
         df = df.merge(gene_df, how='left', left_on='annot_gene_id', right_on='gid')
-        if gene_subset == 'polya':
-            print('Subsetting for polyA genes')
-            polya_cats = ['protein_coding', 'pseudogene', 'lncRNA']
+        print('Subsetting for polyA genes')
+        polya_cats = ['protein_coding', 'pseudogene', 'lncRNA']
             
         if how == 'gene':
             subset_inds = df.loc[df.biotype_category.isin(polya_cats), 'annot_gene_id'].tolist()
         elif how == 'iso':
             subset_inds = df.loc[df.biotype_category.isin(polya_cats), 'annot_transcript_id'].tolist()
-
+            
+    elif gene_subset == 'tf':
+        gene_df, _, _ = get_gtf_info(how='gene')
+        gene_df = gene_df[['gid', 'tf']]
+        df = df.merge(gene_df, how='left', left_on='annot_gene_id', right_on='gid')
+        print('Subsetting for TF genes')
+        subset_inds = df.loc[df.tf == True, 'annot_transcript_id'].tolist()
+        
     # get relevant columns
     if how == 'iso':
         df.set_index('annot_transcript_id', inplace=True)
