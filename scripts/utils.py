@@ -161,7 +161,7 @@ def get_gtf_info(how='gene',
     
     Parameters:
         how (str): 'gene' or 'iso'
-        subset (str): 'polya' or None
+        subset (str): 'polya', 'tf' or None
         
     Returns:
         df (pandas DataFrame): DataFrame with info for gene / transcript
@@ -186,7 +186,9 @@ def get_gtf_info(how='gene',
     if subset == 'polya':
         polya_cats = ['protein_coding', 'lncRNA', 'pseudogene']
         df = df.loc[df.biotype_category.isin(polya_cats)]
-        
+    elif subset == 'tf':
+        df = df.loc[df.tf == True]
+
     biotype_counts = df[[id_col, 'biotype']].groupby('biotype').count()
     biotype_counts.reset_index(inplace=True)
     biotype_counts.rename({id_col: 'gencode_counts'}, axis=1, inplace=True)

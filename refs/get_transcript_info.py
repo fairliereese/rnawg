@@ -81,11 +81,17 @@ df = df[['gid', 'tid', 'exon_len', 'biotype', 'biotype_category']]
 df_copy = df[['gid', 'tid', 'biotype', 'biotype_category']].copy(deep=True)
 df_copy = df_copy.drop_duplicates(keep='first')
 
-print(df.loc[df.tid == 'ENST00000456328.2'])
 df = df.groupby('tid').sum().reset_index()
 df.rename({'exon_len': 't_len'}, axis=1, inplace=True)
 df = df.merge(df_copy, on='tid', how='left')
-print(df.loc[df.tid == 'ENST00000456328.2'])
+
+# add TF info
+df['tf'] = False
+tf_df = pd.read_csv('biomart_tf_gids.tsv', sep='\t')
+tf_gids = tf_df['Gene stable ID'].unique().tolist()
+df['gid_stable'] = df['gid'].str.split('.', expand=True)[0]
+df = df.loc[df.gid_stable.isin(tf_gids)]
+df.drop('gid_stable', axis=1, inplace=True)
 
 # and save
 fname = 'gencode_v29_transcript_metadata.tsv'
