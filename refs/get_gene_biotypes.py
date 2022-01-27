@@ -84,7 +84,7 @@ df = df.loc[df.gid_stable.isin(tf_gids)]
 df.drop('gid_stable', axis=1, inplace=True)
 
 # and save
-df = df[['gid', 'length', 'biotype', 'biotype_category']]
+df = df[['gid', 'length', 'biotype', 'biotype_category', 'tf']]
 fname = 'gencode_v29_gene_metadata.tsv'
 df.to_csv(fname, sep='\t', index=False)
 
