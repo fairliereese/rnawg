@@ -265,6 +265,51 @@ def get_det_table(df,
     df = (df >= min_tpm)
     return df
     
+def get_isos_per_gene(df,
+                      min_tpm=1,
+                      gene_subset='polya',
+                      sample='cell_line', 
+                      groupby='sample',
+                      nov=['Known', 'NIC', 'NNC']):
+    """
+    Compute the number of isoforms expressed per gene per 
+    sample or library
+    
+    Parameters:
+        df (pandas DataFrame): TALON abundance
+        min_tpm (float): Minimum TPM to call a gene / iso as detected
+        gene_subset (str): Subset of genes to use, 'polya' or None
+        sample (str): Either "tissue", "cell_line", or None
+        groupby (str): Either "sample", or "library", 
+            used to groupby datasets displayed
+        nov (str): Novelty category of 
+            isoforms to consider
+        
+    Returns: 
+        df (pandas DataFrame): DataFrame detailing how many samples
+            isoforms / gene / sample or library are detected
+    """
+    g_df = df.copy(deep=True)
+    df = get_det_table(df, 
+              how='iso',
+              min_tpm=min_tpm,
+              gene_subset=gene_subset,
+              groupby=groupby,
+              nov=nov)
+    
+    # merge with gene info
+    df = df.transpose()
+    g_df = g_df[['annot_gene_id', 'annot_transcript_id']]
+    df = df.merge(g_df, how='left', left_index=True, right_on='annot_transcript_id')
+    
+    # count number of expressed isoforms / gene
+    df = df.drop(['annot_transcript_id'], axis=1)
+    df.set_index('annot_gene_id', inplace=True)
+    df = df.astype(int)
+    df.reset_index(inplace=True)
+    df = df.groupby('annot_gene_id').sum()
+    
+    return df
 
 def get_tpm_table(df,
                     sample=None,

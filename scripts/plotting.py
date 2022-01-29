@@ -378,7 +378,74 @@ def plot_gene_v_iso_det(df, filt_df,
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
     
     fname = '{}{}_gene_v_iso_det.png'.format(opref, sample)
-    plt.savefig(fname, dpi=300, bbox_inches='tight')  
+    plt.savefig(fname, dpi=300, bbox_inches='tight') 
+
+def plot_avg_isos_per_gene(df,
+                           min_tpm=1,
+                           gene_subset='polya',
+                           sample='all', 
+                           groupby='sample',
+                           nov=['Known', 'NIC', 'NNC'],
+                           opref='figures/'):
+    """
+    Plot the average number of isoforms per gene that are seen in each
+    sample or library.
+    
+    Parameters:
+        df (pandas DataFrame): TALON abundance
+        min_tpm (float): Minimum TPM to call a gene / iso as detected
+        gene_subset (str): Subset of genes to use, 'polya' or None
+        sample (str): Either "tissue", "cell_line", or None
+        groupby (str): Either "sample", or "library", 
+            used to groupby datasets displayed
+        nov (str): Novelty category of 
+            isoforms to consider
+        opref (str): Output prefix to save figure
+        
+    Returns: 
+        df (pandas DataFrame): DataFrame detailing how many samples
+            each gene or isoform was seen in
+    """
+    
+    sns.set_context('paper', font_scale=1.6)
+    
+    # get # isos / gene / sample or library
+    df = get_isos_per_gene(df,
+                           min_tpm=min_tpm,
+                           gene_subset=gene_subset,
+                           groupby=groupby, 
+                           nov=nov)
+    
+    # fill 0s (which represent unexpresed genes) with NaNs before
+    # calculating the avg. # isos / sample
+    df = df.replace(0, np.nan)
+
+    # calculate the average to order the barplots
+    avgs = df.mean().to_frame()    
+    avgs = avgs.sort_values(by=[0], ascending=False)
+    order = avgs.index.tolist()
+    
+    # melt the df to get an entry for each sample and gene
+    df = df.melt()    
+    df.rename({'variable': 'tissue',
+               'value': 'n_isos'}, axis=1, inplace=True) 
+    df = df.loc[~df.n_isos.isnull()]   
+    
+    # actually make the plot
+    ax = sns.barplot(data=df, x='tissue', y='n_isos', order=order)
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    xlabel = 'Sample'
+    ylabel = '# isoforms / gene'
+
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+    ax.tick_params(axis="x", rotation=90)
+
+
+    fname = '{}_isos_per_gene_per_{}.png'.format(opref, sample)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
     
 def plot_biosamp_det(df,
                      how='gene',
