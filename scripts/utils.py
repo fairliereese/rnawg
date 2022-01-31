@@ -264,7 +264,82 @@ def get_det_table(df,
         
     df = (df >= min_tpm)
     return df
+
+def get_reads_per_sample(df,
+                         groupby='sample'):
+    """
+    Calculate the number of reads per sample
     
+    Parameters:
+        df (pandas DataFrame): Unfiltered TALON abundance file
+        groupby (str): 'sample' or 'library'
+    """
+    
+    # remove irrelevant columns
+    dataset_cols = get_dataset_cols()
+    cols = ['annot_transcript_id']+dataset_cols
+    df = df[cols]
+    df.set_index('annot_transcript_id', inplace=True)
+    df = df.transpose()
+    df.index.name = 'dataset'
+    df.reset_index(inplace=True)
+    df.columns.name = ''
+    
+    # calculate the number of reads per library
+    datasets = df.dataset.tolist()
+    df = df.sum(axis=1).to_frame()
+    df['dataset'] = datasets
+    df.rename({0: 'n_reads'}, axis=1, inplace=True)
+    
+    if groupby == 'sample':
+        # add biosample name (ie without rep information)
+        df['biosample'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
+        df.drop(['dataset'], axis=1, inplace=True)
+
+        # record the highest TPM value per biosample
+        tissue_df = get_tissue_metadata()
+        tissue_df = tissue_df[['tissue', 'biosample']]
+
+        df = df.merge(tissue_df, how='left', on='biosample')
+        df.loc[df.tissue.isnull(), 'tissue'] = df.loc[df.tissue.isnull(), 'biosample']
+        df.drop('biosample', axis=1, inplace=True)
+        df.rename({'tissue': 'biosample'}, axis=1, inplace=True)
+
+        print('Found {} total samples'.format(len(df.biosample.unique().tolist())))
+        
+        df = df.groupby('biosample').sum().reset_index()        
+
+    return df
+
+def get_n_libs_per_sample():
+    """
+    Calculate the number of libraries that makes up each sample
+    
+    Returns
+        df (pandas DataFrame): DataFrame where one column is 
+            the biosample and second column is # of libraries
+    """
+    
+    datasets = get_dataset_cols()
+    df = pd.DataFrame(data=datasets, columns=['dataset'])
+
+    # add biosample name (ie without rep information)
+    df['biosample'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
+
+    # record the highest TPM value per biosample
+    tissue_df = get_tissue_metadata()
+    tissue_df = tissue_df[['tissue', 'biosample']]
+
+    df = df.merge(tissue_df, how='left', on='biosample')
+    df.loc[df.tissue.isnull(), 'tissue'] = df.loc[df.tissue.isnull(), 'biosample']
+    df.drop('biosample', axis=1, inplace=True)
+    df.rename({'tissue': 'biosample'}, axis=1, inplace=True)
+
+    df = df.groupby('biosample').count().reset_index()
+    df.rename({'dataset': 'n_libraries'}, axis=1, inplace=True)
+    
+    return df
+
 def get_isos_per_gene(df,
                       min_tpm=1,
                       gene_subset='polya',

@@ -485,42 +485,6 @@ def plot_biosamp_det(df,
                      groupby=groupby,
                      nov=[nov])
     
-#     # calc TPM per library on desired samples
-#     df, tids = get_tpm_table(df,
-#                    sample=sample,
-#                    how=how,
-#                    nov=[nov],
-#                    min_tpm=min_tpm,
-#                    gene_subset=gene_subset)
-    
-#     df = df.transpose()
-#     df.index.name = 'dataset'
-#     df.reset_index(inplace=True)
-
-#     # set up df to groupby sample or library
-#     if groupby == 'sample':
-
-#         # add biosample name (ie without rep information)
-#         df['biosample'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
-#         df.drop(['dataset'], axis=1, inplace=True)
-
-#         # record the highest TPM value per biosample
-#         tissue_df = get_tissue_metadata()
-#         tissue_df = tissue_df[['tissue', 'biosample']]
-
-#         df = df.merge(tissue_df, how='left', on='biosample')
-#         df.loc[df.tissue.isnull(), 'tissue'] = df.loc[df.tissue.isnull(), 'biosample']
-#         df.drop('biosample', axis=1, inplace=True)
-#         df.rename({'tissue': 'biosample'}, axis=1, inplace=True)
-
-#         print('Found {} total samples'.format(len(df.biosample.unique().tolist())))
-#         df = df.groupby('biosample').max()
-
-#     elif groupby == 'library':
-#         df.rename({'dataset': 'library'}, axis=1, inplace=True)
-#         print('Found {} total libraries'.format(len(df.library.unique().tolist())))
-#         df = df.groupby('library').max()
-    
     # finally, calculate the number of biosamples / libraries these 
     # genes or transcripts are expressed >= min TPM
     df = df.transpose()
