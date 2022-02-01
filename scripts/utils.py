@@ -389,7 +389,78 @@ def get_isos_per_gene(df,
     
     return df
 
-def 
+def get_gene_iso_det_table(df, filt_df, 
+                           min_isos=2,
+                           iso_nov=['Known', 'NIC', 'NNC'],
+                           gene_nov=['Known'],
+                           min_tpm=1,
+                           gene_subset='polya', 
+                           sample='all', 
+                           groupby='sample'):
+    
+    """
+    Compute a DataFrame which tells you whether genes
+    contain more than a certain number of detected isoforms.
+    
+    
+    
+    """ 
+    # get expressed genes
+    gene_df= get_det_table(df,
+                       how='gene',
+                       nov=gene_nov,
+                       min_tpm=min_tpm,
+                       groupby=groupby,
+                       gene_subset=gene_subset)
+    gene_df = gene_df.transpose()
+    gene_df.columns.name = ''  
+    
+    # get number of isoforms per gene 
+    df = get_isos_per_gene(filt_df,
+                       min_tpm=min_tpm,
+                       gene_subset=gene_subset,
+                       sample=sample,
+                       groupby=groupby, 
+                       nov=iso_nov)
+    
+    # >= n isoforms detected
+    df = (df >= min_isos)  
+    
+    # left merge gene_df with df so we get all the expressed genes
+    gene_df = gene_df.merge(df, how='left',
+                            left_index=True, right_index=True,
+                            suffixes=('_gene_det', '_2_iso_det'))
+    
+    # subset based on relevant columns and reformat
+    gene_det_cols = [c for c in gene_df.columns if '_gene_det' in c]
+    iso_det_cols = [c for c in gene_df.columns if '_2_iso_det' in c]
+
+    iso_df = gene_df[iso_det_cols]
+    gene_df = gene_df[gene_det_cols]
+
+    iso_df.columns = [c.replace('_2_iso_det', '') for c in iso_df.columns]
+    gene_df.columns = [c.replace('_gene_det', '') for c in gene_df.columns]
+    
+    # sort both dataframes by gene name
+    gene_df.sort_index(inplace=True)
+    df.sort_index(inplace=True)
+    
+    # make into ints
+    iso_df.fillna(False, inplace=True)
+    gene_df.fillna(False, inplace=True)
+
+    iso_df = iso_df.astype(int).astype(str)
+    gene_df = gene_df.astype(int).astype(str)
+    
+    # key:
+    # 00: <2 isos detected, no gene detected
+    # 01: <2 isos detected, gene detected
+    # 10: >=2 isos detected, no gene detected (should be infrequent or never)
+    # 11: >=2 isos detected, gene detected
+    df = iso_df+gene_df
+    df = df.transpose()
+    
+    return df
 
 def get_tpm_table(df,
                     sample='all',
@@ -418,44 +489,53 @@ def get_tpm_table(df,
     
     if sample == 'cell_line' or sample == 'tissue':
         print('Subsetting for {} datasets'.format(sample))
-        
+
     dataset_cols = get_sample_datasets(sample)
     df = rm_sirv_ercc(df)
     
-    if gene_subset == 'polya':
-        gene_df, _, _ = get_gtf_info(how='gene')
-        gene_df = gene_df[['gid', 'biotype_category']]
-        df = df.merge(gene_df, how='left', left_on='annot_gene_id', right_on='gid')
-        print('Subsetting for polyA genes')
-        polya_cats = ['protein_coding', 'pseudogene', 'lncRNA']
-            
-        if how == 'gene':
-            subset_inds = df.loc[df.biotype_category.isin(polya_cats), 'annot_gene_id'].tolist()
-        elif how == 'iso':
-            subset_inds = df.loc[df.biotype_category.isin(polya_cats), 'annot_transcript_id'].tolist()
-            
-    elif gene_subset == 'tf':
-        gene_df, _, _ = get_gtf_info(how='gene')
-        gene_df = gene_df[['gid', 'tf']]
-        df = df.merge(gene_df, how='left', left_on='annot_gene_id', right_on='gid')
-        print('Subsetting for TF genes')
-        subset_inds = df.loc[df.tf == True, 'annot_transcript_id'].tolist()
-        
-    # get relevant columns
-    if how == 'iso':
-        df.set_index('annot_transcript_id', inplace=True)
-        df = df.loc[df.transcript_novelty.isin(nov)]
-        df = df[dataset_cols]
+    # merge with information about the gene
+    gene_df, _, _ = get_gtf_info(how='gene')
+    gene_df = gene_df[['gid', 'biotype_category', 'tf']]
+    df = df.merge(gene_df, how='left', left_on='annot_gene_id', right_on='gid')
+    
+    # get indices that we'll need to subset on 
+    if how == 'gene':
+        id_col = 'annot_gene_id'
+        nov_col = 'gene_novelty'
+        nov = ['Known']
+    elif how == 'iso':
+        id_col = 'annot_transcript_id'
+        nov_col = 'transcript_novelty'
+
+    # filter on novelty 
+    if nov: 
+        print('Subsetting for novelty categories {}'.format(nov))
+        nov_inds = df.loc[df[nov_col].isin(nov), id_col].tolist()
+    else:
+        nov_inds = df[id_col].tolist()
+
+    # filter on gene subset
+    if gene_subset:
+        print('Subsetting for {} genes'.format(gene_subset))
+        if gene_subset == 'polya':
+            polya_cats = ['protein_coding', 'pseudogene', 'lncRNA']
+            gene_inds = df.loc[df.biotype_category.isin(polya_cats), id_col].tolist()
+        elif gene_subset == 'tf':
+            gene_inds = df.loc[df.tf == True, id_col].tolist()
+    else:
+        gene_inds = df[id_col].tolist()
+
+    # get intersection of both
+    subset_inds = list(set(nov_inds)&set(gene_inds))
 
     # sum up counts across the same gene
     if how == 'gene':
-        # only known genes
-        df = df.loc[df.gene_novelty == 'Known']
-        df = df[dataset_cols+['annot_gene_id']]
-        df = df.groupby('annot_gene_id').sum()
+        df = df[dataset_cols+[id_col]]
+        df = df.groupby(id_col).sum().reset_index()
 
-#     # sanity check
-#     print(len(df.index))
+    # set index so that all values in df reflect
+    # counts per transcript or gene
+    df.set_index(id_col, inplace=True)
 
     # compute TPM
     tpm_cols = []
@@ -466,29 +546,29 @@ def get_tpm_table(df,
         df[tpm_col] = (df[d]*1000000)/df[total_col]
         tpm_cols.append(tpm_col)
     df = df[tpm_cols]
-    
+
     # reformat column names
     df.columns = [c.rsplit('_', maxsplit=1)[0] for c in df.columns] 
-    
+
     # enforce tpm threshold
     if min_tpm:
         print('Enforcing minimum TPM')
         print('Total # {}s detected: {}'.format(how, len(df.index)))
         df = df.loc[(df >= min_tpm).any(axis=1)]
         print('# {}s >= {} tpm: {}'.format(how, min_tpm, len(df.index)))
-        
+
     # subset if necessary
-    if gene_subset:
-        print('Subsetting on {} genes'.format(gene_subset))
+    if gene_subset or nov:
+        print('Applying gene type and novelty subset')
         df = df.loc[df.index.isin(subset_inds)]
-        
+
     print('Number of {}s reported: {}'.format(how, len(df.index)))
-    
+
     if save:
         fname = '{}_{}_tpm.tsv'.format(sample, how)
         df.to_csv(fname, sep='\t')
-    
-    ids = df.index.tolist()
+
+    ids = df.index.tolist()    
         
     return df, ids
 
