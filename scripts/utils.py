@@ -34,7 +34,9 @@ def get_sample_datasets(sample=None):
     d = os.path.dirname(__file__)
     fname = '{}/../lr_bulk/hr_to_biosample_type.tsv'.format(d)
     df = pd.read_csv(fname, sep='\t')
-    if sample:
+    if sample == 'all':
+        datasets = df.hr.tolist()
+    elif sample:
         datasets = df.loc[df.biosample_type == sample, 'hr'].tolist()
     else: 
         datasets = df.hr.tolist()
@@ -203,7 +205,7 @@ def get_det_table(df,
                   how='gene',
                   min_tpm=1, 
                   gene_subset='polya',
-                  sample=None,
+                  sample='all',
                   groupby='library',
                   nov='Known'):
     """
@@ -343,7 +345,7 @@ def get_n_libs_per_sample():
 def get_isos_per_gene(df,
                       min_tpm=1,
                       gene_subset='polya',
-                      sample='cell_line', 
+                      sample='all', 
                       groupby='sample',
                       nov=['Known', 'NIC', 'NNC']):
     """
@@ -368,6 +370,7 @@ def get_isos_per_gene(df,
     df = get_det_table(df, 
               how='iso',
               min_tpm=min_tpm,
+              sample=sample,
               gene_subset=gene_subset,
               groupby=groupby,
               nov=nov)
@@ -386,8 +389,10 @@ def get_isos_per_gene(df,
     
     return df
 
+def 
+
 def get_tpm_table(df,
-                    sample=None,
+                    sample='all',
                     how='gene',
                     nov=None,
                     min_tpm=None,

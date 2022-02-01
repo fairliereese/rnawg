@@ -285,6 +285,79 @@ def plot_gene_v_iso_sample_det(df,
         fname = '{}{}_gene_v_{}_iso_n_samp_det.png'.format(opref, sample, nov)
         plt.savefig(fname, dpi=300, bbox_inches='tight')
         
+def plot_n_libs_v_avg_isos(df,
+                           color='blue',
+                           min_tpm=1,
+                           gene_subset='polya',
+                           sample='all', 
+                           nov=['Known', 'NIC', 'NNC'],
+                           opref='figures/'):
+    """
+    Plot a scatterplot with a regression line for the average
+        number of isos / gene vs. # libraries / sample
+        
+    Parameters:
+        df (pandas DataFrame): TALON abundance, unfiltered
+        filt_df (pandas DataFrame): TALON abundance, filtered
+        color (str): Color to plot plot in
+        min_tpm (float): Minimum TPM to call a gene / iso as detected
+        gene_subset (str): Subset of genes to use, 'polya' or None
+        sample (str): Either "tissue", "cell_line", or None
+        groupby (str): Either "sample", or "library", 
+            used to groupby datasets displayed
+        nov (str): Novelty category of 
+            isoforms to consider
+        opref (str): Output prefix to save figure
+    """
+    
+    # get number of libraries per sample
+    n_libs = get_n_libs_per_sample()    
+    
+    # get avg isos
+    df = get_isos_per_gene(df,
+                       min_tpm=min_tpm,
+                       gene_subset=gene_subset,
+                       sample=sample,
+                       groupby='sample', 
+                       nov=nov)
+    df = df.mean().to_frame().rename({0: 'avg_isos'}, axis=1)
+    df.reset_index(inplace=True)
+    df.rename({'index': 'biosample'}, axis=1, inplace=True)
+    
+    # merge with number of libraries
+    df = df.merge(n_libs, how='left', on='biosample')
+    
+    sns.set_context('paper', font_scale=1.6)
+    ax = sns.scatterplot(data=df, x='n_libraries', y='avg_isos', color='b')
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    xlabel = 'Number of libraries / sample'
+    ylabel = 'Average # isoforms / gene'
+
+    # get coeffs of linear fit
+    c1 = 'n_libraries'
+    c2 = 'avg_isos'
+    slope, intercept, r_value, p_value, std_err = stats.linregress(df[c1],df[c2])
+    lines = mpl.lines.Line2D([0], [0])
+    label = 'm={0:.1f}'.format(slope)
+
+    print('Slope of correlation: {}'.format(slope))
+
+    sns.regplot(data=df, x=c1, y=c2,
+                scatter=False, ax=ax, 
+                color='b')
+    sns.regplot(data=df, x=c1, y=c2,
+        scatter=False, ax=ax, ci=0, color='b',
+        line_kws={'linestyle':'-',
+                  'label':"m={0:.1f}".format(slope)})
+
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+    
+    fname = '{}_libs_v_avg_isos.png'.format(opref)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+        
 def plot_n_reads_v_avg_isos(df,
                             filt_df,
                             color='blue',
@@ -316,9 +389,10 @@ def plot_n_reads_v_avg_isos(df,
     reads = get_reads_per_sample(df, groupby='sample')
     
     # get avg isos
-    df = get_isos_per_gene(df,
+    df = get_isos_per_gene(filt_df,
                        min_tpm=min_tpm,
                        gene_subset=gene_subset,
+                       sample=sample,
                        groupby=groupby, 
                        nov=nov)
     df = df.mean().to_frame().rename({0: 'avg_isos'}, axis=1)
@@ -487,6 +561,7 @@ def plot_avg_isos_per_gene(df,
     df = get_isos_per_gene(df,
                            min_tpm=min_tpm,
                            gene_subset=gene_subset,
+                           sample=sample,
                            groupby=groupby, 
                            nov=nov)
     
