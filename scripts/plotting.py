@@ -343,7 +343,11 @@ def plot_n_libs_v_avg_isos(df,
     lines = mpl.lines.Line2D([0], [0])
     label = 'm={0:.1f}'.format(slope)
 
+    r2, pval_spear = stats.spearmanr(df[c1],df[c2])
+
     print('Slope of correlation: {}'.format(slope))
+    print('R of correlation: {}'.format(r_value))
+    print('R2 of correlation: {}'.format(r2))
 
     sns.regplot(data=df, x=c1, y=c2,
                 scatter=False, ax=ax, 
@@ -357,6 +361,11 @@ def plot_n_libs_v_avg_isos(df,
     
     fname = '{}_libs_v_avg_isos.png'.format(opref)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+def plot_n_isos_gene_sample_dist():
+    """
+    Plot the distribution of # isoforms detected / gene / sample
+    """
         
 def plot_n_reads_v_avg_isos(df,
                             filt_df,
@@ -418,8 +427,12 @@ def plot_n_reads_v_avg_isos(df,
     slope, intercept, r_value, p_value, std_err = stats.linregress(df[c1],df[c2])
     lines = mpl.lines.Line2D([0], [0])
     label = 'm={0:.1f}'.format(slope)
+    
+    r2, pval_spear = stats.spearmanr(df[c1],df[c2])
 
     print('Slope of correlation: {}'.format(slope))
+    print('R of correlation: {}'.format(r_value))
+    print('R2 of correlation: {}'.format(r2))
 
     sns.regplot(data=df, x=c1, y=c2,
                 scatter=False, ax=ax, 
@@ -859,6 +872,47 @@ def plot_reads_per_bc(df, title, oprefix):
 
     fname = '{}_{}_umis_v_barcodes.png'.format(oprefix, title)
     plt.savefig(fname)
+    
+def plot_isos_per_gene_hist(df,
+                                       min_tpm=1,
+                                       gene_subset='polya', 
+                                       sample='all',
+                                       groupby='sample', 
+                                       nov=['Known'],
+                                       opref='figures/'):
+    """
+    Plots dist. of # isos / gene across the different samples
+    
+    Parameters:
+        df (pandas DataFrame): TALON abundance file
+        gene_subset (str): Choose from None or 'polya' or 'tf'
+        sample (str): Choose from 'all', 'tissue', or 'cell_line'
+        min_tpm (float): Min. TPM val for at least one library
+        groupby (str): Choose from 'sample' or 'library'
+        nov (list of str): Novelty categories to consider
+        opref (str): Output file prefix 
+    """
+    
+    df = get_isos_per_gene(df,
+                           min_tpm=min_tpm,
+                           gene_subset=gene_subset,
+                           groupby=groupby,
+                           sample=sample,
+                           nov=nov)
+    
+    # get long form dataframe
+    df = df.melt(ignore_index=False) 
+    
+    sns.set_context('paper', font_scale=2)
+
+    ax = sns.displot(data=df, x='value', kind='hist', binwidth=4)
+    xlabel = '# isoforms / gene / sample'
+    ylabel = 'Number of genes'
+
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+
+    plt.savefig('{}_hist_isos_per_gene_per_sample.png'.format(opref), \
+                dpi=300, bbox_inches='tight')
     
 def plot_det_len_kde(df,
                      how='gene',
