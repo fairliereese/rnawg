@@ -80,7 +80,7 @@ df['biotype_category'] = df.biotype.map(biotype_map)
 
 df['exon_len'] = (df.start-df.stop).abs()+1
 
-df = df[['gid', 'tid', 'exon_len', 'biotype', 'biotype_category']]
+df = df[['gid', 'gname', 'tid', 'exon_len', 'biotype', 'biotype_category']]
 df_copy = df[['gid', 'tid', 'biotype', 'biotype_category']].copy(deep=True)
 df_copy = df_copy.drop_duplicates(keep='first')
 
