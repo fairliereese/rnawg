@@ -17,6 +17,9 @@ df = df.loc[df.entry_type == 'gene'].copy(deep=True)
 df['gid'] = df.fields.str.split('gene_id "', n=1, expand=True)[1]
 df['gid'] = df.gid.str.split('";', n=1, expand=True)[0]
 
+df['gname'] = df.fields.str.split('gene_name "', n=1, expand=True)[1]
+df['gname'] = df.gname.str.split('";', n=1, expand=True)[0]
+
 df['biotype'] = df.fields.str.split('gene_type "', n=1, expand=True)[1]
 df['biotype'] = df.biotype.str.split('";', n=1, expand=True)[0]
 
@@ -84,7 +87,7 @@ df.loc[df.gid_stable.isin(tf_gids), 'tf'] = True
 df.drop('gid_stable', axis=1, inplace=True)
 
 # and save
-df = df[['gid', 'length', 'biotype', 'biotype_category', 'tf']]
+df = df[['gid', 'gname', 'length', 'biotype', 'biotype_category', 'tf']]
 fname = 'gencode_v29_gene_metadata.tsv'
 df.to_csv(fname, sep='\t', index=False)
 

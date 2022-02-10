@@ -20,6 +20,9 @@ df['tid'] = df.tid.str.split('";', n=1, expand=True)[0]
 df['gid'] = df.fields.str.split('gene_id "', n=1, expand=True)[1]
 df['gid'] = df.gid.str.split('";', n=1, expand=True)[0]
 
+df['gname'] = df.fields.str.split('gene_name "', n=1, expand=True)[1]
+df['gname'] = df.gname.str.split('";', n=1, expand=True)[0]
+
 df['biotype'] = df.fields.str.split('gene_type "', n=1, expand=True)[1]
 df['biotype'] = df.biotype.str.split('";', n=1, expand=True)[0]
 
