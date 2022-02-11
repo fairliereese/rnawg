@@ -31,7 +31,7 @@ mv *bam processing/
 ## TALON label reads
 ```bash
 opref=~/mortazavi_lab/data/rnawg/lr_bulk/processing/
-samples=~/mortazavi_lab/data/rnawg/lr_bulk/samples.txt
+samples=~/mortazavi_lab/data/rnawg/lr_bulk/samples  .txt
 bash ../scripts/talon_label.sh $opref $samples
 ```
 

@@ -919,9 +919,7 @@ def plot_max_vs_all_isos(df,
                        gene_subset=gene_subset,
                        groupby='all', 
                        nov=nov)
-    print(total.head())
     total.rename({'all': 'total_isos'}, axis=1, inplace=True)
-    print(total.head())
                  
     # merge 
     df = max_isos.merge(total, left_index=True, right_index=True)
@@ -1336,6 +1334,119 @@ def plot_transcript_novelty(df, oprefix,
 
     plt.show()
     plt.clf()
+    
+
+def plot_transcript_novelty_per(df, 
+                                gene='ELN',
+                                min_tpm=1,
+                                gene_subset='polya',
+                                groupby='sample',
+                                nov=['Known', 'NIC', 'NNC'], 
+                                opref='figures/'):
+    
+    """
+    Plot the # of detected isoforms / novelty category for a particular
+    gene across samples or libraries
+    """
+    
+    # get metadata about the transcripts that we need
+    t_df = df.copy(deep=True)
+    t_df = t_df[['annot_transcript_id', 'annot_gene_name',
+                 'annot_gene_id', 'transcript_novelty']]  
+    
+    df = get_det_table(df,
+              how='iso',
+              min_tpm=min_tpm, 
+              gene_subset=gene_subset,
+              groupby=groupby,
+              nov=nov)
+    df = df.transpose()
+    
+    # isolate isoforms that belong to gene of interest
+    df = df.merge(t_df, how='left', left_index=True, right_on='annot_transcript_id')
+    df = df.loc[df.annot_gene_name == gene]
+    
+    # calc # isos detected per nov
+    df.drop(['annot_gene_id', 'annot_gene_name'], axis=1, inplace=True)
+    df = df.melt(id_vars=['annot_transcript_id', 'transcript_novelty'])
+    df.rename({'variable': groupby, 
+               'value': 'detected'}, axis=1, inplace=True)
+    df = df.groupby([groupby, 'transcript_novelty', 'detected']).count().reset_index()
+    df.rename({'annot_transcript_id':'counts'}, axis=1, inplace=True)
+    df = df.loc[df.detected == True]
+    
+    c_dict, order = get_talon_nov_colors(nov)
+
+    # actual plotting
+    sns.set_context('paper', font_scale=1.6)
+    plt.figure(figsize=(4,6))
+    g = sns.catplot(data=df, 
+                x=groupby,
+                hue='transcript_novelty',
+                y='counts', kind='bar',
+                palette=c_dict, hue_order=order,
+                saturation=1)
+    [plt.setp(ax.get_xticklabels(), rotation=90) for ax in g.axes.flat]
+
+    g.set_ylabels('$\it{}$ isoforms'.format(gene))
+    g.set_xlabels('Transcript novelty')
+    
+    fname = '{}_{}_novelty_per_{}.png'.format(opref, gene, groupby)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+def plot_transcript_novelty_per_1(df, 
+                                  gene='ELN',
+                                  dataset='h9_chondro', 
+                                  min_tpm=1,
+                                  gene_subset='polya', 
+                                  groupby='sample',
+                                  nov=['Known', 'NIC', 'NNC'],
+                                  opref='figures/'):
+    
+    # get metadata about the transcripts that we need
+    t_df = df.copy(deep=True)
+    t_df = t_df[['annot_transcript_id', 'annot_gene_name',
+                 'annot_gene_id', 'transcript_novelty']]  
+    
+    df = get_det_table(df,
+              how='iso',
+              min_tpm=min_tpm, 
+              gene_subset=gene_subset,
+              groupby=groupby,
+              nov=nov)
+    
+    # limit to only those detected in sample / library of interest
+    df = df.loc[dataset].to_frame()
+    df = df.loc[df[dataset] == True]
+        
+    # isolate isoforms that belong to gene of interest
+    df = df.merge(t_df, how='left', left_index=True, right_on='annot_transcript_id')
+    df = df.loc[df.annot_gene_name == gene]
+    
+    df = df[['annot_transcript_id', 'transcript_novelty']].groupby('transcript_novelty').count().reset_index()
+    df.rename({'annot_transcript_id': 'counts'}, axis=1, inplace=True)
+    c_dict, order = get_talon_nov_colors(nov)
+    
+    # actual plotting
+    sns.set_context('paper', font_scale=1.8)
+    plt.figure(figsize=(4,6))
+    g = sns.catplot(data=df, x='transcript_novelty',
+                y='counts', kind='bar',
+                saturation=1,
+                palette=c_dict, order=order)
+    [plt.setp(ax.get_xticklabels(), rotation=90) for ax in g.axes.flat]
+    g.set_ylabels('$\it{}$ isoforms in {}'.format(gene, dataset))
+    g.set_xlabels('Transcript novelty')
+
+    # add percentage labels
+    ax = g.axes[0,0]
+    add_perc(ax, df, 'counts')
+    
+    fname = '{}_{}_{}_novelty.png'.format(opref, gene, dataset)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+    
+
 
 
     

@@ -86,7 +86,7 @@ then
       -b ${build} \
       -d ${datasets} \
       --whitelist ${opref}_known_nic_nnc_pass_list.csv \
-      --o ${opref}
+      --o ${opref}_known_nic_nnc
 
   else
     # unfiltered talon abundance
@@ -138,5 +138,5 @@ then
         -b ${build} \
         -d ${datasets} \
         --whitelist ${opref}_known_nic_nnc_pass_list.csv \
-        --o ${opref}
+        --o ${opref}_known_nic_nnc
   fi
