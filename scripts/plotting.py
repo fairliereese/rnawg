@@ -6,8 +6,24 @@ from matplotlib.colors import ListedColormap
 import matplotlib as mpl
 import upsetplot
 from scipy import stats
+from matplotlib.ticker import ScalarFormatter
 from .utils import *
 
+def get_biosample_colors():
+    """
+    Get colors for each biosample
+    """
+    d = os.path.dirname(__file__)
+    fname = '{}/../refs/biosample_colors.tsv'.format(d)
+    df = pd.read_csv(fname, sep='\t')
+    
+    c_dict = {}
+    for ind, entry in df.iterrows():
+        c_dict[entry.biosample] = entry.color
+    order = df.biosample.tolist()
+    
+    return c_dict, order
+    
 def get_talon_nov_colors(cats=None):
     c_dict = {'Known': '#009E73',
               'ISM': '#0072B2',
@@ -873,13 +889,100 @@ def plot_reads_per_bc(df, title, oprefix):
     fname = '{}_{}_umis_v_barcodes.png'.format(oprefix, title)
     plt.savefig(fname)
     
+def plot_max_vs_all_isos(df,
+                         min_tpm=1,
+                         gene_subset='polya',
+                         groupby='sample', 
+                         nov=['Known', 'NIC', 'NNC'],
+                         label_genes=None,
+                         opref='figures/',
+                         ylim=None, 
+                         xlim=None):
+    """
+    Plot a scatterplot of the maximum number of isoforms detected 
+    per sample or library vs. the total number of isoforms detected
+    """
+    df_copy = df.copy(deep=True)
+    
+    # get maximum number of detected isoforms per library or sample
+    max_isos = get_isos_per_gene(df,
+                       min_tpm=min_tpm,
+                       gene_subset=gene_subset,
+                       groupby=groupby, 
+                       nov=nov)
+    max_isos = max_isos.max(axis=1).to_frame()
+    max_isos.rename({0: 'max_isos'}, axis=1, inplace=True)
+    
+    # get total number of detected isoforms overall
+    total = get_isos_per_gene(df_copy,
+                       min_tpm=min_tpm,
+                       gene_subset=gene_subset,
+                       groupby='all', 
+                       nov=nov)
+    print(total.head())
+    total.rename({'all': 'total_isos'}, axis=1, inplace=True)
+    print(total.head())
+                 
+    # merge 
+    df = max_isos.merge(total, left_index=True, right_index=True)
+    
+    # add gene name
+    gene_df, _, _ = get_gtf_info(how='gene')
+    df = df.merge(gene_df, how='left', left_index=True, right_on='gid')
+    
+    # plot the figure
+    sns.set_context('paper', font_scale=1.6)
+    ax = sns.scatterplot(data=df, x='total_isos', y='max_isos')
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    
+    # set x and y lims if provided
+    if xlim:
+        xlim = (0, xlim)
+        ax.set(xlim=xlim)
+    if ylim:
+        ylim = (0, ylim)
+        ax.set(ylim=ylim)
+
+    lims = [
+        np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+        np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+    ]
+
+    # now plot both limits against eachother
+    ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
+    ax.set_aspect('equal')
+    ax.set_xlim(lims)
+    ax.set_ylim(lims)
+
+    # annotate genes that are kinda interesting
+    if label_genes:
+        xlim = ax.get_xlim()[1]
+        ylim = ax.get_ylim()[1]
+        for g in label_genes:
+            x = df.loc[df.gname == g, 'total_isos'].values[0]+(2/75)*xlim
+            y = df.loc[df.gname == g, 'max_isos'].values[0]-(1.5/75)*ylim
+            plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
+
+    xlabel = '# isoforms / gene'
+    ylabel = 'Max. # isoforms / gene in one sample'
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+
+    fname = '{}_max_v_all_isos_per_gene.png'.format(opref)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+    return df
+
 def plot_isos_per_gene_hist(df,
-                                       min_tpm=1,
-                                       gene_subset='polya', 
-                                       sample='all',
-                                       groupby='sample', 
-                                       nov=['Known'],
-                                       opref='figures/'):
+                            min_tpm=1,
+                            gene_subset='polya', 
+                            sample='all',
+                            groupby='sample', 
+                            nov=['Known'],
+                            rm_1=False,
+                            pseudocount=None,
+                            opref='figures/'):
     """
     Plots dist. of # isos / gene across the different samples
     
@@ -890,6 +993,8 @@ def plot_isos_per_gene_hist(df,
         min_tpm (float): Min. TPM val for at least one library
         groupby (str): Choose from 'sample' or 'library'
         nov (list of str): Novelty categories to consider
+        rm_1 (bool): Whether or not to remove 1-count gene / sample
+        pseudocount (int): Add a pseudocount
         opref (str): Output file prefix 
     """
     
@@ -903,16 +1008,31 @@ def plot_isos_per_gene_hist(df,
     # get long form dataframe
     df = df.melt(ignore_index=False) 
     
+    # remove 0-count gene / sample combos (as these
+    # are genes that were not detected)
+    df = df.loc[df.value != 0]
+    
+    # remove 1-count gene / sample combos too
+    if rm_1:
+        df = df.loc[df.value != 1]
+    
+    # add pseudocount if wanted
+    if pseudocount:
+        df.value = df.value + pseudocount
+            
     sns.set_context('paper', font_scale=2)
 
-    ax = sns.displot(data=df, x='value', kind='hist', binwidth=4)
+    ax = sns.displot(data=df, x='value', kind='hist', binwidth=1)
     xlabel = '# isoforms / gene / sample'
     ylabel = 'Number of genes'
 
-    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel, yscale='log')
+    for a in ax.axes.flat:    
+        a.yaxis.set_major_formatter(ScalarFormatter())
 
     plt.savefig('{}_hist_isos_per_gene_per_sample.png'.format(opref), \
                 dpi=300, bbox_inches='tight')
+    return df, ax
     
 def plot_det_len_kde(df,
                      how='gene',

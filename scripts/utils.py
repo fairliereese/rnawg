@@ -218,7 +218,7 @@ def get_det_table(df,
         min_tpm (float): Minimum TPM to call a gene / iso as detected
         gene_subset (str): Subset of genes to use, 'polya' or None
         sample (str): Either "tissue", "cell_line", or None
-        groupby (str): Either "sample", or "library", 
+        groupby (str): Either "sample", 'library', or 'all' 
             used to groupby datasets displayed
         nov (list of str): Only used with how='iso', novelty categories of 
             isoforms to consider
@@ -263,6 +263,10 @@ def get_det_table(df,
         df.rename({'dataset': 'library'}, axis=1, inplace=True)
         print('Found {} total libraries'.format(len(df.library.unique().tolist())))
         df = df.groupby('library').max()
+    
+    elif groupby == 'all':
+        df['dataset'] = 'all'
+        df = df.groupby('dataset').max()
         
     df = (df >= min_tpm)
     return df
@@ -386,6 +390,9 @@ def get_isos_per_gene(df,
     df = df.astype(int)
     df.reset_index(inplace=True)
     df = df.groupby('annot_gene_id').sum()
+    
+    # convert 0s into nans
+    df.replace(0, np.nan, inplace=True)
     
     return df
 
