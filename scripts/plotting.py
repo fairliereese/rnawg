@@ -7,7 +7,15 @@ import matplotlib as mpl
 import upsetplot
 from scipy import stats
 from matplotlib.ticker import ScalarFormatter
+import swan_vis as swan
 from .utils import *
+
+def get_edge_colors():
+    """
+    Get colors for introns and exons
+    """
+    c_dict = {'intron': '#CC79A7', 'exon': '#009E73'}
+    return c_dict
 
 def get_biosample_colors():
     """
@@ -187,6 +195,69 @@ def plot_n_reps_per_biosamp(df,
     
     fname = '{}{}_libs_per_biosamp.png'.format(opref, sample)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+def plot_exon_hist(sg,
+                   df,
+                   gene,
+                   min_tpm=1,
+                   gene_subset='polya',
+                   sample='all',
+                   groupby='library',
+                   nov=['Known', 'NIC', 'NNC'], 
+                   opref='figures/human'):
+    """
+    Plot a histogram of introns and exons and how many isoforms
+    they're used in in a particular gene.
+    
+    Parameters:
+        sg (swan_vis SwanGraph): SwanGraph of data
+        df (pandas DataFrame): TALON abundance
+    """
+    # determine which isoforms are actually detected
+    df = get_det_table(df, 
+                       how='iso',
+                       min_tpm=min_tpm,
+                       gene_subset=gene_subset,
+                       sample=sample, 
+                       groupby=groupby,
+                       nov=nov)
+    tids = df.columns.tolist()
+    
+    # get isoforms from target gene
+    df = sg.t_df.loc[sg.t_df.gname == gene]
+    df = swan.pivot_path_list(df, 'path')
+    df = df.merge(sg.edge_df, how='left', left_on='edge_id', right_index=True, suffixes=(None, '_dupe'))
+    df = df.merge(sg.t_df[['tname']], how='left', left_index=True, right_index=True)
+    df.drop('edge_id_dupe', axis=1, inplace=True)
+    df = df[['edge_id', 'edge_type']]
+    df.reset_index(inplace=True)
+    tids = list(set(tids)&set(df.tid.tolist()))
+    
+    # limit to only detected isoforms
+    df = df.loc[df.tid.isin(tids)]
+    
+    print('Found {} isoforms for {}'.format(len(tids), gene))
+    
+    c_dict = get_edge_colors()
+    
+    # groupby and count the number of isoforms that use each edge
+    df = df.groupby(['edge_id', 'edge_type']).count().reset_index()
+    df.rename({'tid':'n_isos'}, axis=1, inplace=True)
+    
+    sns.set_context('paper', font_scale=1.8)
+    
+    for e_type in df.edge_type.unique():
+        temp = df.loc[df.edge_type == e_type]
+        ax = sns.displot(data=temp, x='n_isos',
+                         kind='hist',
+                         color=c_dict[e_type], binwidth=5)
+
+        xlabel = '# $\it{}$ isoforms'.format(gene)
+        ylabel = '# {}s'.format(e_type)
+
+        _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+        fname = '{}_{}_isos_per_{}.png'.format(opref, gene, e_type)
+        plt.savefig(fname, dpi=300, bbox_inches='tight')   
     
 def plot_exons_per_iso(df,
                        nov=['Known'],
@@ -889,6 +960,82 @@ def plot_reads_per_bc(df, title, oprefix):
     fname = '{}_{}_umis_v_barcodes.png'.format(oprefix, title)
     plt.savefig(fname)
     
+def plot_det_vs_gencode_isos(df,
+                         min_tpm=1,
+                         gene_subset='polya',
+                         nov=['Known', 'NIC', 'NNC'],
+                         label_genes=None,
+                         opref='figures/',
+                         ylim=None, 
+                         xlim=None):
+    """
+    Plot a scatterplot of the the total number of isoforms detected
+    vs the number of isoforms in gencode
+    """
+    
+    # detected isoforms
+    det_df = get_isos_per_gene(df,
+                       min_tpm=min_tpm,
+                       gene_subset=gene_subset,
+                       groupby='all', 
+                       nov=nov)
+    det_df.rename({'all': 'n_isos_det'}, axis=1, inplace=True)
+    
+    # annotated isoforms
+    gc_df = get_n_gencode_isos(subset='polya')
+    gc_df = gc_df[['gid', 'n_isos_gencode']]
+    
+    df = det_df.merge(gc_df, how='left', left_index=True, right_on='gid')    
+    
+    # add gene name 
+    gene_df, _, _ = get_gtf_info(how='gene', subset='polya')
+    gene_df = gene_df[['gid', 'gname']]
+    df = df.merge(gene_df, how='left', on='gid')
+    
+    # plot the figure
+    sns.set_context('paper', font_scale=1.6)
+    ax = sns.scatterplot(data=df, x='n_isos_det', y='n_isos_gencode')
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    
+    # set x and y lims if provided
+    if xlim:
+        xlim = (0, xlim)
+        ax.set(xlim=xlim)
+    if ylim:
+        ylim = (0, ylim)
+        ax.set(ylim=ylim)
+
+    lims = [
+        np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+        np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+    ]
+
+    # now plot both limits against eachother
+    ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
+    ax.set_aspect('equal')
+    ax.set_xlim(lims)
+    ax.set_ylim(lims)
+
+    # annotate genes that are kinda interesting
+    if label_genes:
+        xlim = ax.get_xlim()[1]
+        ylim = ax.get_ylim()[1]
+        for g in label_genes:
+            x = df.loc[df.gname == g, 'n_isos_det'].values[0]+(2/75)*xlim
+            y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]-(1.5/75)*ylim
+            plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
+
+    xlabel = 'Total # isoforms / gene'
+    ylabel = '# isoforms / gene in GENCODE'
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+
+    fname = '{}_total_v_gencode_isos_per_gene.png'.format(opref)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+    return df
+    
 def plot_max_vs_all_isos(df,
                          min_tpm=1,
                          gene_subset='polya',
@@ -963,7 +1110,7 @@ def plot_max_vs_all_isos(df,
             y = df.loc[df.gname == g, 'max_isos'].values[0]-(1.5/75)*ylim
             plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
 
-    xlabel = '# isoforms / gene'
+    xlabel = 'Total # isoforms / gene'
     ylabel = 'Max. # isoforms / gene in one sample'
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
 

@@ -156,6 +156,22 @@ def get_tissue_metadata():
     tissue = pd.read_csv(fname)
     return tissue
 
+def get_n_gencode_isos(subset=None):
+    """
+    Get a DataFrame of the number of annotated isos / gene in GENCODE
+    """
+    
+    df, _, _ = get_gtf_info(how='iso',
+                            subset=subset)    
+    df = df[['gid', 'tid']]
+    df = df.groupby('gid').count().reset_index()
+    df.rename({'tid': 'n_isos_gencode'}, axis=1, inplace=True)
+    df.sort_values(by='n_isos_gencode', ascending=False, inplace=True)
+    gene_df, _, _ = get_gtf_info(how='gene', subset=subset)
+    df = df.merge(gene_df, how='left', on='gid')
+       
+    return df
+
 def get_gtf_info(how='gene',
                  subset=None):
     """
