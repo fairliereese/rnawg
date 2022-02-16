@@ -1,4 +1,6 @@
+talon/*tsv
 *enrichr*txt
+*swan/swan_metadata.tsv
 *correlation.tsv
 *tpm*tsv
 *top_10_genes.tsv

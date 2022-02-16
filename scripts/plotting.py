@@ -1099,7 +1099,7 @@ def plot_reads_per_bc(df, title, oprefix):
     
     
 def plot_gene_tpm_v_n_isos(df, filt_df,
-                           min_tpm,
+                           min_tpm=1,
                            groupby='sample', 
                            gene_subset='polya', 
                            nov=['Known', 'NIC', 'NNC'],
