@@ -488,6 +488,7 @@ def get_gene_iso_det_table(df, filt_df,
 def get_tpm_table(df,
                     sample='all',
                     how='gene',
+                    groupby='library',
                     nov=None,
                     min_tpm=None,
                     gene_subset=None,
@@ -497,6 +498,7 @@ def get_tpm_table(df,
         df (pandas DataFrame): TALON abundance table
         sample (str): Choose from 'cell_line', 'tissue', or None
         how (str): Choose from 'gene' or 'iso'
+        groupby (str): Choose from 'library' or 'sample'. Sample will avg.
         nov (list of str): List of accepted novelty types (w/ how='iso')
         min_tpm (float): Keep only genes / isos that have at least one
             TPM >= the value across the libraries
@@ -584,7 +586,31 @@ def get_tpm_table(df,
     if gene_subset or nov:
         print('Applying gene type and novelty subset')
         df = df.loc[df.index.isin(subset_inds)]
+        
+    # average over biosample
+    if groupby == 'sample':
+        print('Averaging over biosample')
+        df = df.transpose()
+        df.reset_index(inplace=True)
+        
+        # add biosample name (ie without rep information)
+        df['biosample'] = df['index'].str.rsplit('_', n=2, expand=True)[0]
+        df.drop(['index'], axis=1, inplace=True)
 
+        # record the avg TPM value per biosample
+        tissue_df = get_tissue_metadata()
+        tissue_df = tissue_df[['tissue', 'biosample']]
+
+        df = df.merge(tissue_df, how='left', on='biosample')
+        df.loc[df.tissue.isnull(), 'tissue'] = df.loc[df.tissue.isnull(), 'biosample']
+        df.drop('biosample', axis=1, inplace=True)
+        df.rename({'tissue': 'biosample'}, axis=1, inplace=True)
+
+        print('Found {} total samples'.format(len(df.biosample.unique().tolist())))
+
+        df = df.groupby('biosample').mean()
+        df = df.transpose()
+       
     print('Number of {}s reported: {}'.format(how, len(df.index)))
 
     if save:

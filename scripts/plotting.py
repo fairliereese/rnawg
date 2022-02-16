@@ -1097,6 +1097,60 @@ def plot_reads_per_bc(df, title, oprefix):
     fname = '{}_{}_umis_v_barcodes.png'.format(oprefix, title)
     plt.savefig(fname)
     
+    
+def plot_gene_tpm_v_n_isos(df, filt_df,
+                           min_tpm,
+                           groupby='sample', 
+                           gene_subset='polya', 
+                           nov=['Known', 'NIC', 'NNC'],
+                           opref='figures/human'):
+    """
+    Plot a scatterplot of gene tpm / library or sample vs.
+    number of isoforms per gene / library or sample
+    
+    Parameters:
+        df (pandas DataFrame): TALON abundance file
+        filt_df (pandas DataFrame): filtered talon abundance file
+    """
+    
+    tpm_df, _ = get_tpm_table(df, 
+                       how='gene', 
+                       min_tpm=min_tpm,
+                       groupby=groupby,
+                       gene_subset=gene_subset)
+    
+    iso_df = get_isos_per_gene(filt_df, 
+                               min_tpm=min_tpm,
+                               gene_subset=gene_subset, 
+                               groupby=groupby, 
+                               nov=nov)
+    tpm_df = tpm_df.melt(ignore_index=False, value_name='tpm')
+    iso_df = iso_df.melt(ignore_index=False, value_name='n_iso', var_name='biosample').fillna(0)
+    
+    tpm_df.index.name = 'annot_gene_id'
+    tpm_df.reset_index(inplace=True)
+    iso_df.reset_index(inplace=True)
+
+    df = tpm_df.merge(iso_df, how='outer', on=['annot_gene_id', 'biosample'])
+    
+    sns.set_context('paper', font_scale=1.6)
+    ax = sns.scatterplot(data=df, x='n_iso', y='tpm')
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    xlabel = '# isoforms / gene / sample'
+    ylabel = 'TPM / gene / sample'
+
+    # _ = ax.set(xlabel=xlabel, ylabel=ylabel, yscale='log')
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+
+
+    fname = '{}_isos_v_tpm.png'.format(opref)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+    
+    
 def plot_det_vs_gencode_isos(df,
                          min_tpm=1,
                          gene_subset='polya',
