@@ -7,21 +7,24 @@
 
 ## Download processed files (post-TranscriptClean)
 ```bash
-xargs -L 1 curl -O -J -L < files.txt
+xargs -L 1 curl -O -J -L -n < files.txt
 ```
 
 ## Create human readable sample names and samples text file
 
 Create manual map of biosample term name + experiment ID to a more human-readable version
-```python
-import pandas as pd
-df = pd.read_csv('metadata.tsv', sep='\t')
-df = df[['Experiment accession', 'Biosample term name']]
-df = df.drop_duplicates()
-df = df.sort_values(by='Biosample term name')
-df.to_csv('temp_biosamp_term_name_map.tsv', sep='\t', index=False, header=None)
+```bash
+python make_temp_biosamp_term_name_map.py
 ```
-Uses the manually created map of biosample term name + experiment ID to a more human-readable version for the cell line / in vitro differentiated cell data `exp_name_map.tsv`.
+
+Manually edit missing shorthand entries with desired names.
+
+Then rename file.
+```bash
+mv temp_biosamp_term_name_map.tsv biosamp_term_name_map.tsv
+```
+
+Uses the manually created map of biosample term name + experiment ID (`biosamp_term_name_map.tsv`) to a more human-readable version for the cell line / in vitro differentiated cell data `exp_name_map.tsv`.
 ```bash
 python format_metadata.py
 ```

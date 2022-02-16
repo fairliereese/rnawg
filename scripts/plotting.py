@@ -196,6 +196,142 @@ def plot_n_reps_per_biosamp(df,
     fname = '{}{}_libs_per_biosamp.png'.format(opref, sample)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
     
+def plot_major_iso_pis(sg, groupby, 
+                       opref='figures/human'):
+    """
+    Plots a histogram of pi values for the 1st-4th highest-expressed isoform 
+    per gene per sample.
+    
+    Parameters:
+        sg (swan_vis SwanGraph): SwanGraph with abundance information
+        groupby (str): Column in sg.adata.obs on which to calculat pi
+        opref (str): Output file prefix
+    """
+    obs_col = groupby
+    df, counts = swan.calc_pi(sg.adata, sg.t_df, obs_col=obs_col)
+    df = df.transpose()
+
+    # merge with gene info
+    df = df.merge(sg.t_df['gid'],
+                  how='left', left_index=True, right_index=True)
+
+    # get top isoform per gene
+    df.reset_index(inplace=True)
+    df = df.melt(id_vars=['tid', 'gid'])
+
+    df.rename({'variable': obs_col,
+               'value': 'pi'}, axis=1, inplace=True)
+    df = df.sort_values(by='pi', ascending=False)
+
+    # remove unexpressed transcripts
+    df = df.loc[df.pi != 0]
+
+    # add # isoforms / gene / dataset to use for filtering later
+    temp = df[['gid', obs_col, 'tid']].groupby(['gid', obs_col]).count().reset_index()
+    temp.rename({'tid': 'iso_counts'}, axis=1, inplace=True)
+    df = df.merge(temp, how='left', on=['gid', obs_col])
+
+
+    for i in range(1,5):
+        # https://stackoverflow.com/questions/36310564/pandas-second-max-value-per-group-in-dataframe
+        temp = df.groupby(['gid', obs_col]).head(i).groupby(['gid', obs_col]).tail(1).copy(deep=True)
+
+        # make sure we're only looking at isoforms that have at least
+        # i expressed isoforms
+        temp = temp.loc[temp.iso_counts >= i]
+
+        # plot distribution of max pi value
+        # per gene, per tissue / age combo
+        sns.set_context('paper', font_scale=2)
+        ax = sns.displot(data=temp, x='pi', linewidth=0)
+
+        if i == 1: 
+            xlabel = 'Highest pi per gene per {}'.format(obs_col)
+        elif i == 2:
+            xlabel = '2nd highest pi per gene per {}'.format(obs_col)
+        elif i == 3:
+            xlabel = '3rd highest pi per gene per {}'.format(obs_col)
+        elif i > 3:
+            xlabel = '{}th highest pi per gene per {}'.format(i, obs_col)
+        ylabel = 'Number of isoforms'
+        ax.set(ylabel=ylabel, xlabel=xlabel, xlim=(0,100))
+
+    
+
+def plot_ranked_exon_counts(sg,
+                          df, 
+                          gene, 
+                          min_tpm=1,
+                          gene_subset='polya',
+                          sample='all',
+                          groupby='library',
+                          nov=['Known', 'NIC', 'NNC'], 
+                          opref='figures/human'):
+    
+    """
+    Plot the ranked counts per exon for a given gene subset according
+    to the input expression threshold and novelty categories
+    
+    Parameters:
+        sg (swan_vis SwanGraph): SwanGraph with data from corresponding
+    """
+    
+    # determine which isoforms are actually detected
+    df = get_det_table(df, 
+                       how='iso',
+                       min_tpm=min_tpm,
+                       gene_subset=gene_subset,
+                       sample=sample, 
+                       groupby=groupby,
+                       nov=nov)
+    tids = df.columns.tolist()
+
+    # get isoforms from target gene
+    df = sg.t_df.loc[sg.t_df.gname == gene]
+    df = swan.pivot_path_list(df, 'path')
+    df = df.merge(sg.edge_df, how='left', left_on='edge_id', right_index=True, suffixes=(None, '_dupe'))
+    df = df.merge(sg.t_df[['tname']], how='left', left_index=True, right_index=True)
+    df.drop('edge_id_dupe', axis=1, inplace=True)
+    df = df[['edge_id', 'edge_type']]
+    df.reset_index(inplace=True)
+    tids = list(set(tids)&set(df.tid.tolist()))
+
+    # limit to only detected isoforms and their edges
+    df = df.loc[df.tid.isin(tids)]
+    eids = df.edge_id.astype('int').tolist()
+    df = sg.get_edge_abundance(kind='counts')
+    df = df.loc[df.edge_id.isin(eids)]
+
+    # sum up over datasets
+    df.set_index('edge_type', inplace=True)
+    df = df[sg.datasets]
+    df['total_counts'] = df.sum(1)
+    df.drop(sg.datasets, axis=1, inplace=True)
+
+    # rank according to exp
+    df = df.sort_values(by='total_counts', ascending=True)
+    df.reset_index(inplace=True)
+    
+    sns.set_context('paper', font_scale=1.8)
+    c_dict = get_edge_colors()
+
+    for e in df.edge_type.unique():
+        temp = df.loc[df.edge_type == e]
+        temp['rank'] = [i for i in range(len(temp.index))]
+        c = c_dict[e]
+
+        ax = sns.catplot(data=temp, x='rank', y='total_counts', kind='bar',
+                         linewidth=0, saturation=1, color=c)
+
+        xlabel = 'Ranked $\it{}$ {}s'.format(gene, e)
+        ylabel = 'Total counts'
+
+        _ = ax.set(xlabel=xlabel, ylabel=ylabel, xticks=[])
+        fname = '{}_{}_counts_per_{}.png'.format(opref, gene, e)
+        plt.savefig(fname, dpi=300, bbox_inches='tight')
+
+    return df 
+
 def plot_exon_hist(sg,
                    df,
                    gene,
@@ -250,7 +386,8 @@ def plot_exon_hist(sg,
         temp = df.loc[df.edge_type == e_type]
         ax = sns.displot(data=temp, x='n_isos',
                          kind='hist',
-                         color=c_dict[e_type], binwidth=5)
+                         color=c_dict[e_type], binwidth=5,
+                         linewidth=0)
 
         xlabel = '# $\it{}$ isoforms'.format(gene)
         ylabel = '# {}s'.format(e_type)
@@ -745,7 +882,7 @@ def plot_biosamp_det(df,
     c_dict, order = get_talon_nov_colors()
     color = c_dict[nov]
     ax = sns.displot(data=df, x='n_samples', kind='hist',
-                 color=color, binwidth=1)
+                 color=color, binwidth=1, linewidth=0)
 
     # titles
     if how == 'gene':
@@ -994,11 +1131,16 @@ def plot_det_vs_gencode_isos(df,
     
     # plot the figure
     sns.set_context('paper', font_scale=1.6)
+    plt.figure(figsize=(6,6))
     ax = sns.scatterplot(data=df, x='n_isos_det', y='n_isos_gencode')
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     
+    xlabel = 'Total # isoforms / gene'
+    ylabel = '# isoforms / gene in GENCODE'
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel, xscale='log', yscale='log')
+        
     # set x and y lims if provided
     if xlim:
         xlim = (0, xlim)
@@ -1027,9 +1169,6 @@ def plot_det_vs_gencode_isos(df,
             y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]-(1.5/75)*ylim
             plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
 
-    xlabel = 'Total # isoforms / gene'
-    ylabel = '# isoforms / gene in GENCODE'
-    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
 
     fname = '{}_total_v_gencode_isos_per_gene.png'.format(opref)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
@@ -1167,7 +1306,7 @@ def plot_isos_per_gene_hist(df,
             
     sns.set_context('paper', font_scale=2)
 
-    ax = sns.displot(data=df, x='value', kind='hist', binwidth=1)
+    ax = sns.displot(data=df, x='value', kind='hist', binwidth=1, linewidth=0)
     xlabel = '# isoforms / gene / sample'
     ylabel = 'Number of genes'
 
