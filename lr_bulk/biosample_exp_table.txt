@@ -1,68 +1,86 @@
 | GM12878 | ENCSR706ANY |
-| GM12878 | ENCSR962BVU |
-| GM12878 | ENCSR838WFC |
-| GM23338 | ENCSR676IWT |
-| H9 | ENCSR044ARQ |
-| HCT116 | ENCSR388RWE |
-| HepG2 | ENCSR834DQL |
-| HepG2 | ENCSR634AKC |
-| HFFc6 | ENCSR902GAF |
-| HL-60 | ENCSR887LTD |
-| IMR-90 | ENCSR113MEY |
-| K562 | ENCSR589FUJ |
-| K562 | ENCSR526TQU |
-| K562 | ENCSR983KDL |
-| MCF-7 | ENCSR810XLL |
-| Panc1 | ENCSR181CES |
-| PC-3 | ENCSR947JHA |
-| astrocyte | ENCSR071IHY |
-| chondrocyte | ENCSR470HYQ |
-| endodermal cell | ENCSR904KAT |
-| endothelial cell | ENCSR148IIG |
-| excitatory neuron | ENCSR257JBF |
-| neural crest cell | ENCSR056MYH |
-| osteocyte | ENCSR296PQZ |
-| progenitor cell of endocrine pancreas | ENCSR530BOC |
-| type B pancreatic cell | ENCSR130CIK |
-| adrenal gland | ENCSR081NRO |
-| adrenal gland | ENCSR995WKW |
-| adrenal gland | ENCSR563RLX |
-| aorta | ENCSR425HFS |
-| aorta | ENCSR700EBI |
-| cardiac septum | ENCSR549ELD |
-| heart left ventricle | ENCSR994YZY |
-| heart left ventricle | ENCSR194YUY |
-| heart left ventricle | ENCSR700XDQ |
-| heart left ventricle | ENCSR575LWI |
-| heart right ventricle | ENCSR329ZQG |
-| heart right ventricle | ENCSR984OAE |
-| heart right ventricle | ENCSR782LGT |
-| kidney | ENCSR432YKA |
-| left cardiac atrium | ENCSR424QFN |
-| left colon | ENCSR450GAR |
-| left lung | ENCSR426KOP |
-| left lung | ENCSR746ITG |
-| left ventricle myocardium inferior | ENCSR786FLO |
-| left ventricle myocardium superior | ENCSR777CCI |
-| lower lobe of left lung | ENCSR261GOA |
-| lower lobe of left lung | ENCSR986WKB |
-| lower lobe of right lung | ENCSR323XND |
-| mesenteric fat pad | ENCSR648QZP |
-| mucosa of descending colon | ENCSR803XXZ |
-| mucosa of descending colon | ENCSR997RFW |
-| ovary | ENCSR587WPR |
-| ovary | ENCSR477HHG |
-| ovary | ENCSR507WZC |
-| posterior vena cava | ENCSR138TAS |
-| posterior vena cava | ENCSR853YZN |
-| psoas muscle | ENCSR803QWH |
-| psoas muscle | ENCSR243DYK |
-| right cardiac atrium | ENCSR435UUS |
-| right cardiac atrium | ENCSR553SVP |
-| right cardiac atrium | ENCSR728TXV |
 | right cardiac atrium | ENCSR514YQN |
-| right lobe of liver | ENCSR293MOX |
-| right lobe of liver | ENCSR657HJW |
+| ovary | ENCSR507WZC |
+| K562 | ENCSR589FUJ |
+| endothelial cell of umbilical vein | ENCSR687RWI |
+| HepG2 | ENCSR834DQL |
+| K562 | ENCSR983KDL |
+| left ventricle myocardium superior | ENCSR777CCI |
+| right cardiac atrium | ENCSR435UUS |
+| left ventricle myocardium inferior | ENCSR786FLO |
+| mammary epithelial cell | ENCSR998KIZ |
 | Right ventricle myocardium inferior | ENCSR591OZR |
+| WTC11 | ENCSR507JOF |
+| astrocyte | ENCSR071IHY |
+| left colon | ENCSR450GAR |
+| psoas muscle | ENCSR243DYK |
+| right cardiac atrium | ENCSR728TXV |
 | Right ventricle myocardium superior | ENCSR899GAP |
+| lower lobe of right lung | ENCSR323XND |
+| cardiac septum | ENCSR549ELD |
+| mucosa of descending colon | ENCSR997RFW |
+| aorta | ENCSR700EBI |
 | upper lobe of right lung | ENCSR096QUP |
+| chondrocyte | ENCSR470HYQ |
+| adrenal gland | ENCSR563RLX |
+| right lobe of liver | ENCSR293MOX |
+| posterior vena cava | ENCSR853YZN |
+| adrenal gland | ENCSR081NRO |
+| excitatory neuron | ENCSR257JBF |
+| endodermal cell | ENCSR904KAT |
+| mucosa of descending colon | ENCSR803XXZ |
+| Panc1 | ENCSR181CES |
+| heart left ventricle | ENCSR700XDQ |
+| ovary | ENCSR587WPR |
+| GM12878 | ENCSR838WFC |
+| HFFc6 | ENCSR902GAF |
+| GM23338 | ENCSR676IWT |
+| aorta | ENCSR425HFS |
+| progenitor cell of endocrine pancreas | ENCSR530BOC |
+| left lung | ENCSR426KOP |
+| mesenteric fat pad | ENCSR648QZP |
+| PC-3 | ENCSR947JHA |
+| K562 | ENCSR526TQU |
+| right lobe of liver | ENCSR657HJW |
+| adrenal gland | ENCSR995WKW |
+| left lung | ENCSR746ITG |
+| left cardiac atrium | ENCSR424QFN |
+| posterior vena cava | ENCSR138TAS |
+| ovary | ENCSR477HHG |
+| right cardiac atrium | ENCSR553SVP |
+| H9 | ENCSR044ARQ |
+| osteocyte | ENCSR296PQZ |
+| type B pancreatic cell | ENCSR130CIK |
+| heart left ventricle | ENCSR194YUY |
+| lower lobe of left lung | ENCSR261GOA |
+| HL-60 | ENCSR887LTD |
+| HepG2 | ENCSR634AKC |
+| HCT116 | ENCSR388RWE |
+| lower lobe of left lung | ENCSR986WKB |
+| IMR-90 | ENCSR113MEY |
+| neural crest cell | ENCSR056MYH |
+| heart left ventricle | ENCSR994YZY |
+| kidney | ENCSR432YKA |
+| heart left ventricle | ENCSR575LWI |
+| psoas muscle | ENCSR803QWH |
+| H1 | ENCSR271KEJ |
+| HL-60 | ENCSR398SKD |
+| endothelial cell | ENCSR148IIG |
+| heart right ventricle | ENCSR329ZQG |
+| heart right ventricle | ENCSR782LGT |
+| heart right ventricle | ENCSR984OAE |
+| GM12878 | ENCSR962BVU |
+| MCF-7 | ENCSR810XLL |
+| HL-60 | ENCSR278ZPI |
+| Caco-2 | ENCSR580IDG |
+| HL-60 | ENCSR121FDE |
+| OCI-LY7 | ENCSR700SUP |
+| MCF 10A | ENCSR813UIT |
+| PC-9 | ENCSR916JDV |
+| HL-60 | ENCSR159ICU |
+| HL-60 | ENCSR546DFO |
+| HL-60 | ENCSR583KAF |
+| HL-60 | ENCSR930GRQ |
+| A673 | ENCSR989ZYL |
+| endodermal cell | ENCSR127HKN |
+| Calu3 | ENCSR583KCB |
