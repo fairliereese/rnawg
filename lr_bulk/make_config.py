@@ -18,13 +18,6 @@ if os.path.exists(fname):
 else:
     df.to_csv(fname, header=False, index=False)
 
-
-# more manageable chunks
-inds = [i for i in range(n_samples) if i % 14 == 0]
-if len(df.index) not in inds:
-    inds += [len(df.index)]
-
-
 # decide what index is going to be next
 inds = []
 for f in glob.glob('talon/talon_config_*.csv'):
@@ -37,6 +30,11 @@ if len(inds) == 0:
     i = 0
 else:
     i = max(inds)
+
+# more manageable chunks
+inds = [i for i in range(n_samples) if i % 14 == 0]
+if len(df.index) not in inds:
+    inds += [len(df.index)]
 
 for start, end in zip(inds[:-1], inds[1:]):
     temp = df.iloc[start:end]
