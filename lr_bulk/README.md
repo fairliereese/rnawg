@@ -44,13 +44,20 @@ mv *bam processing/
 ## TALON label reads
 ```bash
 opref=~/mortazavi_lab/data/rnawg/lr_bulk/processing/
-samples=~/mortazavi_lab/data/rnawg/lr_bulk/samples  .txt
+samples=~/mortazavi_lab/data/rnawg/lr_bulk/samples.txt
 bash ../scripts/talon_label.sh $opref $samples
 ```
 
-<!-- Check to see which things finished
-```bashqs
+<!-- Check to see which things finished 11/29/21
+```bash
 tail processing/talon_label.o* | grep -B 8 "Run complete" | grep "talon_label.o"
+``` -->
+
+<!-- Check to see which things finished 2/18/22
+Just using the fact that hpc3 slurm jobs rolled over to start with 1 to
+limit to just the recent jobs
+```bash
+tail processing/talon_label.o1* | grep -B 8 "Run complete" | grep "talon_label.o"
 ``` -->
 
 ## Create TALON config file
@@ -76,4 +83,9 @@ sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_4.cs
 sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_5.csv $oprefix # done 11/27/21
 sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_6.csv $oprefix # done 11/28/21
 sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_7.csv $oprefix # done 11/29/21
+
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_8.csv $oprefix # running 2/21/22
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_9.csv $oprefix #
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_10.csv $oprefix #
+
 ``` -->

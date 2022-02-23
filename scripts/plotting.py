@@ -1149,7 +1149,12 @@ def plot_gene_tpm_v_n_isos(df, filt_df,
     fname = '{}_isos_v_tpm.png'.format(opref)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
     
+    # add gname
+    gene_df, _, _ = get_gtf_info(how='gene')
+    gene_df = gene_df[['gid', 'gname']]
+    df = df.merge(gene_df, how='left', left_on='annot_gene_id', right_on='gid')
     
+    return df
     
 def plot_det_vs_gencode_isos(df,
                          min_tpm=1,
