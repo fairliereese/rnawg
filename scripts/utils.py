@@ -5,6 +5,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import numpy as np
+import pyranges.pyranges as pr
+import pyranges as pyranges
 import scipy.stats as st
 
 def rm_sirv_ercc(df):
@@ -171,6 +173,120 @@ def get_n_gencode_isos(subset=None):
     df = df.merge(gene_df, how='left', on='gid')
        
     return df
+
+def get_ic_tss_tes(sg, 
+                   kind='annot', 
+                   subset='polya'):
+    """
+    Parameters:
+        sg (swan_vis SwanGraph): SwanGraph with annotation and transcriptome
+            added 
+        kind (str): Choose from 'annot', 'obs', or 'all'
+        
+    Returns:
+        df (pandas DataFrame): Dataframe with a TSS, TES, and intron
+            chain for each identified one of those
+        counts (pandas DataFrame): DF summarizing the number of TSS, 
+            TES, and intron chains per gene
+        regions (dict of pandas DataFrame): Dict indexed by 'tes', 'tss',
+            with details about start and end of each identified region
+    """
+    
+    # limit to annotated, non sirv or ercc genes
+    if kind == 'annot':
+        df = sg.t_df.loc[sg.t_df.annotation == True].copy(deep=True)
+    elif kind == 'obs': 
+        df = sg.t_df.loc[sg.adata.var.index.tolist()].copy(deep=True)
+    elif kind == 'all':
+        print('you havent implemented this yet dummy')
+        
+
+    # limit to polyA genes
+    if subset:
+        gene_df, _, _ = get_gtf_info(how='gene', subset=subset)
+        genes = gene_df.gid.tolist()
+        df = df.loc[df.gid.isin(genes)]
+    
+    # add intron chains
+    paths = df.path.values.tolist()
+    paths = [tuple(path[1:-1]) for path in paths]
+    df['intron_chain'] = paths
+
+    # add tss
+    paths = df.loc_path.values.tolist()
+    tsss = [path[0] for path in paths]
+    df['tss'] = tsss
+
+    # add tes
+    paths = df.loc_path.values.tolist()
+    tess = [path[-1] for path in paths]
+    df['tes'] = tess
+    
+    # merge tss / tes w/i 200 bp of one another
+    cols = ['tss', 'tes']
+    regions = dict()
+    for c in cols: 
+        
+        # first, add tss / tes coords
+        df = df.merge(sg.loc_df[['vertex_id', 'chrom', 'coord']],
+                      how='left', left_on=c, right_index=True)  
+        df.drop(['vertex_id'], axis=1, inplace=True)
+        df.rename({'chrom': '{}_chrom'.format(c),
+                   'coord': '{}_coord'.format(c)},
+                   axis=1, inplace=True)
+        
+        # turn into pyranges obj
+        ends = df[['gid', 'gname',
+                   '{}_coord'.format(c),
+                   '{}_chrom'.format(c), c]].copy(deep=True)
+        ends.rename({'{}_coord'.format(c): 'Start',
+                     '{}_chrom'.format(c): 'Chromosome'}, axis=1, inplace=True)
+        ends['End'] = ends.Start
+        end_rgs = pr.PyRanges(df=ends)
+
+        # cluster the starts / ends 
+        ends = end_rgs.cluster(strand=None, by=['gid', 'gname'], slack=200)
+        ends = ends.as_df()
+        
+        # also use merge to store extra info
+        end_regions = end_rgs.merge(strand=None, by=['gid', 'gname'], slack=200)
+        end_regions = end_regions.as_df()
+        end_regions['len'] = end_regions['End'] - end_regions['Start']
+        regions[c] = end_regions
+        
+        # add to df
+        ends = ends[['gid', 'gname', c, 'Cluster']]
+        ends.rename({'Cluster': '{}_cluster'.format(c)}, axis=1, inplace=True)
+        df = df.merge(ends, how='left', on=['gid', 'gname', c])
+        
+    # determine the annotation status of each junction chain, tss, tes
+    cols = ['intron_chain', 'tss', 'tes']
+    for col in cols:
+        known = df.loc[df.annotation == True, col].unique().tolist()
+        new_col = '{}_novel'.format(col)
+        df[new_col] = True
+        df.loc[df[col].isin(known), new_col] = False
+        
+    # compute # tss, # tes, # intron chains for only annotated genes
+    cols = ['tss_cluster', 'intron_chain', 'tes_cluster']
+    counts = pd.DataFrame()
+    for col in cols: 
+        temp = df.loc[df.annotation == True].reset_index(drop=True)
+        temp = temp[[col, 'gid']].groupby('gid').nunique()
+        counts = pd.concat([counts, temp], axis=1)
+        
+    # finally, compute unique combinations of tss, ic, and tes
+    df['tss_ic_tes'] = df.tss_cluster.astype('str')+'_'+df.intron_chain.astype('str')+'_'+df.tes_cluster.astype('str')
+    temp = df[['tss_ic_tes', 'gid']].groupby('gid').nunique()
+    counts = pd.concat([counts, temp], axis=1)
+    
+    # add gene name
+    genes = sg.t_df[['gid', 'gname']].drop_duplicates().reset_index(drop=True)
+    counts = counts.merge(genes, how='left', left_index=True, right_on='gid')
+    counts.rename({'tss_cluster': 'tss', 'tes_cluster': 'tes'},
+              axis=1, inplace=True)
+    
+    return df, counts, regions
 
 def get_gtf_info(how='gene',
                  subset=None):
