@@ -1,0 +1,11 @@
+hl60_m1_24hr_1_1,hl60_m1_24hr_1_1,PacBio,processing/hl60_m1_24hr_1_1_labeled.sam
+hl60_m1_24hr_1_2,hl60_m1_24hr_1_2,PacBio,processing/hl60_m1_24hr_1_2_labeled.sam
+hl60_m2_24hr_1_1,hl60_m2_24hr_1_1,PacBio,processing/hl60_m2_24hr_1_1_labeled.sam
+hl60_m2_24hr_1_2,hl60_m2_24hr_1_2,PacBio,processing/hl60_m2_24hr_1_2_labeled.sam
+a673_1_1,a673_1_1,PacBio,processing/a673_1_1_labeled.sam
+a673_1_2,a673_1_2,PacBio,processing/a673_1_2_labeled.sam
+h1_de_1_1,h1_de_1_1,PacBio,processing/h1_de_1_1_labeled.sam
+h1_de_1_2,h1_de_1_2,PacBio,processing/h1_de_1_2_labeled.sam
+h1_de_1_3,h1_de_1_3,PacBio,processing/h1_de_1_3_labeled.sam
+calu3_1_1,calu3_1_1,PacBio,processing/calu3_1_1_labeled.sam
+calu3_1_2,calu3_1_2,PacBio,processing/calu3_1_2_labeled.sam

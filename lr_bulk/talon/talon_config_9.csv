@@ -1,0 +1,14 @@
+caco2_1_1,caco2_1_1,PacBio,processing/caco2_1_1_labeled.sam
+caco2_1_2,caco2_1_2,PacBio,processing/caco2_1_2_labeled.sam
+hl60_m1_12hr_1_1,hl60_m1_12hr_1_1,PacBio,processing/hl60_m1_12hr_1_1_labeled.sam
+hl60_m1_12hr_1_2,hl60_m1_12hr_1_2,PacBio,processing/hl60_m1_12hr_1_2_labeled.sam
+ocily7_1_1,ocily7_1_1,PacBio,processing/ocily7_1_1_labeled.sam
+ocily7_1_2,ocily7_1_2,PacBio,processing/ocily7_1_2_labeled.sam
+mcf10a_1_1,mcf10a_1_1,PacBio,processing/mcf10a_1_1_labeled.sam
+mcf10a_1_2,mcf10a_1_2,PacBio,processing/mcf10a_1_2_labeled.sam
+pc9_1_1,pc9_1_1,PacBio,processing/pc9_1_1_labeled.sam
+pc9_1_2,pc9_1_2,PacBio,processing/pc9_1_2_labeled.sam
+hl60_m2_72hr_1_1,hl60_m2_72hr_1_1,PacBio,processing/hl60_m2_72hr_1_1_labeled.sam
+hl60_m2_72hr_1_2,hl60_m2_72hr_1_2,PacBio,processing/hl60_m2_72hr_1_2_labeled.sam
+hl60_m0_1_1,hl60_m0_1_1,PacBio,processing/hl60_m0_1_1_labeled.sam
+hl60_m0_1_2,hl60_m0_1_2,PacBio,processing/hl60_m0_1_2_labeled.sam
