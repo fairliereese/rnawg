@@ -140,7 +140,132 @@ def plot_cell_line_tissue_det_venn(df, how='gene',
     v.get_label_by_id('11').set_text(counts[2])
     
     fname = '{}{}_{}_venn.png'.format(opref, how, nov)
-    plt.savefig(fname, dpi=300, bbox_inches='tight') 
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+def plot_region_widths(regions,
+                       kind='annot',
+                       opref='figures/human'):
+    """
+    Parameters:
+        regions (dict of pandas DataFrame): Output from 
+            get_ic_tss_tes
+        kind (str): Choose 'annot', 'obs', or 'all'
+        opref (str): Output file prefix
+    """
+    
+    # plot histogram of tss / tes region sizes
+    sns.set_context('paper', font_scale=1.8)
+    for c, temp in regions.items():
+        ax = sns.displot(data=temp, x='len', kind='hist', linewidth=0)
+        ax.set(xlabel='{}s'.format(c.upper()))
+        fname = '{}_{}_{}_region_widths.png'.format(opref, kind, c)
+        plt.savefig(fname, dpi=300, bbox_inches='tight')
+
+def plot_genes_n_ic_ends(counts, 
+                         kind='annot',
+                         opref='figures/human'):
+    """
+    Parameters:
+        counts (pandas DataFrame): DF output from get_ic_tss_tes
+        kind (str): Choose from 'annot', 'all', 'obs'
+        opref (str): Where to save
+    """
+    # plot # tss / tes vs ic, color by # genes 
+    counts['tss_tes'] = counts.tss+counts.tes
+    counts.head()
+
+    # calculate how many genes have n tss+tes and n ics
+    temp = counts[['tss_tes', 'intron_chain', 'gid']].groupby(['tss_tes', 'intron_chain']).count().reset_index()
+    temp.rename({'gid': 'n_genes'}, inplace=True, axis=1)
+    temp['log10_n_genes'] = np.log10(temp.n_genes)
+
+    # plot the figure
+    sns.set_context('paper', font_scale=1.6)
+    plt.figure(figsize=(6,8))
+
+    # ax = sns.scatterplot(data=temp, x='tss_tes', y='intron_chain', hue='n_genes', size='n_genes', palette='viridis')
+    ax = sns.scatterplot(data=temp, x='tss_tes', y='intron_chain', hue='log10_n_genes', size='log10_n_genes', palette='viridis')
+
+    norm = plt.Normalize(temp['log10_n_genes'].min(), temp['log10_n_genes'].max())
+    sm = plt.cm.ScalarMappable(cmap='viridis', norm=norm)
+    sm.set_array([])
+
+    # Remove the legend and add a colorbar
+    ax.get_legend().remove()
+    cb = ax.figure.colorbar(sm)
+    cb.set_label('log10(# genes)')
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    xlabel = '# TSSs + # TESs'
+    ylabel = '# intron chains'
+
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel, xscale='log', yscale='log')
+    
+    fname = '{}_{}_n_genes_ic_tss_tes.png'.format(opref, kind)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')               
+        
+def plot_n_ic_tss_tes(counts,
+                      label_genes=None,
+                      kind='annot',
+                      opref='figures/human'):
+    """
+    Parameters:
+        counts (pandas DataFrame): DF output from get_ic_tss_tes
+        label_genes (list of str): List of gene names
+        kind (str): Choose from 'annot', 'all', 'obs'
+        opref (str): Where to save thing
+    """
+    
+    xs = ['tss', 'tss', 'tes']
+    ys = ['intron_chain', 'tes', 'intron_chain']
+    hues = ['tes', 'intron_chain', 'tss']
+    
+    for x, y, hue in zip(xs, ys, hues):
+        
+        # plot the figure
+        sns.set_context('paper', font_scale=1.6)
+        plt.figure(figsize=(6,8))
+
+        ax = sns.scatterplot(data=counts, x=x, y=y, hue=hue, s=20, palette='viridis')
+
+        norm = plt.Normalize(counts[hue].min(), counts[hue].max())
+        sm = plt.cm.ScalarMappable(cmap='viridis', norm=norm)
+        sm.set_array([])
+
+        # Remove the legend and add a colorbar
+        ax.get_legend().remove()
+        cb = ax.figure.colorbar(sm)
+        if hue == 'tss' or hue == 'tes':
+            cb.set_label('# {}s'.format(hue.upper()))
+        else:
+            cb.set_label('# {}s'.format(hue))
+
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+
+        if x == 'tss' or y == 'tes':
+            xlabel = '# {}s'.format(x.upper())
+        else:
+            xlabel = '# {}s'.format(x)
+        if y == 'tss' or y == 'tes':
+            ylabel = '# {}s'.format(y.upper())
+        else:
+            ylabel = '# {}s'.format(y)
+
+        # annotate genes that are kinda interesting
+        if label_genes:
+            xlim = ax.get_xlim()[1]
+            ylim = ax.get_ylim()[1]
+            for g in label_genes:
+                x_txt = counts.loc[counts.gname == g, x].values[0]+(1/80)*xlim
+                y_txt = counts.loc[counts.gname == g, y].values[0]-(1/80)*ylim
+                plt.annotate(g, (x_txt,y_txt), fontsize='small', fontstyle='italic')
+        _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+        
+        fname = '{}_{}_{}_{}_{}_scatter.png'.format(opref, x,y,hue, kind)
+        plt.savefig(fname, dpi=300, bbox_inches='tight')
 
 def plot_n_reps_per_biosamp(df,
                             sample='cell_line',
