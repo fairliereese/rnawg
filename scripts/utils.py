@@ -17,7 +17,8 @@ def rm_sirv_ercc(df):
 
 def get_dataset_cols():
     d = os.path.dirname(__file__)
-    fname = '{}/../lr_bulk/hr_to_biosample_type.tsv'.format(d)
+    fname = '{}/../lr_bulk/hr_to_biosample_type_back.tsv'.format(d)
+    print('Warning: using old version of hr_to_biosample_type. Is this ok?')
     df = pd.read_csv(fname, sep='\t')
     datasets = df.hr.tolist()
     return datasets
@@ -34,7 +35,8 @@ def get_sample_datasets(sample=None):
         datasets (list of str): List of datasets belonging to that specific sample type
     """
     d = os.path.dirname(__file__)
-    fname = '{}/../lr_bulk/hr_to_biosample_type.tsv'.format(d)
+    fname = '{}/../lr_bulk/hr_to_biosample_type_back.tsv'.format(d)
+    print('Warning: using old hr_to_biosample_type, is this OK?')
     df = pd.read_csv(fname, sep='\t')
     if sample == 'all':
         datasets = df.hr.tolist()
@@ -182,6 +184,8 @@ def get_ic_tss_tes(sg,
         sg (swan_vis SwanGraph): SwanGraph with annotation and transcriptome
             added 
         kind (str): Choose from 'annot', 'obs', or 'all'
+        subset (str or list of str): Choose from 'polya', 'tf' or provide a list
+            of gene ids
         
     Returns:
         df (pandas DataFrame): Dataframe with a TSS, TES, and intron
@@ -197,15 +201,22 @@ def get_ic_tss_tes(sg,
         df = sg.t_df.loc[sg.t_df.annotation == True].copy(deep=True)
     elif kind == 'obs': 
         df = sg.t_df.loc[sg.adata.var.index.tolist()].copy(deep=True)
+        print('will need to eventually compute / merge these after annotated ones')
     elif kind == 'all':
         print('you havent implemented this yet dummy')
+        print('youre gonna need to harmonize calling tss / tes eventually')
         
 
     # limit to polyA genes
-    if subset:
+    print(len(df.index))
+    if subset == 'polya':
         gene_df, _, _ = get_gtf_info(how='gene', subset=subset)
         genes = gene_df.gid.tolist()
         df = df.loc[df.gid.isin(genes)]
+    elif type(subset) == list:
+        df = df.loc[df.gid.isin(subset)]
+        print('hewwo')
+    print(len(df.index))
     
     # add intron chains
     paths = df.path.values.tolist()
@@ -229,7 +240,7 @@ def get_ic_tss_tes(sg,
         
         # first, add tss / tes coords
         df = df.merge(sg.loc_df[['vertex_id', 'chrom', 'coord']],
-                      how='left', left_on=c, right_index=True)  
+                      how='left', left_on=c, right_index=True) 
         df.drop(['vertex_id'], axis=1, inplace=True)
         df.rename({'chrom': '{}_chrom'.format(c),
                    'coord': '{}_coord'.format(c)},
@@ -257,6 +268,7 @@ def get_ic_tss_tes(sg,
         # add to df
         ends = ends[['gid', 'gname', c, 'Cluster']]
         ends.rename({'Cluster': '{}_cluster'.format(c)}, axis=1, inplace=True)
+        ends.drop_duplicates(inplace=True)
         df = df.merge(ends, how='left', on=['gid', 'gname', c])
         
     # determine the annotation status of each junction chain, tss, tes
@@ -271,7 +283,7 @@ def get_ic_tss_tes(sg,
     cols = ['tss_cluster', 'intron_chain', 'tes_cluster']
     counts = pd.DataFrame()
     for col in cols: 
-        temp = df.loc[df.annotation == True].reset_index(drop=True)
+        temp = df.reset_index(drop=True).copy(deep=True)
         temp = temp[[col, 'gid']].groupby('gid').nunique()
         counts = pd.concat([counts, temp], axis=1)
         
@@ -295,7 +307,7 @@ def get_gtf_info(how='gene',
     
     Parameters:
         how (str): 'gene' or 'iso'
-        subset (str): 'polya', 'tf' or None
+        subset (str): 'polya', 'tf', 'protein_coding' or None
         
     Returns:
         df (pandas DataFrame): DataFrame with info for gene / transcript
@@ -320,6 +332,10 @@ def get_gtf_info(how='gene',
     if subset == 'polya':
         polya_cats = ['protein_coding', 'lncRNA', 'pseudogene']
         df = df.loc[df.biotype_category.isin(polya_cats)]
+    elif subset == 'protein_coding':
+        df = df.loc[df.biotype_category == 'protein_coding']
+    elif subset == 'pseudogene':
+        df = df.loc[df.biotype_category == 'pseudogene']
     elif subset == 'tf':
         df = df.loc[df.tf == True]
 

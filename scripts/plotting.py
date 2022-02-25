@@ -156,7 +156,7 @@ def plot_region_widths(regions,
     # plot histogram of tss / tes region sizes
     sns.set_context('paper', font_scale=1.8)
     for c, temp in regions.items():
-        ax = sns.displot(data=temp, x='len', kind='hist', linewidth=0)
+        ax = sns.displot(data=temp, x='len', kind='hist', linewidth=0, binwidth=50)
         ax.set(xlabel='{}s'.format(c.upper()))
         fname = '{}_{}_{}_region_widths.png'.format(opref, kind, c)
         plt.savefig(fname, dpi=300, bbox_inches='tight')
@@ -197,11 +197,22 @@ def plot_genes_n_ic_ends(counts,
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-
+    
     xlabel = '# TSSs + # TESs'
     ylabel = '# intron chains'
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel, xscale='log', yscale='log')
+
+    lims = [
+        np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+        np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
+    ]
+
+    # now plot both limits against eachother
+    ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
+    ax.set_aspect('equal')
+    ax.set_xlim(lims)
+    ax.set_ylim(lims)
     
     fname = '{}_{}_n_genes_ic_tss_tes.png'.format(opref, kind)
     plt.savefig(fname, dpi=300, bbox_inches='tight')               
@@ -259,9 +270,10 @@ def plot_n_ic_tss_tes(counts,
             xlim = ax.get_xlim()[1]
             ylim = ax.get_ylim()[1]
             for g in label_genes:
-                x_txt = counts.loc[counts.gname == g, x].values[0]+(1/80)*xlim
-                y_txt = counts.loc[counts.gname == g, y].values[0]-(1/80)*ylim
-                plt.annotate(g, (x_txt,y_txt), fontsize='small', fontstyle='italic')
+                if g in counts.gname.tolist():
+                    x_txt = counts.loc[counts.gname == g, x].values[0]+(1/80)*xlim
+                    y_txt = counts.loc[counts.gname == g, y].values[0]-(1/80)*ylim
+                    plt.annotate(g, (x_txt,y_txt), fontsize='small', fontstyle='italic')
         _ = ax.set(xlabel=xlabel, ylabel=ylabel)
         
         fname = '{}_{}_{}_{}_{}_scatter.png'.format(opref, x,y,hue, kind)
@@ -1349,9 +1361,10 @@ def plot_det_vs_gencode_isos(df,
         xlim = ax.get_xlim()[1]
         ylim = ax.get_ylim()[1]
         for g in label_genes:
-            x = df.loc[df.gname == g, 'n_isos_det'].values[0]+(2/75)*xlim
-            y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]-(1.5/75)*ylim
-            plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
+            if g in df.gname.tolist():
+                x = df.loc[df.gname == g, 'n_isos_det'].values[0]+(2/75)*xlim
+                y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]-(1.5/75)*ylim
+                plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
 
 
     fname = '{}_total_v_gencode_isos_per_gene.png'.format(opref)
@@ -1429,9 +1442,10 @@ def plot_max_vs_all_isos(df,
         xlim = ax.get_xlim()[1]
         ylim = ax.get_ylim()[1]
         for g in label_genes:
-            x = df.loc[df.gname == g, 'total_isos'].values[0]+(2/75)*xlim
-            y = df.loc[df.gname == g, 'max_isos'].values[0]-(1.5/75)*ylim
-            plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
+            if g in df.gnames.tolist():
+                x = df.loc[df.gname == g, 'total_isos'].values[0]+(2/75)*xlim
+                y = df.loc[df.gname == g, 'max_isos'].values[0]-(1.5/75)*ylim
+                plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
 
     xlabel = 'Total # isoforms / gene'
     ylabel = 'Max. # isoforms / gene in one sample'
