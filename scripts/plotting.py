@@ -256,7 +256,7 @@ def plot_n_ic_tss_tes(counts,
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
 
-        if x == 'tss' or y == 'tes':
+        if x == 'tss' or x == 'tes':
             xlabel = '# {}s'.format(x.upper())
         else:
             xlabel = '# {}s'.format(x)
