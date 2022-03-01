@@ -86,6 +86,6 @@ sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_7.cs
 
 sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_8.csv $oprefix # finished 2/23/22
 sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_9.csv $oprefix # finished 2/24/22
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_10.csv $oprefix # running 2/24/22
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_10.csv $oprefix # finished 2/28/22
 
 ``` -->
