@@ -72,7 +72,7 @@ then
       --o ${opref}
 
   # get pass list with only known, NIC, NNC
-  d="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/"
+  d=~/mortazavi_lab/data/rnawg/scripts/
   ab=${opref}_talon_abundance_filtered.tsv
   python ${d}get_known_nic_nnc_pass_list.py \
     ${ab} \
@@ -89,42 +89,42 @@ then
       --o ${opref}_known_nic_nnc
 
   else
-    # unfiltered talon abundance
-    # used for gene level quantification
-    talon_abundance \
-        --db $db \
-        -a ${annot} \
-        -b ${build} \
-        --o ${opref}
-
-    # filter transcripts
-    talon_filter_transcripts \
-        --db ${db} \
-        -a ${annot} \
-        --maxFracA 0.5 \
-        --minCount 5 \
-        --minDatasets 2 \
-        --o ${opref}_pass_list.csv
-
-    # filtered talon abundance
-    # used for transcript level quantification
-    talon_abundance \
-        --db ${db} \
-        -a ${annot} \
-        -b ${build} \
-        --whitelist ${opref}_pass_list.csv \
-        --o ${opref}
-
-    # filtered GTF
-    talon_create_GTF \
-        --db ${db} \
-        -a ${annot} \
-        -b ${build} \
-        --whitelist ${opref}_pass_list.csv \
-        --o ${opref}
+    # # unfiltered talon abundance
+    # # used for gene level quantification
+    # talon_abundance \
+    #     --db $db \
+    #     -a ${annot} \
+    #     -b ${build} \
+    #     --o ${opref}
+    #
+    # # filter transcripts
+    # talon_filter_transcripts \
+    #     --db ${db} \
+    #     -a ${annot} \
+    #     --maxFracA 0.5 \
+    #     --minCount 5 \
+    #     --minDatasets 2 \
+    #     --o ${opref}_pass_list.csv
+    #
+    # # filtered talon abundance
+    # # used for transcript level quantification
+    # talon_abundance \
+    #     --db ${db} \
+    #     -a ${annot} \
+    #     -b ${build} \
+    #     --whitelist ${opref}_pass_list.csv \
+    #     --o ${opref}
+    #
+    # # filtered GTF
+    # talon_create_GTF \
+    #     --db ${db} \
+    #     -a ${annot} \
+    #     -b ${build} \
+    #     --whitelist ${opref}_pass_list.csv \
+    #     --o ${opref}
 
     # get pass list with only known, NIC, NNC
-    d="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )/"
+    d=~/mortazavi_lab/data/rnawg/scripts/
     ab=${opref}_talon_abundance_filtered.tsv
     python ${d}get_known_nic_nnc_pass_list.py \
       ${ab} \
@@ -136,7 +136,6 @@ then
         --db ${db} \
         -a ${annot} \
         -b ${build} \
-        -d ${datasets} \
         --whitelist ${opref}_known_nic_nnc_pass_list.csv \
         --o ${opref}_known_nic_nnc
   fi
