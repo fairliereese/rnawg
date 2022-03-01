@@ -336,7 +336,7 @@ def cluster_ends(ends,
     # cluster to get region assignment per end
     clust = ends.cluster(strand=None, by=cols, slack=slack)
     clust = clust.as_df()
-    clust['Cluster_new'] = clust.Cluster+cluster_start
+    clust['Cluster_new'] = clust.Cluster+cluster_start-1
     clust.drop('Cluster', axis=1, inplace=True)
     clust.rename({'Cluster_new': 'Cluster'}, axis=1, inplace=True)
     
@@ -379,204 +379,332 @@ def get_ic_tss_tes(sg,
     # limit to those annotated or in list of novel tids
     if type(novel_tids) == list:
         all_df = all_df.loc[(all_df.annotation == True)|(all_df.tid.isin(novel_tids))]
-        
+
     end_types = ['tss', 'tes']
     end_regions = dict()
     for c in end_types:
-        
+
         if verbose:
             print()
 
-        # get annotation regions
-        df = all_df.loc[all_df.annotation == True].copy(deep=True)
+        #### annotated transcripts ####
+        t_df = all_df.loc[all_df.annotation == True].copy(deep=True)
         if verbose: 
-            n = len(df.index)
+            n = len(t_df.index)
             print('Finding {}s for {} annotated transcripts'.format(c, n))
 
-        a_reg, a_clust = cluster_ends(df,
-                                      slack=annot_slack,
-                                      cluster_start=1,
-                                      kind=c)
-        # use pyranges to group ends w/i annot_slack bp 
-        cols = ['gid', 'gname', '{}_coord'.format(c), '{}_chrom'.format(c), c]
-        if c == 'tss':
-            cols.append('first_sd')
-        ends = df[cols].copy(deep=True)
-        ends.rename({'{}_coord'.format(c): 'Start', 
-                     '{}_chrom'.format(c): 'Chromosome'},
-                     axis=1, inplace=True)
-        ends['End'] = ends.Start
-        ends.drop_duplicates(inplace=True)
+        reg, clust = cluster_ends(t_df,
+                                  slack=annot_slack,
+                                  cluster_start=1,
+                                  kind=c)
+        reg['annotation'] = True
+        clust['annotation'] = True
         if verbose:
-            n = len(ends.index)
-            print('Collapsing {} annotated {}s'.format(n,c))
-        ends = pr.PyRanges(df=ends)
+            n = len(reg.index)
+            print('Found {} annotated {} clusters'.format(n,c))
 
-        # merge to get regions
-        cols = ['gid', 'gname']
-        if c == 'tss':
-            cols.append('first_sd')
-        a_reg = ends.merge(strand=None, by=cols, slack=annot_slack)
-        a_reg = a_reg.as_df()
-        a_reg['len'] = a_reg['End'] - a_reg['Start']
-        a_reg['Cluster'] = [i for i in range(1, len(a_reg.index)+1)]
-        a_reg['annotation'] = True
-        # print('annotated regions')
-        # print(a_reg.Cluster.max())
-        # print(a_reg.loc[a_reg.Cluster == a_reg.Cluster.max()])
+        #### novel transcripts ####    
 
-        # cluster to get assignment of each end to regions defined from merge
-        cols = ['gid', 'gname']
-        if c == 'tss':
-            cols.append('first_sd')
-        a_clust = ends.cluster(strand=None, by=cols, slack=annot_slack)
-        a_clust = a_clust.as_df()
-        a_clust['annotation'] = True
-        a_clust['{}_novelty'.format(c)] = 'Known'
-        # print('annotated clusters')
-        # print(a_clust.Cluster.max())
-        # print(a_clust.loc[a_clust.Cluster == a_clust.Cluster.max()])
-
-        if verbose:
-            n = len(a_reg.index)
-            print('Found {} unique {} regions from the annotation'.format(n,c))
-            cols = ['gid', c]
-            if c == 'tss':
-                cols.append('first_sd')
-            n = len(a_clust[cols].drop_duplicates().index)
-            print('for {} unique gene / splice / and {} combinations'.format(n, c))
-
-        #### NOVEL STUFF #####
         # assign ends from novel transcripts to annotated ends
-        df = all_df.loc[(all_df.annotation == False)&(all_df.tid.isin(sg.adata.var.index.tolist()))]
+        t_df = all_df.loc[(all_df.annotation == False)&(all_df.tid.isin(sg.adata.var.index.tolist()))]
 
         if verbose:
-            n = len(df.index)
+            n = len(t_df.index)
             print('Finding {}s for {} novel transcripts'.format(c, n))
 
-        # join in pandas cause pyranges is silly as hecc
-        cols = ['gid', 'gname', '{}_coord'.format(c), '{}_chrom'.format(c), c]
-        if c == 'tss':
-            cols.append('first_sd')
-        ends = df[cols].copy(deep=True)
-        ends.rename({'{}_coord'.format(c): 'Start',
-                     '{}_chrom'.format(c): 'Chromosome'},
-                     axis=1, inplace=True)
-        ends['End'] = ends.Start
-        ends.drop_duplicates(inplace=True)
-        if verbose:
-            n = len(ends.index)
-            print('Assigning {} {}s to preexisiting annotated regions'.format(n, c))
+        # case 1: ends from novel transcripts are w/i annotated regions
+        ends = df_to_pyranges(t_df, kind=c)
+        reg = pr.PyRanges(df=reg)
+        ends = ends.join(reg, how='left',
+                         slack=1,
+                         strandedness=None, suffix='_annot')
+        ends = ends.as_df()
 
-        # to hold the cluster results
-        o_clust = pd.DataFrame()
+        # limit to those w/ matching gid, first sd and add to cluster df
+        if c == 'tss':
+            inds = ends.loc[(ends.gid==ends.gid_annot)&(ends.first_sd==ends.first_sd_annot)].index.tolist()
+        else:
+            inds = ends.loc[ends.gid == ends.gid_annot].index.tolist()
 
-        # case 1: ends from novel transcripts are within annotated regions
-        cols = ['gid']
-        if c == 'tss':
-            cols.append('first_sd')
-        ends = ends.merge(a_reg, how='left', on=cols, suffixes=('', '_annot'))
-        ends['in_region'] = False
-        ends.loc[(ends.annotation==True)&(ends.Start>=ends.Start_annot)&(ends.Start<=ends.End_annot), 'in_region'] = True
-        cols = ['gid', 'gname', 'Start', 'Chromosome', c, 'End']
-        if c == 'tss':
-            cols.append('first_sd')
-        ends.sort_values(by='in_region', inplace=True, ascending=False)
-        ends.drop_duplicates(subset=cols, keep='first', inplace=True)
-        o_clust = pd.concat([o_clust, ends.loc[ends.in_region == True]])
         if verbose:
-            n = len(ends.loc[ends.in_region == True].index)
-            print('Found {} novel {}s that are already in the annotation'.format(n,c))
+            n = len(inds)
+            print('Found {} novel {}s that are already in the annotation'.format(n,c))        
+        clust = pd.concat([clust, ends.loc[inds]])
 
         # case 2: ends from novel transcripts need to be clustered
         # on their own
-        ends = ends.loc[ends.in_region == False]
-        if verbose:
-            n = len(ends.index)
-            print('Finding regions for {} novel {}s'.format(n,c))
-            cols = ['gid', c]
-            if c == 'tss':
-                cols.append('first_sd')
-            n = len(ends[cols].drop_duplicates().index)
-            print('for {} gene, sd, and {} combinations'.format(n, c))
-        cols = ['Chromosome_annot', 'Start_annot', 'End_annot',
-                'len', 'Cluster', 'annotation', 'in_region', 'gname_annot']
-        ends.drop(cols, inplace=True, axis=1)
 
-        # merge to get regions, start cluster numbering from max of 
-        # annotated clusters
-        n_reg = pr.PyRanges(df=ends)
-        cols = ['gid', 'gname']
-        if c == 'tss':
-            cols.append('first_sd')
-        n_reg = n_reg.merge(strand=None, by=cols, slack=novel_slack)
-        n_reg = n_reg.as_df()
-        n_reg['len'] = n_reg['End'] - n_reg['Start']
-        n_annot = a_clust.Cluster.max()
-        n_reg['Cluster'] = [i for i in range(n_annot+1, len(n_reg.index)+n_annot+1)]
-        # print('novel regions')
-        # print(n_reg.Cluster.max())
-        # print(n_reg.loc[n_reg.Cluster == n_reg.Cluster.max()])
-        n_reg['annotation'] = False
-        if verbose:
-            n = len(n_reg.index)
-            print('Found {} novel {} clusters'.format(n,c))
-
-        # cluster
-        n_clust = pr.PyRanges(df=ends)
-        cols = ['gid', 'gname']
-        if c == 'tss':
-            cols.append('first_sd')
-        n_clust = n_clust.cluster(strand=None, by=cols, slack=novel_slack)
-        n_clust = n_clust.as_df()
-        n_clust['Cluster_new'] = n_clust.Cluster+n_annot
-        n_clust.drop('Cluster', axis=1, inplace=True)
-        n_clust.rename({'Cluster_new': 'Cluster'}, axis=1, inplace=True)
-        n_clust['{}_novelty'.format(c)] = 'Novel'
-        # print('novel clusters')
-        # print(n_clust.Cluster.max())
-        # print(n_clust.loc[n_clust.Cluster == n_clust.Cluster.max()])
-
-        # how many of the novel clusters fall into the regions that 
-        # were already annotated?
-        n_reg = pr.PyRanges(df=n_reg)
-        a_reg= pr.PyRanges(df=a_reg)
-        temp = n_reg.join(a_reg, how=None, strandedness=None, suffix='_annot')
-        temp = temp.as_df()
-        a_reg = a_reg.as_df()
-        if verbose:
-            if c == 'tss':
-                n = len(temp.loc[(temp.first_sd == temp.first_sd_annot)&(temp.gid == temp.gid_annot)].index)
-            elif c == 'tes':
-                n = len(temp.loc[temp.gid == temp.gid_annot].index)
-            print('{} new {} regions overlap annotated regions'.format(n,c))
-
-        clust = pd.concat([a_clust, n_clust])
-        cols = ['gid', 'gname', c, 'Cluster', 'annotation', '{}_novelty'.format(c)]
-        if c == 'tss':
-            cols.append('first_sd')
-        clust = clust[cols]
-        
-        clust.rename({'Cluster': '{}_cluster'.format(c), 'annotation': '{}_annotation'.format(c)}, axis=1, inplace=True)
+        # remove duplicates that arise from imperfect merging
+        ends['in_region'] = False
+        ends.loc[inds, 'in_region'] = True
+        ends.sort_values(by='in_region', inplace=True, ascending=False)
         cols = ['gid', c]
         if c == 'tss':
             cols.append('first_sd')
+        ends.drop_duplicates(subset=cols, keep='first', inplace=True)
+        inds = ends.loc[ends.in_region == True].index.tolist()
+
+        # subset based on ends that are unsupported by ref regions
+        inds = list(set(ends.index.tolist())-set(inds))
+        t_df = ends.loc[inds]
         if verbose:
-            n = len(clust[cols].drop_duplicates().index)
-            print('Clustered {} unique gid, first_sd, tss combinations'.format(n))
+            n = len(t_df.index)
+            print('Finding {}s for {} novel ends'.format(c,n))
+        n = clust.Cluster.max()+1
+        nov_reg, nov_clust = cluster_ends(t_df, 
+                                          slack=novel_slack,
+                                          cluster_start=n, 
+                                          kind=c)
+        nov_reg['annotation'] = False
+        nov_clust['annotation'] = False
+        if verbose:
+            n = len(nov_reg.index)
+            print('Found {} novel {} clusters'.format(n,c))
 
-        # construct a table of regions for this end type
-        # a_reg = a_reg.as_df()
-        n_reg = n_reg.as_df()
-        end_regions[c] = pd.concat([a_reg, n_reg])
-        # print(end_regions[c].Cluster.max())
-        # print(end_regions[c].loc[end_regions[c].Cluster == end_regions[c].Cluster.max()])
+        # check how many novel clusters fall into already 
+        # annotated regions
+        nov_reg = pr.PyRanges(df=nov_reg)
+        temp = nov_reg.join(reg, how=None, strandedness=None, suffix='_annot')
+        temp = temp.as_df()
+        if verbose:
+            if c == 'tss':
+                temp = temp.loc[(temp.first_sd == temp.first_sd_annot)&(temp.gid == temp.gid_annot)]
+            else:
+                temp = temp.loc[temp.gid == temp.gid_annot]
+            cols = ['gid']
+            if c == 'tss':
+                cols.append('first_sd')
+            temp = temp.drop_duplicates(subset=cols)
+            n = len(temp.index)
+            print('{} new {} regions overlap annotated regions'.format(n,c))
 
-        # add cluster ids to all_df
+        # finally, add novel regions to clust and reg dfs
+        reg = reg.as_df()
+        nov_reg = nov_reg.as_df()
+        clust = pd.concat([clust, nov_clust])
+        reg = pd.concat([reg, nov_reg])
+
+        # some final formatting for these dfs
+        cols = ['gid', 'gname', c,
+                'Cluster', 'annotation']
+        if c == 'tss':
+            cols.append('first_sd')
+        clust = clust[cols]
+        clust.rename({'Cluster': '{}_cluster'.format(c),
+                      'annotation': '{}_annotation'.format(c)},
+                      axis=1, inplace=True)
+        clust.drop_duplicates(inplace=True)
+        end_regions[c] = reg
+
+        # add cluster ids back into the original df
         cols = ['gid', 'gname', c]
-        if c == 'tss': 
+        if c == 'tss':
             cols.append('first_sd')
         all_df = all_df.merge(clust, how='left', on=cols)
+    
+#     all_df = add_tss_ic_tes(sg)
+    
+#     # limit to those annotated or in list of novel tids
+#     if type(novel_tids) == list:
+#         all_df = all_df.loc[(all_df.annotation == True)|(all_df.tid.isin(novel_tids))]
+        
+#     end_types = ['tss', 'tes']
+#     end_regions = dict()
+#     for c in end_types:
+        
+#         if verbose:
+#             print()
+
+#         # get annotation regions
+#         df = all_df.loc[all_df.annotation == True].copy(deep=True)
+#         if verbose: 
+#             n = len(df.index)
+#             print('Finding {}s for {} annotated transcripts'.format(c, n))
+
+#         a_reg, a_clust = cluster_ends(df,
+#                                       slack=annot_slack,
+#                                       cluster_start=1,
+#                                       kind=c)
+#         # use pyranges to group ends w/i annot_slack bp 
+#         cols = ['gid', 'gname', '{}_coord'.format(c), '{}_chrom'.format(c), c]
+#         if c == 'tss':
+#             cols.append('first_sd')
+#         ends = df[cols].copy(deep=True)
+#         ends.rename({'{}_coord'.format(c): 'Start', 
+#                      '{}_chrom'.format(c): 'Chromosome'},
+#                      axis=1, inplace=True)
+#         ends['End'] = ends.Start
+#         ends.drop_duplicates(inplace=True)
+#         if verbose:
+#             n = len(ends.index)
+#             print('Collapsing {} annotated {}s'.format(n,c))
+#         ends = pr.PyRanges(df=ends)
+
+#         # merge to get regions
+#         cols = ['gid', 'gname']
+#         if c == 'tss':
+#             cols.append('first_sd')
+#         a_reg = ends.merge(strand=None, by=cols, slack=annot_slack)
+#         a_reg = a_reg.as_df()
+#         a_reg['len'] = a_reg['End'] - a_reg['Start']
+#         a_reg['Cluster'] = [i for i in range(1, len(a_reg.index)+1)]
+#         a_reg['annotation'] = True
+#         # print('annotated regions')
+#         # print(a_reg.Cluster.max())
+#         # print(a_reg.loc[a_reg.Cluster == a_reg.Cluster.max()])
+
+#         # cluster to get assignment of each end to regions defined from merge
+#         cols = ['gid', 'gname']
+#         if c == 'tss':
+#             cols.append('first_sd')
+#         a_clust = ends.cluster(strand=None, by=cols, slack=annot_slack)
+#         a_clust = a_clust.as_df()
+#         a_clust['annotation'] = True
+#         a_clust['{}_novelty'.format(c)] = 'Known'
+#         # print('annotated clusters')
+#         # print(a_clust.Cluster.max())
+#         # print(a_clust.loc[a_clust.Cluster == a_clust.Cluster.max()])
+
+#         if verbose:
+#             n = len(a_reg.index)
+#             print('Found {} unique {} regions from the annotation'.format(n,c))
+#             cols = ['gid', c]
+#             if c == 'tss':
+#                 cols.append('first_sd')
+#             n = len(a_clust[cols].drop_duplicates().index)
+#             print('for {} unique gene / splice / and {} combinations'.format(n, c))
+
+#         #### NOVEL STUFF #####
+#         # assign ends from novel transcripts to annotated ends
+#         df = all_df.loc[(all_df.annotation == False)&(all_df.tid.isin(sg.adata.var.index.tolist()))]
+
+#         if verbose:
+#             n = len(df.index)
+#             print('Finding {}s for {} novel transcripts'.format(c, n))
+
+#         # join in pandas cause pyranges is silly as hecc
+#         cols = ['gid', 'gname', '{}_coord'.format(c), '{}_chrom'.format(c), c]
+#         if c == 'tss':
+#             cols.append('first_sd')
+#         ends = df[cols].copy(deep=True)
+#         ends.rename({'{}_coord'.format(c): 'Start',
+#                      '{}_chrom'.format(c): 'Chromosome'},
+#                      axis=1, inplace=True)
+#         ends['End'] = ends.Start
+#         ends.drop_duplicates(inplace=True)
+#         if verbose:
+#             n = len(ends.index)
+#             print('Assigning {} {}s to preexisiting annotated regions'.format(n, c))
+
+#         # to hold the cluster results
+#         o_clust = pd.DataFrame()
+
+#         # case 1: ends from novel transcripts are within annotated regions
+#         cols = ['gid']
+#         if c == 'tss':
+#             cols.append('first_sd')
+#         ends = ends.merge(a_reg, how='left', on=cols, suffixes=('', '_annot'))
+#         ends['in_region'] = False
+#         ends.loc[(ends.annotation==True)&(ends.Start>=ends.Start_annot)&(ends.Start<=ends.End_annot), 'in_region'] = True
+#         cols = ['gid', 'gname', 'Start', 'Chromosome', c, 'End']
+#         if c == 'tss':
+#             cols.append('first_sd')
+#         ends.sort_values(by='in_region', inplace=True, ascending=False)
+#         ends.drop_duplicates(subset=cols, keep='first', inplace=True)
+#         o_clust = pd.concat([o_clust, ends.loc[ends.in_region == True]])
+#         if verbose:
+#             n = len(ends.loc[ends.in_region == True].index)
+#             print('Found {} novel {}s that are already in the annotation'.format(n,c))
+
+#         # case 2: ends from novel transcripts need to be clustered
+#         # on their own
+#         ends = ends.loc[ends.in_region == False]
+#         if verbose:
+#             n = len(ends.index)
+#             print('Finding regions for {} novel {}s'.format(n,c))
+#             cols = ['gid', c]
+#             if c == 'tss':
+#                 cols.append('first_sd')
+#             n = len(ends[cols].drop_duplicates().index)
+#             print('for {} gene, sd, and {} combinations'.format(n, c))
+#         cols = ['Chromosome_annot', 'Start_annot', 'End_annot',
+#                 'len', 'Cluster', 'annotation', 'in_region', 'gname_annot']
+#         ends.drop(cols, inplace=True, axis=1)
+
+#         # merge to get regions, start cluster numbering from max of 
+#         # annotated clusters
+#         n_reg = pr.PyRanges(df=ends)
+#         cols = ['gid', 'gname']
+#         if c == 'tss':
+#             cols.append('first_sd')
+#         n_reg = n_reg.merge(strand=None, by=cols, slack=novel_slack)
+#         n_reg = n_reg.as_df()
+#         n_reg['len'] = n_reg['End'] - n_reg['Start']
+#         n_annot = a_clust.Cluster.max()
+#         n_reg['Cluster'] = [i for i in range(n_annot+1, len(n_reg.index)+n_annot+1)]
+#         # print('novel regions')
+#         # print(n_reg.Cluster.max())
+#         # print(n_reg.loc[n_reg.Cluster == n_reg.Cluster.max()])
+#         n_reg['annotation'] = False
+#         if verbose:
+#             n = len(n_reg.index)
+#             print('Found {} novel {} clusters'.format(n,c))
+
+#         # cluster
+#         n_clust = pr.PyRanges(df=ends)
+#         cols = ['gid', 'gname']
+#         if c == 'tss':
+#             cols.append('first_sd')
+#         n_clust = n_clust.cluster(strand=None, by=cols, slack=novel_slack)
+#         n_clust = n_clust.as_df()
+#         n_clust['Cluster_new'] = n_clust.Cluster+n_annot
+#         n_clust.drop('Cluster', axis=1, inplace=True)
+#         n_clust.rename({'Cluster_new': 'Cluster'}, axis=1, inplace=True)
+#         n_clust['{}_novelty'.format(c)] = 'Novel'
+#         # print('novel clusters')
+#         # print(n_clust.Cluster.max())
+#         # print(n_clust.loc[n_clust.Cluster == n_clust.Cluster.max()])
+
+#         # how many of the novel clusters fall into the regions that 
+#         # were already annotated?
+#         n_reg = pr.PyRanges(df=n_reg)
+#         a_reg= pr.PyRanges(df=a_reg)
+#         temp = n_reg.join(a_reg, how=None, strandedness=None, suffix='_annot')
+#         temp = temp.as_df()
+#         a_reg = a_reg.as_df()
+#         if verbose:
+#             if c == 'tss':
+#                 n = len(temp.loc[(temp.first_sd == temp.first_sd_annot)&(temp.gid == temp.gid_annot)].index)
+#             elif c == 'tes':
+#                 n = len(temp.loc[temp.gid == temp.gid_annot].index)
+#             print('{} new {} regions overlap annotated regions'.format(n,c))
+
+#         clust = pd.concat([a_clust, n_clust])
+#         cols = ['gid', 'gname', c, 'Cluster', 'annotation', '{}_novelty'.format(c)]
+#         if c == 'tss':
+#             cols.append('first_sd')
+#         clust = clust[cols]
+        
+#         clust.rename({'Cluster': '{}_cluster'.format(c), 'annotation': '{}_annotation'.format(c)}, axis=1, inplace=True)
+#         cols = ['gid', c]
+#         if c == 'tss':
+#             cols.append('first_sd')
+#         if verbose:
+#             n = len(clust[cols].drop_duplicates().index)
+#             print('Clustered {} unique gid, first_sd, tss combinations'.format(n))
+
+#         # construct a table of regions for this end type
+#         # a_reg = a_reg.as_df()
+#         n_reg = n_reg.as_df()
+#         end_regions[c] = pd.concat([a_reg, n_reg])
+#         # print(end_regions[c].Cluster.max())
+#         # print(end_regions[c].loc[end_regions[c].Cluster == end_regions[c].Cluster.max()])
+
+#         # add cluster ids to all_df
+#         cols = ['gid', 'gname', c]
+#         if c == 'tss': 
+#             cols.append('first_sd')
+#         all_df = all_df.merge(clust, how='left', on=cols)
         
     
     # annotated counts
