@@ -238,9 +238,12 @@ def count_tss_ic_tes(df, subset=None):
             how many tss, ics, tes there are for each gene
     """
     df = df.copy(deep=True)
-    
     df = df.loc[df.tid.isin(subset)]
-    gene_df = df[['gid', 'gname']]
+    
+    # get gene info
+    gene_df, _, _ = get_gtf_info(how='gene')
+    gene_df = gene_df[['gid', 'gname', 'biotype',
+                  'biotype_category', 'tf']]
     gene_df.drop_duplicates(inplace=True)
     
     # raw tss, ic, tes count

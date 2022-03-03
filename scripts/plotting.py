@@ -62,7 +62,7 @@ def plot_dorito(counts,
                 sources=['GENCODE', 'obs'],
                 color='source',
                 c_dict=None,
-                order=order,
+                order=None,
                 scale=True,
                 top='splicing_ratio',
                 opref='figures/'):
