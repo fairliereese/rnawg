@@ -8,6 +8,7 @@ import upsetplot
 from scipy import stats
 from matplotlib.ticker import ScalarFormatter
 import swan_vis as swan
+import ternary
 from .utils import *
 
 def get_edge_colors():
@@ -54,6 +55,36 @@ def get_talon_nov_colors(cats=None):
     return c_dict, order
 
 def plot_det_gene_len(df, opref='figures/'):
+    pass
+
+def plot_dorito(counts,
+                gene=None,
+                sources=['GENCODE', 'obs'],
+                color='source',
+                c_dict=None,
+                order=order,
+                scale=True,
+                top='splicing_ratio',
+                opref='figures/'):
+    """
+    Plot a dorito from the given sources with the given color
+    
+    Parameters:
+        counts (pandas DataFrame): DF of the counts per gene 
+            of ic, tss, tes from get_ic_tss_tes or
+            compute_triplets (or both!!!)
+        gname (str): Gene to plot. Default=None
+        sources (list of str): List of columns to include in graph
+        color (str): Column from counts to color the points by
+        c_dict (dict of str): Dict indexed by unique values
+            in the color column of counts
+        scale (bool): Whether or not to scale each axis by sum of 
+            three numbers
+        top (str): Column name to plot as apex of dorito.
+            Choose from 'ic' or 'splicing_ratio'
+        opref (str): Output file path / prefix to save fig
+    """
+    
     pass
 
 def plot_cell_line_tissue_det_venn(df, how='gene', 
