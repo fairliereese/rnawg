@@ -41,6 +41,7 @@ temp.to_csv('file_to_hr.tsv', sep='\t', header=None, index=False)
 temp = df[['hr', 'Biosample type']].copy(deep=True)
 d = {'cell line': 'cell_line',
      'in vitro differentiated cells': 'cell_line',
+     'primary cell': 'cell_line',
      'tissue': 'tissue'}
 temp['biosample_type'] = df['Biosample type'].map(d)
 temp = temp[['hr', 'biosample_type']]

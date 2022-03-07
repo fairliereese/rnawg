@@ -7,8 +7,8 @@ right_cardiac_atrium_2_1	tissue
 ovary_2_1	tissue
 k562_2_1	cell_line
 k562_2_2	cell_line
-huvec_1_1	
-huvec_1_2	
+huvec_1_1	cell_line
+huvec_1_2	cell_line
 hepg2_2_1	cell_line
 hepg2_2_2	cell_line
 k562_3_1	cell_line
@@ -16,8 +16,8 @@ k562_3_2	cell_line
 left_ventricle_myocardium_superior_1_1	tissue
 right_cardiac_atrium_1_1	tissue
 left_ventricle_myocardium_inferior_1_1	tissue
-hmec_1_1	
-hmec_1_2	
+hmec_1_1	cell_line
+hmec_1_2	cell_line
 right_ventricle_myocardium_inferior_1_1	tissue
 wtc11_1_1	cell_line
 wtc11_1_2	cell_line
