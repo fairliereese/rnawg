@@ -240,12 +240,6 @@ def count_tss_ic_tes(df, subset=None):
     df = df.copy(deep=True)
     df = df.loc[df.tid.isin(subset)]
     
-    # get gene info
-    gene_df, _, _ = get_gtf_info(how='gene')
-    gene_df = gene_df[['gid', 'gname', 'biotype',
-                  'biotype_category', 'tf']]
-    gene_df.drop_duplicates(inplace=True)
-    
     # raw tss, ic, tes count
     cols = ['tss', 'intron_chain', 'tes']
     for i, col in enumerate(cols):
@@ -274,9 +268,6 @@ def count_tss_ic_tes(df, subset=None):
             
     # compute splicing ratio
     counts['splicing_ratio'] = counts.intron_chain/((counts.tes+counts.tss)/2)
-           
-    # add gene names
-    counts = counts.merge(gene_df, how='left', left_index=True, right_on='gid')
     
     return counts
 
@@ -351,13 +342,15 @@ def cluster_ends(ends,
 def compute_triplets(t_df,
                      df,
                      min_tpm=1,
-                     groupby='sample'):
+                     groupby='sample',
+                     bool_col=None):
     """
     Compute the triplets on the sample or library level
     
     Parameters:
         t_df (pandas DataFrame): t_df output from get_ic_tss_tes
-        df (pandas DataFrame): Filtered TALON abundance
+        df (pandas DataFrame): Filtered TALON abundance or 90% set 
+            dataframe 
         min_tpm (int): Min TPM to be considered detected
         groupby (str): Choose 'library' or 'sample'
         
@@ -367,23 +360,40 @@ def compute_triplets(t_df,
     """
     
     # get table of which isoforms are detected in 
-    # which samples / libraries
-    df = get_det_table(df,
-                       how='iso',
-                       min_tpm=min_tpm,
-                       groupby=groupby,
-                       nov=['Known', 'NIC', 'NNC'])
-    
+    # which samples / libraries, or which isoforms 
+    # are part of the 90% set / sample
+    if 'transcript_novelty' in df.columns:
+        df = get_det_table(df,
+                           how='iso',
+                           min_tpm=min_tpm,
+                           groupby=groupby,
+                           nov=['Known', 'NIC', 'NNC'])
+    # otherwise, expect 90% set file format and coerce into 
+    # boolean 90% set detection table format
+    elif 'pi' in df.columns:
+        df = df[['tid', 'biosample']]
+        df['in_90_set'] = True
+        df = df.pivot(index='biosample', columns='tid', values='in_90_set').fillna(value=False)
+        df.columns.name = ''
+
     # loop through samples / libraries compute triplet
     # for detected transcripts in each sample
     counts = pd.DataFrame()
     for ind, entry in df.iterrows():
         entry = entry.to_frame()
         tids = entry.loc[entry[ind] == True].index.tolist()
-
         temp = count_tss_ic_tes(t_df, subset=tids)
         temp['source'] = ind
+        if bool_col:
+            temp[bool_col] = True
         counts = pd.concat([counts, temp])
+    
+    # get gene info and add
+    gene_df, _, _ = get_gtf_info(how='gene')
+    gene_df = gene_df[['gid', 'gname', 'biotype',
+                  'biotype_category', 'tf']]
+    gene_df.drop_duplicates(inplace=True)
+    counts = counts.merge(gene_df, how='left', left_index=True, right_on='gid')
     
     return counts
     
@@ -580,6 +590,13 @@ def get_ic_tss_tes(sg,
     obs_counts = count_tss_ic_tes(all_df, subset=tids)
     obs_counts['source'] = 'obs'
     counts = pd.concat([counts, obs_counts])
+    
+    # get gene info and add
+    gene_df, _, _ = get_gtf_info(how='gene')
+    gene_df = gene_df[['gid', 'gname', 'biotype',
+                  'biotype_category', 'tf']]
+    gene_df.drop_duplicates(inplace=True)
+    counts = counts.merge(gene_df, how='left', left_index=True, right_on='gid')
     
     t_df = all_df.copy(deep=True)
         
