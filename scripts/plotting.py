@@ -970,7 +970,7 @@ def plot_avg_isos_per_gene(df,
     ylabel = '# isoforms / gene'
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-    ax.tick_params(axis="x", rotation=90)
+    ax.tick_params(axis="x", rotation=90, labelsize=10)
 
 
     fname = '{}_isos_per_gene_per_{}.png'.format(opref, sample)
@@ -1448,7 +1448,7 @@ def plot_max_vs_all_isos(df,
         xlim = ax.get_xlim()[1]
         ylim = ax.get_ylim()[1]
         for g in label_genes:
-            if g in df.gnames.tolist():
+            if g in df.gname.tolist():
                 x = df.loc[df.gname == g, 'total_isos'].values[0]+(2/75)*xlim
                 y = df.loc[df.gname == g, 'max_isos'].values[0]-(1.5/75)*ylim
                 plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
@@ -2108,7 +2108,7 @@ def scatter_dorito(counts,
     hue_type = None
     figsize = (10,10)
     colors = '#e78424'
-    if len(points) < 50:
+    if len(points) < 60:
         sizes = [100 for i in range(len(points))]
     else:
         sizes =  [20 for i in range(len(points))]

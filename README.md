@@ -8,6 +8,7 @@ Data used for RNAWG paper
 * [TALON filtered GTF](https://drive.google.com/file/d/1O_Vd5-SjyBE9MjxFsoLBjD43Tx7kw-T5/view?usp=sharing)
 * [TALON filtered GTF (Known, NIC, NNC)](https://drive.google.com/file/d/1O_Vd5-SjyBE9MjxFsoLBjD43Tx7kw-T5/view?usp=sharing)
 * [TALON read annot](https://drive.google.com/file/d/194GuCA3l1lhI5e1Gsok5Xb9-vh7qf43i/view?usp=sharing)
+* [SwanGraph of filtered data (Known, NIC, NNC)](https://drive.google.com/file/d/1o1-vjDh_yplA6YxMu5a7ucyQTIP615bR/view?usp=sharing)
 
 
 <!-- ### Long-read RNA-seq data for human cell line and tissue data (updated 11/29/21)

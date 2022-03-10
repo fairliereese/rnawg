@@ -17,8 +17,9 @@ def rm_sirv_ercc(df):
 
 def get_dataset_cols():
     d = os.path.dirname(__file__)
-    fname = '{}/../lr_bulk/hr_to_biosample_type_back.tsv'.format(d)
-    print('Warning: using old version of hr_to_biosample_type. Is this ok?')
+    # fname = '{}/../lr_bulk/hr_to_biosample_type_back.tsv'.format(d)
+    # print('Warning: using old version of hr_to_biosample_type. Is this ok?')
+    fname = '{}/../lr_bulk/hr_to_biosample_type.tsv'.format(d)
     df = pd.read_csv(fname, sep='\t')
     datasets = df.hr.tolist()
     return datasets
@@ -35,8 +36,9 @@ def get_sample_datasets(sample=None):
         datasets (list of str): List of datasets belonging to that specific sample type
     """
     d = os.path.dirname(__file__)
-    fname = '{}/../lr_bulk/hr_to_biosample_type_back.tsv'.format(d)
-    print('Warning: using old hr_to_biosample_type, is this OK?')
+    # fname = '{}/../lr_bulk/hr_to_biosample_type_back.tsv'.format(d)
+    # print('Warning: using old hr_to_biosample_type, is this OK?')
+    fname = '{}/../lr_bulk/hr_to_biosample_type.tsv'.format(d)
     df = pd.read_csv(fname, sep='\t')
     if sample == 'all':
         datasets = df.hr.tolist()

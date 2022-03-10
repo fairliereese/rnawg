@@ -1,91 +1,130 @@
-dataset	biosample	classification
-gm12878_1_1	gm12878	cell_line
-gm12878_1_2	gm12878	cell_line
-gm12878_1_3	gm12878	cell_line
-gm12878_1_4	gm12878	cell_line
-gm12878_3_1	gm12878	cell_line
-gm12878_2_1	gm12878	cell_line
-gm12878_2_2	gm12878	cell_line
-pgp1_1_1	pgp1	cell_line
-pgp1_1_2	pgp1	cell_line
-h9_1_1	h9	cell_line
-h9_1_2	h9	cell_line
-hct116_1_1	hct116	cell_line
-hepg2_2_1	hepg2	cell_line
-hepg2_2_2	hepg2	cell_line
-hepg2_1_1	hepg2	cell_line
-hffc6_1_1	hffc6	cell_line
-hffc6_1_2	hffc6	cell_line
-hffc6_1_3	hffc6	cell_line
-hl60_1_1	hl60	cell_line
-hl60_1_2	hl60	cell_line
-imr90_1_1	imr90	cell_line
-k562_2_1	k562	cell_line
-k562_2_2	k562	cell_line
-k562_1_1	k562	cell_line
-k562_3_1	k562	cell_line
-k562_3_2	k562	cell_line
-mcf7_1_1	mcf7	cell_line
-panc1_1_1	panc1	cell_line
-pc3_1_1	pc3	cell_line
-pgp1_astro_1_1	pgp1_astro	cell_line
-pgp1_astro_1_2	pgp1_astro	cell_line
-h9_chondro_1_1	h9_chondro	cell_line
-h9_chondro_1_2	h9_chondro	cell_line
-h9_chondro_1_3	h9_chondro	cell_line
-h9_de_1_1	h9_de	cell_line
-h9_de_1_2	h9_de	cell_line
-pgp1_endo_1_1	pgp1_endo	cell_line
-pgp1_endo_1_2	pgp1_endo	cell_line
-pgp1_excite_neuron_1_1	pgp1_excite_neuron	cell_line
-pgp1_excite_neuron_1_2	pgp1_excite_neuron	cell_line
-h9_neural_crest_1_1	h9_neural_crest	cell_line
-h9_neural_crest_1_2	h9_neural_crest	cell_line
-h9_osteocyte_1_1	h9_osteocyte	cell_line
-h9_osteocyte_1_2	h9_osteocyte	cell_line
-h9_panc_progen_1_1	h9_panc_progen	cell_line
-h9_panc_progen_1_2	h9_panc_progen	cell_line
-h9_panc_beta_1_1	h9_panc_beta	cell_line
-h9_panc_beta_1_2	h9_panc_beta	cell_line
-adrenal_gland_1_1	adrenal gland	tissue
-adrenal_gland_3_1	adrenal gland	tissue
-adrenal_gland_2_1	adrenal gland	tissue
-aorta_1_1	vessels	tissue
-aorta_2_1	vessels	tissue
-cardiac_septum_1_1	heart	tissue
-heart_left_ventricle_4_1	heart	tissue
-heart_left_ventricle_1_1	heart	tissue
-heart_left_ventricle_3_1	heart	tissue
-heart_left_ventricle_2_1	heart	tissue
-heart_right_ventricle_1_1	heart	tissue
-heart_right_ventricle_3_1	heart	tissue
-heart_right_ventricle_2_1	heart	tissue
-kidney_1_1	kidney	tissue
-left_cardiac_atrium_1_1	heart	tissue
-left_colon_1_1	colon	tissue
-left_lung_1_1	lung	tissue
-left_lung_2_1	lung	tissue
-left_ventricle_myocardium_inferior_1_1	heart	tissue
-left_ventricle_myocardium_superior_1_1	heart	tissue
-lower_lobe_of_left_lung_1_1	lung	tissue
-lower_lobe_of_left_lung_2_1	lung	tissue
-lower_lobe_of_right_lung_1_1	lung	tissue
-mesenteric_fat_pad_1_1	adipose	tissue
-mucosa_of_descending_colon_1_1	colon	tissue
-mucosa_of_descending_colon_2_1	colon	tissue
-ovary_3_1	ovary	tissue
-ovary_1_1	ovary	tissue
-ovary_2_1	ovary	tissue
-posterior_vena_cava_1_1	vessels	tissue
-posterior_vena_cava_2_1	vessels	tissue
-psoas_muscle_2_1	muscle	tissue
-psoas_muscle_1_1	muscle	tissue
-right_cardiac_atrium_1_1	heart	tissue
-right_cardiac_atrium_3_1	heart	tissue
-right_cardiac_atrium_4_1	heart	tissue
-right_cardiac_atrium_2_1	heart	tissue
-right_lobe_of_liver_1_1	liver	tissue
-right_lobe_of_liver_2_1	liver	tissue
-right_ventricle_myocardium_inferior_1_1	heart	tissue
-right_ventricle_myocardium_superior_1_1	heart	tissue
-upper_lobe_of_right_lung_1_1	lung	tissue
+dataset	total_counts	sample	classification
+gm12878_1_1	599462.0	gm12878	cell_line
+gm12878_1_2	520625.0	gm12878	cell_line
+gm12878_1_3	453713.0	gm12878	cell_line
+gm12878_1_4	567895.0	gm12878	cell_line
+gm12878_3_1	886624.0	gm12878	cell_line
+gm12878_2_1	1584643.0	gm12878	cell_line
+gm12878_2_2	1827153.0	gm12878	cell_line
+pgp1_1_1	598871.0	pgp1	cell_line
+pgp1_1_2	641498.0	pgp1	cell_line
+h9_1_1	2595437.0	h9	cell_line
+h9_1_2	2243815.0	h9	cell_line
+hct116_1_1	915630.0	hct116	cell_line
+hepg2_2_1	860765.0	hepg2	cell_line
+hepg2_2_2	506240.0	hepg2	cell_line
+hepg2_1_1	1569941.0	hepg2	cell_line
+hffc6_1_1	795505.0	hffc6	cell_line
+hffc6_1_2	620034.0	hffc6	cell_line
+hffc6_1_3	766197.0	hffc6	cell_line
+hl60_1_1	2332820.0	hl60	cell_line
+hl60_1_2	1992469.0	hl60	cell_line
+imr90_1_1	726549.0	imr90	cell_line
+k562_2_1	989877.0	k562	cell_line
+k562_2_2	438400.0	k562	cell_line
+k562_1_1	1188378.0	k562	cell_line
+k562_3_1	1391932.0	k562	cell_line
+k562_3_2	1529108.0	k562	cell_line
+mcf7_1_1	990785.0	mcf7	cell_line
+panc1_1_1	920010.0	panc1	cell_line
+pc3_1_1	1084085.0	pc3	cell_line
+pgp1_astro_1_1	576713.0	pgp1_astro	cell_line
+pgp1_astro_1_2	338658.0	pgp1_astro	cell_line
+h9_chondro_1_1	1138754.0	h9_chondro	cell_line
+h9_chondro_1_2	627097.0	h9_chondro	cell_line
+h9_chondro_1_3	971588.0	h9_chondro	cell_line
+h9_de_1_1	2016955.0	h9_de	cell_line
+h9_de_1_2	1843394.0	h9_de	cell_line
+pgp1_endo_1_1	587206.0	pgp1_endo	cell_line
+pgp1_endo_1_2	478461.0	pgp1_endo	cell_line
+pgp1_excite_neuron_1_1	565959.0	pgp1_excite_neuron	cell_line
+pgp1_excite_neuron_1_2	487421.0	pgp1_excite_neuron	cell_line
+h9_neural_crest_1_1	636429.0	h9_neural_crest	cell_line
+h9_neural_crest_1_2	850915.0	h9_neural_crest	cell_line
+h9_osteocyte_1_1	1542862.0	h9_osteocyte	cell_line
+h9_osteocyte_1_2	1189420.0	h9_osteocyte	cell_line
+h9_panc_progen_1_1	842199.0	h9_panc_progen	cell_line
+h9_panc_progen_1_2	1190998.0	h9_panc_progen	cell_line
+h9_panc_beta_1_1	1197726.0	h9_panc_beta	cell_line
+h9_panc_beta_1_2	1261995.0	h9_panc_beta	cell_line
+adrenal_gland_1_1	619597.0	adrenal gland	tissue
+adrenal_gland_3_1	445671.0	adrenal gland	tissue
+adrenal_gland_2_1	1265120.0	adrenal gland	tissue
+aorta_1_1	1194446.0	vessels	tissue
+aorta_2_1	305757.0	vessels	tissue
+cardiac_septum_1_1	880245.0	heart	tissue
+heart_left_ventricle_4_1	672751.0	heart	tissue
+heart_left_ventricle_1_1	368739.0	heart	tissue
+heart_left_ventricle_3_1	830711.0	heart	tissue
+heart_left_ventricle_2_1	1980381.0	heart	tissue
+heart_right_ventricle_1_1	1037098.0	heart	tissue
+heart_right_ventricle_3_1	690905.0	heart	tissue
+heart_right_ventricle_2_1	828903.0	heart	tissue
+kidney_1_1	453582.0	kidney	tissue
+left_cardiac_atrium_1_1	529666.0	heart	tissue
+left_colon_1_1	734248.0	colon	tissue
+left_lung_1_1	636484.0	lung	tissue
+left_lung_2_1	551986.0	lung	tissue
+left_ventricle_myocardium_inferior_1_1	1016458.0	heart	tissue
+left_ventricle_myocardium_superior_1_1	982985.0	heart	tissue
+lower_lobe_of_left_lung_1_1	1843310.0	lung	tissue
+lower_lobe_of_left_lung_2_1	437819.0	lung	tissue
+lower_lobe_of_right_lung_1_1	808045.0	lung	tissue
+mesenteric_fat_pad_1_1	1163439.0	adipose	tissue
+mucosa_of_descending_colon_1_1	513241.0	colon	tissue
+mucosa_of_descending_colon_2_1	705391.0	colon	tissue
+ovary_3_1	297854.0	ovary	tissue
+ovary_1_1	1479438.0	ovary	tissue
+ovary_2_1	872995.0	ovary	tissue
+posterior_vena_cava_1_1	944303.0	vessels	tissue
+posterior_vena_cava_2_1	219993.0	vessels	tissue
+psoas_muscle_2_1	510149.0	muscle	tissue
+psoas_muscle_1_1	1036196.0	muscle	tissue
+right_cardiac_atrium_1_1	553139.0	heart	tissue
+right_cardiac_atrium_3_1	1679255.0	heart	tissue
+right_cardiac_atrium_4_1	1008793.0	heart	tissue
+right_cardiac_atrium_2_1	571213.0	heart	tissue
+right_lobe_of_liver_1_1	531429.0	liver	tissue
+right_lobe_of_liver_2_1	417751.0	liver	tissue
+right_ventricle_myocardium_inferior_1_1	500995.0	heart	tissue
+right_ventricle_myocardium_superior_1_1	1222017.0	heart	tissue
+upper_lobe_of_right_lung_1_1	884867.0	lung	tissue
+huvec_1_1	1712241.0	huvec	cell_line
+huvec_1_2	1717406.0	huvec	cell_line
+hmec_1_1	1781600.0	hmec	cell_line
+hmec_1_2	1675477.0	hmec	cell_line
+wtc11_1_1	1756904.0	wtc11	cell_line
+wtc11_1_2	1041201.0	wtc11	cell_line
+wtc11_1_3	2183575.0	wtc11	cell_line
+h1_1_1	467040.0	h1	cell_line
+h1_1_2	169846.0	h1	cell_line
+h1_1_3	866214.0	h1	cell_line
+hl60_m1_72hr_1_1	1450463.0	hl60_m1_72hr	cell_line
+hl60_m1_72hr_1_2	1298348.0	hl60_m1_72hr	cell_line
+hl60_m2_12hr_1_1	812204.0	hl60_m2_12hr	cell_line
+hl60_m2_12hr_1_2	784763.0	hl60_m2_12hr	cell_line
+caco2_1_1	1126025.0	caco2	cell_line
+caco2_1_2	971883.0	caco2	cell_line
+hl60_m1_12hr_1_1	1095546.0	hl60_m1_12hr	cell_line
+hl60_m1_12hr_1_2	952153.0	hl60_m1_12hr	cell_line
+ocily7_1_1	920460.0	ocily7	cell_line
+ocily7_1_2	821251.0	ocily7	cell_line
+mcf10a_1_1	1372028.0	mcf10a	cell_line
+mcf10a_1_2	1395487.0	mcf10a	cell_line
+pc9_1_1	1175723.0	pc9	cell_line
+pc9_1_2	1132385.0	pc9	cell_line
+hl60_m2_72hr_1_1	1277719.0	hl60_m2_72hr	cell_line
+hl60_m2_72hr_1_2	1443120.0	hl60_m2_72hr	cell_line
+hl60_m0_1_1	1214171.0	hl60_m0	cell_line
+hl60_m0_1_2	1161503.0	hl60_m0	cell_line
+hl60_m1_24hr_1_1	484369.0	hl60_m1_24hr	cell_line
+hl60_m1_24hr_1_2	630549.0	hl60_m1_24hr	cell_line
+hl60_m2_24hr_1_1	597266.0	hl60_m2_24hr	cell_line
+hl60_m2_24hr_1_2	731147.0	hl60_m2_24hr	cell_line
+a673_1_1	933163.0	a673	cell_line
+a673_1_2	1185488.0	a673	cell_line
+h1_de_1_1	814189.0	h1_de	cell_line
+h1_de_1_2	1012594.0	h1_de	cell_line
+h1_de_1_3	968933.0	h1_de	cell_line
+calu3_1_1	1032156.0	calu3	cell_line
+calu3_1_2	1127133.0	calu3	cell_line
