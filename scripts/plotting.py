@@ -16,6 +16,32 @@ from collections import defaultdict
 
 from .utils import *
 
+def rm_color_cats(c_dict, order, cats):
+    if cats:
+        keys = c_dict.keys()
+        pop_list = []
+        for key in keys:
+            if key not in cats:
+                pop_list.append(key)
+        for p in pop_list:
+            del c_dict[p]
+        order = [o for o in order if o in cats] 
+    return c_dict, order
+
+def get_sector_colors(cats=None):
+    tss = '#56B4E9'
+    tes = '#E69F00'
+    splicing = '#CC79A7'
+    simple = '#e5ecf6'
+    c_dict = {'tss': tss,
+              'splicing': splicing,
+              'tes': tes,
+              'simple': simple}
+    order = ['tss', 'splicing', 'tes', 'simple']
+    
+    c_dict, order = rm_color_cats(c_dict, order, cats)
+    return c_dict, order
+
 def get_edge_colors():
     """
     Get colors for introns and exons
@@ -48,15 +74,7 @@ def get_talon_nov_colors(cats=None):
               'Genomic': '#F0E442'}
     order = ['Known', 'ISM', 'NIC', 'NNC', 'Antisense', 'Intergenic', 'Genomic']
     
-    if cats:
-        keys = c_dict.keys()
-        pop_list = []
-        for key in keys:
-            if key not in cats:
-                pop_list.append(key)
-        for p in pop_list:
-            del c_dict[p]
-        order = [o for o in order if o in cats]            
+    c_dict, order = rm_color_cats(c_dict, order, cats)            
     return c_dict, order
 
 def plot_det_gene_len(df, opref='figures/'):
@@ -1945,6 +1963,7 @@ def density_dorito(counts,
                    c,
                    scale=20,
                    cmap='viridis',
+                   vmax=None,
                    log=False,
                    pad=0.15):
     """
@@ -2005,7 +2024,8 @@ def density_dorito(counts,
     
         
     figure, tax = ternary.figure(scale=scale, permutation='210')
-    tax.heatmap(hm_dict, colorbar=False, style='t')
+    # tax.heatmap(hm_dict, colorbar=False, style='t', vmax=vmax)
+    tax.heatmap(hm_dict, colorbar=False, style='t', adj_vlims=True)
     # tax.heatmap(interp_dict, colorbar=False)
     
     # scale according to chosen resolution
@@ -2019,6 +2039,10 @@ def density_dorito(counts,
         flat.append(item)
     min_val = min(flat)
     max_val = max(flat)
+    
+    if vmax: 
+        max_val = vmax
+        
     # print(min_val)
     # print(max_val)
     norm = plt.Normalize(vmin=min_val, vmax=max_val)
@@ -2075,6 +2099,7 @@ def scatter_dorito(counts,
                    mmap,
                    alpha,
                    density,
+                   legend,
                    figure, 
                    tax):
     """
@@ -2160,7 +2185,7 @@ def scatter_dorito(counts,
                     alpha=alpha, zorder=3)
     
     # legend handling
-    if hue_type == 'cat':
+    if hue_type == 'cat' and legend:
         if density: x = 1.6
         else: x = 1.4
         tax.legend(bbox_to_anchor=(x, 1.05),
@@ -2188,6 +2213,32 @@ def scatter_dorito(counts,
         
     return figure, tax  
 
+def line_dorito(alpha, beta, gamma,
+                scale, tax, figure):
+    c_dict, _ = get_sector_colors()
+    
+    # scale
+    alpha = alpha*scale
+    beta = beta*scale
+    gamma = gamma*scale
+    
+    linewidth = 3
+    
+    # splicing line
+    tax.horizontal_line(beta, linewidth=linewidth,
+                        color=c_dict['splicing'],
+                        linestyle='--')
+    
+    # tss
+    tax.right_parallel_line(alpha, linewidth=linewidth,
+                           color=c_dict['tss'],
+                           linestyle='--')
+    
+    # tes
+    tax.left_parallel_line(gamma, linewidth=linewidth,
+                           color=c_dict['tes'],
+                           linestyle='--')
+
 def plot_dorito(counts,
                 top='splicing_ratio',
                 subset=None,
@@ -2198,9 +2249,15 @@ def plot_dorito(counts,
                 density=False,
                 density_scale=1,
                 density_cmap='viridis',
+                density_vmax=None,
+                sectors=False,
+                sect_alpha=0.5,
+                sect_beta=0.5,
+                sect_gamma=0.5,
                 log_density=False,
                 scatter=True,
                 size=None,
+                legend=True,
                 log_size=False,
                 jitter=False,
                 alpha=1,
@@ -2282,6 +2339,7 @@ def plot_dorito(counts,
         figure, tax, temp = density_dorito(temp, c, 
                                  density_scale, 
                                  density_cmap, 
+                                 density_vmax,
                                  log_density,
                                  pad=pad)
         scale = density_scale
@@ -2310,8 +2368,14 @@ def plot_dorito(counts,
     if scatter:
         figure, tax = scatter_dorito(temp, c, hue,
                                     size, log_size,
-                                    cmap, mmap, alpha, density, 
+                                    cmap, mmap, alpha,
+                                    density, legend,
                                     figure, tax)
+        
+    # sectors
+    if sectors:
+        line_dorito(sect_alpha, sect_beta, sect_gamma, 
+                    scale, tax, figure)
 
     # title handler
     if not title:
@@ -2367,6 +2431,85 @@ def plot_dorito(counts,
     
     return temp
 
+def plot_species_sector_gene_counts(m_counts, h_counts):
+    temp = pd.DataFrame()
+    for source in ['GENCODE', 'obs']:
+        for species, counts in zip(['mouse', 'human'],[m_counts, h_counts]):
+            df = assign_gisx_sector(counts)
+            df = df.loc[df.source == source]
+            df = df[['gid', 'source', 'sector']].groupby(['source', 'sector']).count().reset_index()
+            df.rename({'gid': 'n_genes'}, axis=1, inplace=True)
+            df['total_genes'] = df.n_genes.sum()
+            df['species'] = species
+            temp = pd.concat([temp, df])
+    temp['perc'] = (temp.n_genes/temp.total_genes)*100
+    
+    y = '% annotated / observed genes'
+    temp.rename({'perc': y}, axis=1, inplace=True)
+    c_dict, order = get_sector_colors(['tss', 'splicing', 'tes'])
+    temp = temp.loc[temp.sector != 'simple']
+
+    # plot both together
+    sns.set_context('paper', font_scale=1.8)
+    ax = sns.catplot(data=temp, x='source',
+                y=y, col='species',
+                hue='sector', kind='bar',
+                palette=c_dict, saturation=1)
+
+    def add_perc_2(ax):
+        ylim = ax.get_ylim()[1]
+        n_cats = len(ax.patches)
+        for p in ax.patches:
+            percentage = '{:.1f}%'.format(p.get_height())
+    #         x = p.get_x() + p.get_width() / 2 - 0.45
+            x = p.get_x() + p.get_width() / 2 - (0.015)*n_cats
+            y = p.get_y() + p.get_height() + ylim*0.00625
+            ax.annotate(percentage, (x, y), size = 12)
+
+    a = ax.axes[0,0]
+    add_perc_2(a)
+    a = ax.axes[0,1]
+    add_perc_2(a)
+    
+    return temp            
+
+def plot_sector_gene_counts(counts):
+    temp = pd.DataFrame()
+    for source in ['GENCODE', 'obs']:
+        df = assign_gisx_sector(counts)
+        df = df.loc[df.source == source]
+        df = df[['gid', 'source', 'sector']].groupby(['source', 'sector']).count().reset_index()
+        df.rename({'gid': 'n_genes'}, axis=1, inplace=True)
+        df['total_genes'] = df.n_genes.sum()
+        temp = pd.concat([temp, df])
+    temp['perc'] = (temp.n_genes/temp.total_genes)*100
+    temp = temp.loc[temp.sector != 'simple'] 
+    
+    y = '% annotated / observed genes'
+    temp.rename({'perc': y}, axis=1, inplace=True)
+    c_dict, order = get_sector_colors(['tss', 'splicing', 'tes'])
+
+    # plot both together
+    sns.set_context('paper', font_scale=1.8)
+    ax = sns.catplot(data=temp, x='source',
+                y=y, hue='sector', kind='bar',
+                palette=c_dict, saturation=1,
+                hue_order=order)
+
+    def add_perc_2(ax):
+        ylim = ax.get_ylim()[1]
+        n_cats = len(ax.patches)
+        for p in ax.patches:
+            percentage = '{:.1f}%'.format(p.get_height())
+    #         x = p.get_x() + p.get_width() / 2 - 0.45
+            x = p.get_x() + p.get_width() / 2 - (0.015)*n_cats
+            y = p.get_y() + p.get_height() + ylim*0.00625
+            ax.annotate(percentage, (x, y), size = 12)
+
+    a = ax.axes[0,0]
+    add_perc_2(a)
+    
+    return temp            
 
 
     

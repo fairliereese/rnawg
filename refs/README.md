@@ -102,3 +102,13 @@ paftools.js gff2bed $gtf > ~/mortazavi_lab/data/rnawg/refs/gencode.v29.bed
 ## Get a list of ENSEMBL IDs for all transcription factor genes
 Using [this](http://www.ensembl.org/biomart/martview/9ae34b91ac4887f7cb4e59a962bf8f87?VIRTUALSCHEMANAME=default&ATTRIBUTES=hsapiens_gene_ensembl.default.feature_page.ensembl_gene_id|hsapiens_gene_ensembl.default.feature_page.ensembl_gene_id_version|hsapiens_gene_ensembl.default.feature_page.ensembl_transcript_id|hsapiens_gene_ensembl.default.feature_page.ensembl_transcript_id_version&FILTERS=hsapiens_gene_ensembl.default.filters.go_parent_term."GO:0003700"&VISIBLEPANEL=resultspanel) query. Essentially just filters all ENSEMBL gene IDs based on those from the TF GO category (GO:0003700
 ). Results are stored in `biomart_tf_gids.tsv`.
+
+## Get human / mouse orthologs
+Using [this](http://www.ensembl.org/biomart/martview/7207f9a6b715260989ef4d6aa3c1205f?VIRTUALSCHEMANAME=default&ATTRIBUTES=hsapiens_gene_ensembl.default.homologs.ensembl_gene_id|hsapiens_gene_ensembl.default.homologs.ensembl_gene_id_version|hsapiens_gene_ensembl.default.homologs.ensembl_transcript_id|hsapiens_gene_ensembl.default.homologs.ensembl_transcript_id_version|hsapiens_gene_ensembl.default.homologs.mmusculus_homolog_ensembl_gene|hsapiens_gene_ensembl.default.homologs.mmusculus_homolog_associated_gene_name&FILTERS=&VISIBLEPANEL=attributepanel) query. Results in `biomart_human_to_mouse.tsv`.
+
+
+## Get gene / transcript info
+```bash
+python get_gene_biotypes.py
+python get_transcript_info.py
+```
