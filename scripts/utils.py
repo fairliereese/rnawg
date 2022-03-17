@@ -30,7 +30,8 @@ def get_sample_datasets(sample=None):
     to the input sample type.
 
     Parameters:
-        sample (str): 'cell_line', 'tissue', 'mouse_match'
+        sample (str): 'cell_line', 'tissue', 'mouse_match',
+            'ljungman'
 
     Returns:
         datasets (list of str): List of datasets belonging to that specific sample type
@@ -50,6 +51,17 @@ def get_sample_datasets(sample=None):
         df['biosample'] = df.hr.str.rsplit('_', n=2, expand=True)[0]
         df = df.merge(tissue_df, how='left', on='biosample')
         datasets = df.loc[df.tissue.isin(tissues), 'hr'].tolist()
+    elif sample == 'heart':
+        tissues = ['heart']
+        tissue_df = get_tissue_metadata()
+        df['biosample'] = df.hr.str.rsplit('_', n=2, expand=True)[0]
+        df = df.merge(tissue_df, how='left', on='biosample')
+        datasets = df.loc[df.tissue.isin(tissues), 'hr'].tolist()
+    elif sample == 'ljungman':
+        fname = '{}/../bru/ljungman_datasets.tsv'.format(d)
+        sample_df = pd.read_csv(fname, sep='\t', header=None, names=['dataset'])
+        df = df.merge(sample_df, how='inner', left_on='hr', right_on='dataset')
+        datasets = df.hr.tolist()
     else:
         datasets = df.hr.tolist()
 
@@ -418,7 +430,7 @@ def get_ic_tss_tes(sg,
                    novel_slack=100,
                    verbose=False):
     """
-    Extract information about annotaed and observed tss, tes,
+    Extract information about annotated and observed tss, tes,
     and intron chain usage from a SwanGraph t_df.
 
     Parameters:
@@ -620,10 +632,10 @@ def get_ic_tss_tes(sg,
     t_df = get_gene_number(t_df, 'tss_cluster', 'tss')
     t_df = get_gene_number(t_df, 'tes_cluster', 'tes')
     t_df = get_gene_number(t_df, 'intron_chain', 'intron_chain')
-    t_df['ttrip'] = t_df.gname +' ('+\
+    t_df['ttrip'] = t_df.gname +' ['+\
                 t_df.tss_gene_num.astype('str')+','+\
                 t_df.intron_chain_gene_num.astype('str')+','+\
-                t_df.tes_gene_num.astype('str')+')'
+                t_df.tes_gene_num.astype('str')+']'
 
     return t_df, end_regions, counts
 
@@ -769,7 +781,11 @@ def get_det_table(df,
         df['dataset'] = 'all'
         df = df.groupby('dataset').max()
 
-    df = (df >= min_tpm)
+    if min_tpm != 0:
+        df = (df >= min_tpm)
+    # if min_tpm is 0, just take everything that has at least one read
+    else:
+        df = (df > min_tpm)
     return df
 
 def get_reads_per_sample(df,
@@ -1634,7 +1650,7 @@ def assign_gisx_sector(df):
     
     return df
 
-def compare_species(h_counts, m_counts):
+def compare_species(h_counts, m_counts, source='obs'):
     
     d = os.path.dirname(__file__)
     fname = '{}/../refs/biomart_human_to_mouse.tsv'.format(d)
@@ -1644,8 +1660,8 @@ def compare_species(h_counts, m_counts):
     h_counts = assign_gisx_sector(h_counts)
     m_counts = assign_gisx_sector(m_counts)
     
-    h_counts = h_counts.loc[h_counts.source == 'obs'].copy(deep=True)
-    m_counts = m_counts.loc[m_counts.source == 'obs'].copy(deep=True)
+    h_counts = h_counts.loc[h_counts.source == source].copy(deep=True)
+    m_counts = m_counts.loc[m_counts.source == source].copy(deep=True)
     conv = conv.drop_duplicates(subset=['Mouse gene stable ID', 'Mouse gene name'])
     
     # add non versioned gid
@@ -1660,5 +1676,6 @@ def compare_species(h_counts, m_counts):
                               suffixes=('_human', '_mouse'))
     
     return h_counts
+
     
 

@@ -13,6 +13,7 @@ from sklearn import preprocessing
 import pylab as pl
 import matplotlib.ticker as tck
 from collections import defaultdict
+import plotly.graph_objects as go
 
 from .utils import *
 
@@ -2025,7 +2026,7 @@ def density_dorito(counts,
         
     figure, tax = ternary.figure(scale=scale, permutation='210')
     # tax.heatmap(hm_dict, colorbar=False, style='t', vmax=vmax)
-    tax.heatmap(hm_dict, colorbar=False, style='t', adj_vlims=True)
+    tax.heatmap(hm_dict, colorbar=False, style='t', adj_vlims=True, cmap=cmap)
     # tax.heatmap(interp_dict, colorbar=False)
     
     # scale according to chosen resolution
@@ -2112,7 +2113,7 @@ def scatter_dorito(counts,
     def scale_col(points, counts, col, log=False, how='color'):
             if log:
                 log_col = '{}_log'.format(col)
-                counts[log_col] = np.log2(counts[col])
+                counts[log_col] = np.log10(counts[col])
                 col = log_col
             vals = counts[[col]]
             max_val = vals[col].max()
@@ -2159,6 +2160,7 @@ def scatter_dorito(counts,
     # get sizes
     if size:
         sizes,_,_,_,_ = scale_col(points, counts, size, log_size)
+        print(sizes[:5])
         
     # marker style
     if mmap:
@@ -2380,14 +2382,14 @@ def plot_dorito(counts,
     # title handler
     if not title:
         if gene:
-            title = '$\it{}$\n\n'.format(gene)
+            title = '$\it{}$\n'.format(gene)
         else:
             title = ''
     else:
         if gene:
-            title = '{} $\it{}$\n\n'.format(title, gene)
+            title = '{} $\it{}$\n'.format(title, gene)
         else:
-            title = '{}\n\n'.format(title)
+            title = '{}\n'.format(title)
 
     tax.set_title(title, fontsize=20)
     tax.boundary(linewidth=2, c='#e5ecf6')
@@ -2407,10 +2409,13 @@ def plot_dorito(counts,
     if top == 'splicing_ratio':
         top_label = 'Splicing ratio $\\beta$'
     elif top == 'intron_chain':
-        top_label = '# intron chains $\\delta$'
-    tax.left_corner_label('# TSSs $\\alpha$', fontsize=fontsize)
-    tax.top_corner_label(top_label, fontsize=fontsize)
-    tax.right_corner_label('# TESs $\\gamma$', fontsize=fontsize)
+        top_label = 'Intron chains $\\delta$'
+    # tax.left_corner_label('# TSSs $\\alpha$', fontsize=fontsize)
+    # tax.top_corner_label(top_label, fontsize=fontsize)
+    # tax.right_corner_label('# TESs $\\gamma$', fontsize=fontsize)
+    tax.left_axis_label('TSS $\\alpha$', fontsize=fontsize, offset=0.12)
+    tax.right_axis_label(top_label, fontsize=fontsize, offset=0.12)
+    tax.bottom_axis_label('TES $\\gamma$', fontsize=fontsize, offset=0.00)
     
     figure.set_facecolor('white')
         
@@ -2454,6 +2459,7 @@ def plot_species_sector_gene_counts(m_counts, h_counts):
     ax = sns.catplot(data=temp, x='source',
                 y=y, col='species',
                 hue='sector', kind='bar',
+                hue_order=order,
                 palette=c_dict, saturation=1)
 
     def add_perc_2(ax):
@@ -2488,7 +2494,6 @@ def plot_sector_gene_counts(counts):
     y = '% annotated / observed genes'
     temp.rename({'perc': y}, axis=1, inplace=True)
     c_dict, order = get_sector_colors(['tss', 'splicing', 'tes'])
-
     # plot both together
     sns.set_context('paper', font_scale=1.8)
     ax = sns.catplot(data=temp, x='source',
@@ -2511,5 +2516,31 @@ def plot_sector_gene_counts(counts):
     
     return temp            
 
-
+def plot_sankey(df,
+                source,
+                sink,
+                title):
     
+    c_dict, order = get_sector_colors()
+    order.reverse()
+    order_2 = order+order
+
+    source_map = dict([(sect, i) for i, sect in enumerate(order)])
+    sink_map = dict([(sect, i+len(order)) for i, sect in enumerate(order)])
+    df['source'] = df[source].map(source_map)
+    df['sink'] = df[sink].map(sink_map)
+
+    nodes = dict(
+        label=order_2,
+        color=[c_dict[n] for n in order_2])
+
+    links = dict(
+        source=df.source.tolist(),
+        target=df.sink.tolist(),
+        value=df.n_genes.tolist(),
+        color=[c_dict[n] for n in df[source].tolist()]) # color links by source
+
+    data = go.Sankey(node=nodes, link=links)
+    fig = go.Figure(data)
+    fig.update_layout(title_text=title)
+    fig.show()
