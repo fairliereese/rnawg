@@ -7,6 +7,7 @@ import os
 import gseapy as gp
 import swan_vis as swan
 from scipy import sparse
+import sqlite3
 
 p = os.path.dirname((os.getcwd()))
 sys.path.append(p)
@@ -47,4 +48,18 @@ df = pd.read_csv('../lr_bulk/talon/human_talon_abundance_filtered.tsv', sep='\t'
 tids = list(set(tids)|set(df.loc[df.transcript_novelty=='Known', 'annot_transcript_id'].tolist()))
 df = df.loc[df.annot_transcript_id.isin(tids)]
 df = df[['gene_ID', 'transcript_ID']]
+
+# also get all known gene / transcript IDs straight from the db
+db = '../lr_bulk/talon/human.db'
+with sqlite3.connect(db) as conn:
+    query = """SELECT DISTINCT t.gene_ID, t.transcript_ID
+                    FROM transcripts as t
+                    LEFT JOIN transcript_annotations as ta
+                        ON ta.ID = t.transcript_ID
+                    WHERE (ta.attribute = 'transcript_status'
+                        AND ta.value = 'KNOWN')
+            """
+    annot = pd.read_sql_query(query, conn)
+
+df = pd.concat([df, annot])
 df.to_csv('ljungman_complete_pass_list.csv', header=None, index=False)
