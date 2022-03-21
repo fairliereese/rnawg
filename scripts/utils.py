@@ -258,7 +258,9 @@ def count_tss_ic_tes(df, subset=None):
             how many tss, ics, tes there are for each gene
     """
     df = df.copy(deep=True)
-    df = df.loc[df.tid.isin(subset)]
+    
+    if subset:
+        df = df.loc[df.tid.isin(subset)]
 
     # raw tss, ic, tes count
     cols = ['tss', 'intron_chain', 'tes']
@@ -359,19 +361,20 @@ def cluster_ends(ends,
 
     return reg, clust
 
-def compute_triplets(t_df,
-                     df,
+def get_subset_triplets(t_df,
+                     df=None,
                      min_tpm=1,
                      sample='all',
                      groupby='sample',
-                     bool_col=None):
+                     source_name=None):
     """
-    Compute the triplets on the sample or library level
+    Compute the triplets on a subset of samples / libraries / isoforms
 
     Parameters:
-        t_df (pandas DataFrame): t_df output from get_ic_tss_tes
+        t_df (pandas DataFrame): t_df output from get_ref_triplets
         df (pandas DataFrame): Filtered TALON abundance or 90% set
-            dataframe
+            dataframe. Do not include if you want to compute for 
+            GENCODE + obs
         min_tpm (int): Min TPM to be considered detected
         sample (str): Choose 'cell_line', 'tissue', 'mouse_match'
         groupby (str): Choose 'library', 'sample', or 'all'
@@ -380,37 +383,41 @@ def compute_triplets(t_df,
         counts (pandas DataFrame): DF w/ n tss, ic, tes, and
             splicing ratio for each gene in each sample / lib
     """
-
+    
     # get table of which isoforms are detected in
     # which samples / libraries, or which isoforms
     # are part of the 90% set / sample
-    if 'transcript_novelty' in df.columns:
-        df = get_det_table(df,
-                           how='iso',
-                           min_tpm=min_tpm,
-                           sample=sample,
-                           groupby=groupby,
-                           nov=['Known', 'NIC', 'NNC'])
+    if isinstance(df, pd.DataFrame):
+        if 'transcript_novelty' in df.columns:
+            df = get_det_table(df,
+                               how='iso',
+                               min_tpm=min_tpm,
+                               sample=sample,
+                               groupby=groupby,
+                               nov=['Known', 'NIC', 'NNC'])
 
-    # otherwise, expect 90% set file format and coerce into
-    # boolean 90% set detection table format
-    elif 'pi' in df.columns:
-        df = df[['tid', 'biosample']]
-        df['in_90_set'] = True
-        df = df.pivot(index='biosample', columns='tid', values='in_90_set').fillna(value=False)
-        df.columns.name = ''
+        # otherwise, expect 90% set file format and coerce into
+        # boolean 90% set detection table format
+        elif 'pi' in df.columns:
+            df = df[['tid', 'biosample']]
+            df['in_90_set'] = True
+            df = df.pivot(index='biosample', columns='tid', values='in_90_set').fillna(value=False)
+            df.columns.name = ''
 
-    # loop through samples / libraries compute triplet
-    # for detected transcripts in each sample
-    counts = pd.DataFrame()
-    for ind, entry in df.iterrows():
-        entry = entry.to_frame()
-        tids = entry.loc[entry[ind] == True].index.tolist()
-        temp = count_tss_ic_tes(t_df, subset=tids)
-        temp['source'] = ind
-        if bool_col:
-            temp[bool_col] = True
-        counts = pd.concat([counts, temp])
+        # loop through samples / libraries compute triplet
+        # for detected transcripts in each sample
+        counts = pd.DataFrame()
+        for ind, entry in df.iterrows():
+            entry = entry.to_frame()
+            tids = entry.loc[entry[ind] == True].index.tolist()
+            temp = count_tss_ic_tes(t_df, subset=tids)
+            temp['source'] = ind
+            counts = pd.concat([counts, temp])
+
+    # if we don't have a df, we want to compute triplets for 
+    # all annotated + observed data
+    else:
+        counts = count_tss_ic_tes(t_df)
 
     # get gene info and add
     gene_df, _, _ = get_gtf_info(how='gene')
@@ -419,7 +426,275 @@ def compute_triplets(t_df,
     gene_df.drop_duplicates(inplace=True)
     counts = counts.merge(gene_df, how='left', left_index=True, right_on='gid')
 
+    # if we were given a source name, replace all source names
+    # with the given one
+    if source_name:
+        counts['source'] = source_name
+        
     return counts
+
+# def compute_triplets(t_df,
+#                      df,
+#                      min_tpm=1,
+#                      sample='all',
+#                      groupby='sample',
+#                      bool_col=None):
+#     """
+#     Compute the triplets on the sample or library level
+
+#     Parameters:
+#         t_df (pandas DataFrame): t_df output from get_ic_tss_tes
+#         df (pandas DataFrame): Filtered TALON abundance or 90% set
+#             dataframe
+#         min_tpm (int): Min TPM to be considered detected
+#         sample (str): Choose 'cell_line', 'tissue', 'mouse_match'
+#         groupby (str): Choose 'library', 'sample', or 'all'
+
+#     Returns:
+#         counts (pandas DataFrame): DF w/ n tss, ic, tes, and
+#             splicing ratio for each gene in each sample / lib
+#     """
+    
+#     print('this is the old one')
+
+#     # get table of which isoforms are detected in
+#     # which samples / libraries, or which isoforms
+#     # are part of the 90% set / sample
+#     if 'transcript_novelty' in df.columns:
+#         df = get_det_table(df,
+#                            how='iso',
+#                            min_tpm=min_tpm,
+#                            sample=sample,
+#                            groupby=groupby,
+#                            nov=['Known', 'NIC', 'NNC'])
+
+#     # otherwise, expect 90% set file format and coerce into
+#     # boolean 90% set detection table format
+#     elif 'pi' in df.columns:
+#         df = df[['tid', 'biosample']]
+#         df['in_90_set'] = True
+#         df = df.pivot(index='biosample', columns='tid', values='in_90_set').fillna(value=False)
+#         df.columns.name = ''
+
+#     # loop through samples / libraries compute triplet
+#     # for detected transcripts in each sample
+#     counts = pd.DataFrame()
+#     for ind, entry in df.iterrows():
+#         entry = entry.to_frame()
+#         tids = entry.loc[entry[ind] == True].index.tolist()
+#         temp = count_tss_ic_tes(t_df, subset=tids)
+#         temp['source'] = ind
+#         if bool_col:
+#             temp[bool_col] = True
+#         counts = pd.concat([counts, temp])
+
+#     # get gene info and add
+#     gene_df, _, _ = get_gtf_info(how='gene')
+#     gene_df = gene_df[['gid', 'gname', 'biotype',
+#                   'biotype_category', 'tf']]
+#     gene_df.drop_duplicates(inplace=True)
+#     counts = counts.merge(gene_df, how='left', left_index=True, right_on='gid')
+
+#     return counts
+
+def get_ref_triplets(sg,
+                     df,
+                     annot_slack=200,
+                     novel_slack=100,
+                     verbose=False):
+    """
+    Get reference set of triplets for all the detected complete transcripts
+    in our dataset as well as for GENCODE.
+    
+    Parameters:
+        sg (swan_vis SwanGraph): SwanGraph with both annotation
+            and observed transcript data added
+        df (pandas DataFrame): Filtered TALON abundance file
+        annot_slack (int): Distance b/w which to merge annotated ends
+        novel_slack (int): Distance b/w which to merge observed ends
+        verbose (bool): Whether or not to print output
+
+    Returns:
+        t_df (pandas DataFrame): sg.t_df modified to include
+            information about intron chain, tss, and tes
+        regions (dict of pandas DataFrames): Indexed by
+            'tss' and 'tes'. Bed regions for each end cluster
+            as annotated in t_df
+        counts (pandas DataFrame): DF of counts for intron
+            chains, TSSs, TESs, and unique combinations of the three
+            for annotated, observed, and both
+    """
+    
+    all_df = add_tss_ic_tes(sg)
+
+    # limit to those annotated or in list of detected tids that we allow
+    # only ever allow known, nic, nnc
+    _, inds = get_tpm_table(df,
+                             how='iso',
+                             sample='all',
+                             min_tpm=1,
+                             gene_subset='polya',
+                             nov=['Known', 'NIC', 'NNC'])
+    novel_tids = inds
+
+    if type(novel_tids) == list:
+        all_df = all_df.loc[(all_df.annotation == True)|(all_df.tid.isin(novel_tids))]
+
+    end_types = ['tss', 'tes']
+    end_regions = dict()
+    for c in end_types:
+
+        if verbose:
+            print()
+
+        #### annotated transcripts ####
+
+        t_df = all_df.loc[all_df.annotation == True].copy(deep=True)
+        if verbose:
+            n = len(t_df.index)
+            print('Finding {}s for {} annotated transcripts'.format(c, n))
+
+        reg, clust = cluster_ends(t_df,
+                                  slack=annot_slack,
+                                  cluster_start=1,
+                                  kind=c)
+        reg['annotation'] = True
+        reg['source'] = 'GENCODE'
+        clust['annotation'] = True
+        if verbose:
+            n = len(reg.index)
+            print('Found {} annotated {} clusters'.format(n,c))
+
+        #### novel transcripts ####
+
+        # assign ends from novel transcripts to annotated ends
+        t_df = all_df.loc[(all_df.annotation == False)&(all_df.tid.isin(sg.adata.var.index.tolist()))]
+
+        if verbose:
+            n = len(t_df.index)
+            print('Finding {}s for {} novel transcripts'.format(c, n))
+
+        # case 1: ends from novel transcripts are w/i annotated regions
+        ends = df_to_pyranges(t_df, kind=c)
+        reg = pr.PyRanges(df=reg)
+        ends = ends.join(reg, how='left',
+                         slack=1,
+                         strandedness=None, suffix='_annot')
+        ends = ends.as_df()
+
+        # limit to those w/ matching gid, first sd and add to cluster df
+        if c == 'tss':
+            inds = ends.loc[(ends.gid==ends.gid_annot)&(ends.first_sd==ends.first_sd_annot)].index.tolist()
+        else:
+            inds = ends.loc[ends.gid == ends.gid_annot].index.tolist()
+
+        if verbose:
+            n = len(inds)
+            print('Found {} novel {}s that are already in the annotation'.format(n,c))
+        clust = pd.concat([clust, ends.loc[inds]])
+
+        # case 2: ends from novel transcripts need to be clustered
+        # on their own
+
+        # remove duplicates that arise from imperfect merging
+        ends['in_region'] = False
+        ends.loc[inds, 'in_region'] = True
+        ends.sort_values(by='in_region', inplace=True, ascending=False)
+        cols = ['gid', c]
+        if c == 'tss':
+            cols.append('first_sd')
+        ends.drop_duplicates(subset=cols, keep='first', inplace=True)
+        inds = ends.loc[ends.in_region == True].index.tolist()
+
+        # subset based on ends that are unsupported by ref regions
+        inds = list(set(ends.index.tolist())-set(inds))
+        t_df = ends.loc[inds]
+        if verbose:
+            n = len(t_df.index)
+            print('Finding {}s for {} novel ends'.format(c,n))
+        n = clust.Cluster.max()+1
+        nov_reg, nov_clust = cluster_ends(t_df,
+                                          slack=novel_slack,
+                                          cluster_start=n,
+                                          kind=c)
+        nov_reg['annotation'] = False
+        nov_reg['source'] = 'obs'
+        nov_clust['annotation'] = False
+        if verbose:
+            n = len(nov_reg.index)
+            print('Found {} novel {} clusters'.format(n,c))
+
+        # check how many novel clusters fall into already
+        # annotated regions
+        nov_reg = pr.PyRanges(df=nov_reg)
+        temp = nov_reg.join(reg, how=None, strandedness=None, suffix='_annot')
+        temp = temp.as_df()
+        if verbose:
+            if c == 'tss':
+                temp = temp.loc[(temp.first_sd == temp.first_sd_annot)&(temp.gid == temp.gid_annot)]
+            else:
+                temp = temp.loc[temp.gid == temp.gid_annot]
+            cols = ['gid']
+            if c == 'tss':
+                cols.append('first_sd')
+            temp = temp.drop_duplicates(subset=cols)
+            n = len(temp.index)
+            print('{} new {} regions overlap annotated regions'.format(n,c))
+
+        # finally, add novel regions to clust and reg dfs
+        reg = reg.as_df()
+        nov_reg = nov_reg.as_df()
+        clust = pd.concat([clust, nov_clust])
+        reg = pd.concat([reg, nov_reg])
+
+        # some final formatting for these dfs
+        cols = ['gid', 'gname', c,
+                'Cluster', 'annotation']
+        if c == 'tss':
+            cols.append('first_sd')
+        clust = clust[cols]
+        clust.rename({'Cluster': '{}_cluster'.format(c),
+                      'annotation': '{}_annotation'.format(c)},
+                      axis=1, inplace=True)
+        clust.drop_duplicates(inplace=True)
+        end_regions[c] = reg
+
+        # add cluster ids back into the original df
+        cols = ['gid', 'gname', c]
+        if c == 'tss':
+            cols.append('first_sd')
+        all_df = all_df.merge(clust, how='left', on=cols)
+
+    # counts for all, annotated, and observed go into the same df
+    # with a different source
+    counts = pd.DataFrame()
+
+    # annotated counts
+    tids = all_df.loc[all_df.novelty == 'Known'].tid.tolist()
+    annot_counts = count_tss_ic_tes(all_df, subset=tids)
+    annot_counts['source'] = 'GENCODE'
+    counts = pd.concat([counts, annot_counts])
+    
+    # get gene info and add
+    gene_df, _, _ = get_gtf_info(how='gene')
+    gene_df = gene_df[['gid', 'gname', 'biotype',
+                  'biotype_category', 'tf']]
+    gene_df.drop_duplicates(inplace=True)
+    counts = counts.merge(gene_df, how='left', left_index=True, right_on='gid')
+
+    t_df = all_df.copy(deep=True)
+
+    # add tripletized transcript name to t_df
+    t_df = get_gene_number(t_df, 'tss_cluster', 'tss')
+    t_df = get_gene_number(t_df, 'tes_cluster', 'tes')
+    t_df = get_gene_number(t_df, 'intron_chain', 'intron_chain')
+    t_df['ttrip'] = t_df.gname +' ['+\
+                t_df.tss_gene_num.astype('str')+','+\
+                t_df.intron_chain_gene_num.astype('str')+','+\
+                t_df.tes_gene_num.astype('str')+']'
+
+    return t_df, end_regions, counts
+    
 
 def get_ic_tss_tes(sg,
                    df,
@@ -731,7 +1006,7 @@ def get_det_table(df,
         min_tpm (float): Minimum TPM to call a gene / iso as detected
         gene_subset (str): Subset of genes to use, 'polya' or None
         sample (str): 'tissue', 'cell_line' or 'mouse_match'
-        groupby (str): Either "sample", 'library', or 'all'
+        groupby (str): Either 'sample', 'library', or 'all'
             used to groupby datasets displayed
         nov (list of str): Only used with how='iso', novelty categories of
             isoforms to consider
@@ -740,7 +1015,7 @@ def get_det_table(df,
         df (pandas DataFrame): DataFrame with True / False entries
             for each isoform / gene per library / sample
     """
-
+    
     # calc TPM per library on desired samples
     df, tids = get_tpm_table(df,
                    sample=sample,
