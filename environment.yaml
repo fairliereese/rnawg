@@ -1,0 +1,18 @@
+name: rnawg
+channels:
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies:
+  - python
+  - samtools
+  - pip:
+    - cython
+    - snakemake
+    - jupyter
+    - notebook
+    - pytest
+    - pyfaidx
+    - seaborn
+    - snakemk_util
+    - git+https://github.com/mortazavilab/lapa.git#egg=lapa

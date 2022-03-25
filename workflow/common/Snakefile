@@ -1,0 +1,7 @@
+rule wg_utr_fix:
+    input:
+        gtf = config['gtf_raw']
+    output:
+        gtf = config['gtf']
+    shell:
+        "gencode_utr_fix --input_gtf {input.gtf} --output_gtf {output.gtf}"

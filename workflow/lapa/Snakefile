@@ -1,0 +1,62 @@
+rule lapa:
+    input:
+        aligment = config['talon']['read_annot'],
+        fasta = config['fasta'],
+        gtf = config['gtf'],
+        chrom_sizes = config['chrom_sizes']
+    threads: 4
+    resources:
+        mem_gb = 64
+    output:
+        directory(config['lapa']['tes'])
+    shell:
+        "lapa \
+        --alignment {input.aligment} \
+        --fasta {input.fasta} \
+        --annotation {input.gtf} \
+        --chrom_sizes {input.chrom_sizes} \
+        --output_dir {output}"
+
+
+rule lapa_tss:
+    input:
+        aligment = config['talon']['read_annot'],
+        fasta = config['fasta'],
+        gtf = config['gtf'],
+        chrom_sizes = config['chrom_sizes']
+    threads: 4
+    resources:
+        mem_gb = 64
+    output:
+        directory(config['lapa']['tss'])
+    shell:
+        "lapa_tss \
+        --alignment {input.aligment} \
+        --fasta {input.fasta} \
+        --chrom_sizes {input.chrom_sizes} \
+        --output_dir {output}"
+
+
+rule lapa_correct_gtf:
+    input:
+        read_annot = config['talon']['read_annot'],
+        gtf = config['talon']['gtf'],
+        lapa_dir = config['lapa']['tes'],
+        lapa_tss_dir = config['lapa']['tes'],
+        fasta = config['fasta']
+    output:
+        gtf = protected(config['talon']['gtf_corrected'])
+    shell:
+        "lapa_correct_talon_gtf \
+        --gtf_input {input.gtf} \
+        --gtf_output {output.gtf} \
+        --lapa_dir {input.lapa_dir} \
+        --lapa_tss_dir {input.lapa_tss_dir} \
+        --read_annot {input.read_annot} \
+        --fasta {input.fasta}"
+
+
+rule all_lapa:
+    input:
+        expand(config['lapa']['tss'], specie='human'),
+        expand(config['lapa']['tes'], specie='human')

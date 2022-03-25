@@ -1,0 +1,21 @@
+rule human_theme3_tss:
+    input:
+        gtf = config['gtf'].format(specie='human'),
+        gtf_talon = config['talon']['gtf'].format(specie='human'),
+        gtf_talon_corrected = config['talon']['gtf_corrected'].format(
+            specie='human'),
+        abundance = config['talon']['abundance'].format(
+            specie='human'),
+        ccres_promotors = config['cCREs']['promotors'],
+        ccres_proximal_enhancers = config['cCREs']['proximal_enhancers'],
+        ccres_distal_enhancers = config['cCREs']['distal_enhancers'],
+        # fantom = config['fantom'] # TODO: add fantom
+    output:
+        fig = 'reports/wg/figures/ccres/human/overlap_ccres.png'
+    notebook:
+        '../wg_encode/theme3_tss.ipynb'
+
+
+rule all_plot:
+    input:
+        rules.human_theme3_tss.output

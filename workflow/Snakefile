@@ -1,0 +1,12 @@
+configfile: "configs/config.yaml"
+
+
+include: "download/Snakefile"
+include: "common/Snakefile"
+include: "lapa/Snakefile"
+include: "plot/Snakefile"
+
+
+rule all:
+    input:
+        rules.all_plot.input

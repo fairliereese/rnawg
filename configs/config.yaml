@@ -1,0 +1,52 @@
+drive_id:
+  human:
+    read_annot: 194GuCA3l1lhI5e1Gsok5Xb9-vh7qf43i
+    gtf: 1O_Vd5-SjyBE9MjxFsoLBjD43Tx7kw-T5
+    abundance: 1repLKHfQYV66MEv0FweyKJxtvvs4sFlj
+
+  # move to mouse repo
+  # mouse:
+  #   read_annot: 1xW2oLzmu2OE2fZwZAO6SUwMebLQP4Ve_
+  #   gtf: 1iAT5iqcmqUyfjYGQwYyYk6j9KEJbLUz9
+  #   abundance: 1nGb8NZ4m0a9CqA54bJb-rTrhUrTQeyeo
+
+fasta: data/resources/common/{specie}.fasta
+gtf_raw: data/resources/common/{specie}.gtf
+gtf: data/resources/wg/common/{specie}.utr_fix.gtf
+chrom_sizes: data/resources/common/{specie}.chrom_sizes
+
+talon:
+  gtf: data/resources/talon/{specie}_talon.gtf
+  abundance_unfiltered: data/resources/talon/{specie}_talon_abundance.tsv
+  abundance: data/resources/talon/{specie}_talon_abundance_filtered.tsv
+  read_annot: data/resources/talon/{specie}_talon_read_annot.tsv
+
+  gtf_corrected: data/resources/talon/{specie}_talon.corrected.gtf
+
+cCREs:
+  promotors: data/resources/cCREs/GRCh38-PLS.bed
+  proximal_enhancers: data/resources/cCREs/GRCh38-ccREs.pELS.bed
+  distal_enhancers: data/resources/cCREs/GRCh38-ccREs.dELS.bed
+
+fantom: data/resources/fantom/hg38_CAGE.bed
+
+cage:
+
+  bed: data/resources/cage/{encode_id}.bed.gz
+
+  wtc11:
+    - ENCFF084VUM
+    - ENCFF604PAM
+
+  gm12:
+    - ENCFF383NVJ
+    - ENCFF016XXM
+    - ENCFF260HMC
+    - ENCFF103DEY
+    - ENCFF275UYM
+    - ENCFF427KTV
+    - ENCFF189WCY
+
+lapa:
+  tes: data/results/lapa/wg_lapa_{specie}
+  tss: data/results/lapa_tss/wg_lapa_{specie}
