@@ -3,10 +3,10 @@
 
 ## Get list of dataset names and detected transcript IDs from the LR bulk Ljungman data
 ```bash
-python get_detected_tids.py
+python get_ljungman_tids.py
 ```
 
-## Generate GTF from just the LR bulk Ljungman data
+## Generate all annotated + detected novel GTF from just the LR bulk Ljungman data
 ```bash
 db=../lr_bulk/talon/human.db
 annot=gencode_v29
@@ -18,4 +18,18 @@ talon_create_GTF \
     -b ${build} \
     --whitelist ${opref}_complete_pass_list.csv \
     --o ${opref}_known_nic_nnc
+```
+
+## Generate detected novel GTF from just the LR bulk Ljungman data
+```bash
+db=../lr_bulk/talon/human.db
+annot=gencode_v29
+build=hg38
+opref=ljungman
+talon_create_GTF \
+    --db ${db} \
+    -a ${annot} \
+    -b ${build} \
+    --whitelist ${opref}_novel_pass_list.csv \
+    --o ${opref}_nic_nnc
 ```

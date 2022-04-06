@@ -49,6 +49,8 @@ tids = list(set(tids)|set(df.loc[df.transcript_novelty=='Known', 'annot_transcri
 df = df.loc[df.annot_transcript_id.isin(tids)]
 df = df[['gene_ID', 'transcript_ID']]
 
+df.to_csv('ljungman_novel_pass_list.csv', header=None, index=False)
+
 # also get all known gene / transcript IDs straight from the db
 db = '../lr_bulk/talon/human.db'
 with sqlite3.connect(db) as conn:
