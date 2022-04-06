@@ -323,7 +323,8 @@ def df_to_pyranges(ends, kind='tss'):
 def cluster_ends(ends,
                  slack,
                  cluster_start=1,
-                 kind='tss'):
+                 kind='tss',
+                 first_sd=True):
     """
     Cluster TSSs / TESs.
 
@@ -343,7 +344,7 @@ def cluster_ends(ends,
 
     # get regions and region assignments
     cols = ['gid', 'gname']
-    if kind == 'tss':
+    if kind == 'tss' and first_sd:
         cols.append('first_sd')
 
     # merge to get regions
@@ -435,6 +436,7 @@ def get_subset_triplets(t_df,
 
 def get_ref_triplets(sg,
                      df,
+                     first_sd=True,
                      annot_slack=200,
                      novel_slack=100,
                      verbose=False):
@@ -519,7 +521,7 @@ def get_ref_triplets(sg,
         ends = ends.as_df()
 
         # limit to those w/ matching gid, first sd and add to cluster df
-        if c == 'tss':
+        if c == 'tss' and first_sd:
             inds = ends.loc[(ends.gid==ends.gid_annot)&(ends.first_sd==ends.first_sd_annot)].index.tolist()
         else:
             inds = ends.loc[ends.gid == ends.gid_annot].index.tolist()
@@ -537,7 +539,7 @@ def get_ref_triplets(sg,
         ends.loc[inds, 'in_region'] = True
         ends.sort_values(by='in_region', inplace=True, ascending=False)
         cols = ['gid', c]
-        if c == 'tss':
+        if c == 'tss' and first_sd:
             cols.append('first_sd')
         ends.drop_duplicates(subset=cols, keep='first', inplace=True)
         inds = ends.loc[ends.in_region == True].index.tolist()
@@ -566,12 +568,12 @@ def get_ref_triplets(sg,
         temp = nov_reg.join(reg, how=None, strandedness=None, suffix='_annot')
         temp = temp.as_df()
         if verbose:
-            if c == 'tss':
+            if c == 'tss' and first_sd:
                 temp = temp.loc[(temp.first_sd == temp.first_sd_annot)&(temp.gid == temp.gid_annot)]
             else:
                 temp = temp.loc[temp.gid == temp.gid_annot]
             cols = ['gid']
-            if c == 'tss':
+            if c == 'tss' and first_sd:
                 cols.append('first_sd')
             temp = temp.drop_duplicates(subset=cols)
             n = len(temp.index)
@@ -596,7 +598,7 @@ def get_ref_triplets(sg,
         # some final formatting for these dfs
         cols = ['gid', 'gname', c,
                 'Cluster', 'annotation']
-        if c == 'tss':
+        if c == 'tss' and first_sd:
             cols.append('first_sd')
         clust = clust[cols]
         clust.rename({'Cluster': '{}_cluster'.format(c),
@@ -607,7 +609,7 @@ def get_ref_triplets(sg,
 
         # add cluster ids back into the original df
         cols = ['gid', 'gname', c]
-        if c == 'tss':
+        if c == 'tss' and first_sd:
             cols.append('first_sd')
         all_df = all_df.merge(clust, how='left', on=cols)
 
