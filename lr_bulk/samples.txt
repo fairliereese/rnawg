@@ -1,0 +1,9 @@
+brodmann_area_46_1_1
+brodmann_area_46_7_1
+brodmann_area_46_5_1
+brodmann_area_46_6_1
+brodmann_area_46_8_1
+brodmann_area_46_4_1
+brodmann_area_46_2_1
+brodmann_area_46_9_1
+brodmann_area_46_3_1
