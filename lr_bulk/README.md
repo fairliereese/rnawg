@@ -60,6 +60,11 @@ limit to just the recent jobs
 tail processing/talon_label.o1* | grep -B 8 "Run complete" | grep "talon_label.o"
 ``` -->
 
+<!-- Check to see which things finished 4/12/22
+```bash
+tail processing/talon_label.o1214* | grep -B 8 "Run complete" | grep "talon_label.o"
+``` -->
+
 ## Create TALON config file
 ```bash
 mkdir talon
@@ -84,8 +89,11 @@ sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_5.cs
 sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_6.csv $oprefix # done 11/28/21
 sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_7.csv $oprefix # done 11/29/21
 
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_8.csv $oprefix # finished 2/23/22
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_9.csv $oprefix # finished 2/24/22
-sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_10.csv $oprefix # finished 2/28/22
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_8.csv $oprefix # done 2/23/22
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_9.csv $oprefix # done 2/24/22
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_10.csv $oprefix # done 2/28/22
 
+config=talon/talon_config.csv
+oprefix=talon/human
+sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_11.csv $oprefix # running 4/12/22
 ``` -->

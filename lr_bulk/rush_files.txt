@@ -1,0 +1,10 @@
+"https://www.encodeproject.org/metadata/?files.output_type=alignments&type=Experiment&cart=%2Fcarts%2Fc594d86d-3d4d-4627-a3f0-41152e1a0dd2%2F&files.processed=true"
+https://www.encodeproject.org/files/ENCFF877QJZ/@@download/ENCFF877QJZ.bam
+https://www.encodeproject.org/files/ENCFF114VSO/@@download/ENCFF114VSO.bam
+https://www.encodeproject.org/files/ENCFF773RAW/@@download/ENCFF773RAW.bam
+https://www.encodeproject.org/files/ENCFF279ABL/@@download/ENCFF279ABL.bam
+https://www.encodeproject.org/files/ENCFF222UTL/@@download/ENCFF222UTL.bam
+https://www.encodeproject.org/files/ENCFF406GQU/@@download/ENCFF406GQU.bam
+https://www.encodeproject.org/files/ENCFF378STM/@@download/ENCFF378STM.bam
+https://www.encodeproject.org/files/ENCFF564ONS/@@download/ENCFF564ONS.bam
+https://www.encodeproject.org/files/ENCFF678TEN/@@download/ENCFF678TEN.bam

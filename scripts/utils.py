@@ -166,6 +166,24 @@ def get_rank_order(df, how='max'):
 
     return temp
 
+def get_ad_metadata():
+    """
+    Get the human-readable dataset name <--> AD status mapping
+    
+    Returns: 
+        ad_df (pandas DataFrame): DataFrame containing dataset id
+            and AD status
+    """
+    d = os.path.dirname(__file__)
+    fname = '{}/../refs/ad_metadata.tsv'.format(d)
+    ad_df = pd.read_csv(fname, sep='\t')
+    ad_df = ad_df[['file_id', 'health_status']]
+    fname = '{}/../lr_bulk/file_to_hr.tsv'.format(d)
+    hr_df = pd.read_csv(fname, sep='\t', header=None, names=['file_id', 'hr'])
+
+    ad_df = ad_df.merge(hr_df, on='file_id')
+    return ad_df
+
 def get_tissue_metadata():
     """
     Get the biosample <--> higher level biosample mapping

@@ -14,6 +14,7 @@ import pylab as pl
 import matplotlib.ticker as tck
 from collections import defaultdict
 import plotly.graph_objects as go
+import math
 
 from .utils import *
 
@@ -76,6 +77,13 @@ def get_talon_nov_colors(cats=None):
     order = ['Known', 'ISM', 'NIC', 'NNC', 'Antisense', 'Intergenic', 'Genomic']
     
     c_dict, order = rm_color_cats(c_dict, order, cats)            
+    return c_dict, order
+
+def get_ad_colors():
+    c_dict = {'healthy': '#bb8f8f',
+              'AD': '#b5bd61',
+              np.nan: '#000000'}
+    order = ('healthy', 'AD', np.nan)
     return c_dict, order
 
 def plot_det_gene_len(df, opref='figures/'):
@@ -1350,10 +1358,18 @@ def plot_det_vs_gencode_isos(df,
     gene_df = gene_df[['gid', 'gname']]
     df = df.merge(gene_df, how='left', on='gid')
     
+    # add a pseudocount of 1 to each metric
+    df.n_isos_det = df.n_isos_det+1
+    df.n_isos_gencode = df.n_isos_gencode+1
+    
     # plot the figure
     sns.set_context('paper', font_scale=1.6)
     plt.figure(figsize=(6,6))
     ax = sns.scatterplot(data=df, x='n_isos_det', y='n_isos_gencode')
+    
+    fig = plt.gcf()
+    print('1')
+    print(fig.get_size_inches())
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -1361,6 +1377,10 @@ def plot_det_vs_gencode_isos(df,
     xlabel = 'Total # isoforms / gene'
     ylabel = '# isoforms / gene in GENCODE'
     _ = ax.set(xlabel=xlabel, ylabel=ylabel, xscale='log', yscale='log')
+    
+    fig = plt.gcf()
+    print('2')
+    print(fig.get_size_inches())
         
     # set x and y lims if provided
     if xlim:
@@ -1374,26 +1394,43 @@ def plot_det_vs_gencode_isos(df,
         np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
         np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
     ]
+    print(lims)
 
     # now plot both limits against eachother
     ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
     ax.set_aspect('equal')
     ax.set_xlim(lims)
     ax.set_ylim(lims)
+          
+#     fig = plt.gcf()
+#     print('3')
+#     print(fig.get_size_inches())
 
     # annotate genes that are kinda interesting
     if label_genes:
         xlim = ax.get_xlim()[1]
         ylim = ax.get_ylim()[1]
+        print(xlim)
+        print(ylim)
         for g in label_genes:
             if g in df.gname.tolist():
-                x = df.loc[df.gname == g, 'n_isos_det'].values[0]+(2/75)*xlim
-                y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]-(1.5/75)*ylim
-                plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
+                x = df.loc[df.gname == g, 'n_isos_det'].values[0]+math.log10((2/75)*xlim)
+                y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]-math.log10((2/75)*ylim)
+                # x = df.loc[df.gname == g, 'n_isos_det'].values[0]
+                # y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]
+                if x > 0.2 and y > 0.2:
+                    plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
+                else:
+                    print('not annotating {}'.format(g))
+                print('{} ({},{})'.format(g, x, y))
 
+          
+#     fig = plt.gcf()
+#     print('4')
+#     print(fig.get_size_inches())
 
     fname = '{}_total_v_gencode_isos_per_gene.png'.format(opref)
-    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    # plt.savefig(fname, dpi=300, bbox_inches='tight')
     
     return df
     
