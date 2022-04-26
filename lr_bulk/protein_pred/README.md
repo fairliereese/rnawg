@@ -13,7 +13,9 @@ I used bedtools version 2.29.2 which is also available on the cluster.
 For this, I'll use the GTF that only includes known, NIC and NNC filtered transcripts.
 
 ```bash
-gtf=../talon/human_talon_known_nic_nnc.gtf
+gtf=~/mortazavi_lab/data/rnawg/lr_bulk/talon/human_known_nic_nnc_talon.gtf
 sample=human
 sbatch ../../scripts/orf_nmd_pred.sh $gtf $sample
 ```
+
+todo - check to see if all sequences report blast hits regardless of whether or not they match a lot ie want to find orfs for all novel transcripts

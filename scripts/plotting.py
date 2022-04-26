@@ -1368,8 +1368,6 @@ def plot_det_vs_gencode_isos(df,
     ax = sns.scatterplot(data=df, x='n_isos_det', y='n_isos_gencode')
     
     fig = plt.gcf()
-    print('1')
-    print(fig.get_size_inches())
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -1379,8 +1377,6 @@ def plot_det_vs_gencode_isos(df,
     _ = ax.set(xlabel=xlabel, ylabel=ylabel, xscale='log', yscale='log')
     
     fig = plt.gcf()
-    print('2')
-    print(fig.get_size_inches())
         
     # set x and y lims if provided
     if xlim:
@@ -1410,19 +1406,15 @@ def plot_det_vs_gencode_isos(df,
     if label_genes:
         xlim = ax.get_xlim()[1]
         ylim = ax.get_ylim()[1]
-        print(xlim)
-        print(ylim)
         for g in label_genes:
             if g in df.gname.tolist():
-                x = df.loc[df.gname == g, 'n_isos_det'].values[0]+math.log10((2/75)*xlim)
-                y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]-math.log10((2/75)*ylim)
-                # x = df.loc[df.gname == g, 'n_isos_det'].values[0]
-                # y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]
+                # x = df.loc[df.gname == g, 'n_isos_det'].values[0]+math.log10((2/75)*xlim)
+                # y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]-math.log10((2/75)*ylim)
+                x = df.loc[df.gname == g, 'n_isos_det'].values[0]
+                y = df.loc[df.gname == g, 'n_isos_gencode'].values[0]
                 if x > 0.2 and y > 0.2:
-                    plt.annotate(g, (x,y), fontsize='small', fontstyle='italic')
-                else:
-                    print('not annotating {}'.format(g))
-                print('{} ({},{})'.format(g, x, y))
+                    # https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.annotate.html#matplotlib.axes.Axes.annotate
+                    plt.annotate(g, (x,y), fontsize='small', fontstyle='italic', xytext=(4,-5), textcoords='offset pixels')
 
           
 #     fig = plt.gcf()

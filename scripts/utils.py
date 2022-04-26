@@ -5,7 +5,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import numpy as np
-import pyranges.pyranges as pr
+import pyranges as pr
 import pyranges as pyranges
 import scipy.stats as st
 
@@ -334,7 +334,7 @@ def df_to_pyranges(ends, kind='tss'):
         cols.append('first_sd')
     ends = ends[cols]
     ends.drop_duplicates(inplace=True)
-    ends = pr.PyRanges(df=ends)
+    ends = pr.pyranges.PyRanges(df=ends)
 
     return ends
 
@@ -532,7 +532,7 @@ def get_ref_triplets(sg,
 
         # case 1: ends from novel transcripts are w/i annotated regions
         ends = df_to_pyranges(t_df, kind=c)
-        reg = pr.PyRanges(df=reg)
+        reg = pr.pyranges.PyRanges(df=reg)
         ends = ends.join(reg, how='left',
                          slack=1,
                          strandedness=None, suffix='_annot')
@@ -582,7 +582,7 @@ def get_ref_triplets(sg,
 
         # check how many novel clusters fall into already
         # annotated regions
-        nov_reg = pr.PyRanges(df=nov_reg)
+        nov_reg = pr.pyranges.PyRanges(df=nov_reg)
         temp = nov_reg.join(reg, how=None, strandedness=None, suffix='_annot')
         temp = temp.as_df()
         if verbose:

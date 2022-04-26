@@ -20,7 +20,7 @@ ref=~/mortazavi_lab/data/rnawg/refs/hg38_sirv4_ercc.fa
 # convert talon gtf into tama bed
 bed=${opref}_tama.bed
 tamadir=~/mortazavi_lab/bin/tama/tama_go/format_converter/
-python ${tamadir}tama_format_gtf_to_bed12_stringtie.py \
+python ${tamadir}tama_format_gtf_to_bed12_ensembl.py \
   ${gtf} \
   ${bed}
 
@@ -36,11 +36,12 @@ bedtools getfasta \
   -fo ${fasta}
 
 # # convert gtf to fasta
+# # https://www.biostars.org/p/123166/
 # gffdir=~/mortazavi_lab/bin/gffread/
 # ${gffdir}./gffread \
-#   -w $fasta \
+#   $gtf \
 #   -g $ref \
-#   $gtf
+#   -w $fasta
 
 # call orfs / nmd with tama
 tamadir=~/mortazavi_lab/bin/tama/tama_go/orf_nmd_predictions/
@@ -51,7 +52,7 @@ python ${tamadir}tama_orf_seeker.py \
 
 # blast protein sequences against known protein sequences
 blastdir=~/mortazavi_lab/bin/ncbi-blast-2.12.0+/bin/
-ref_pc=~/mortazavi_lab/ref/gencode.v29.pc_translations
+ref_pc=~/mortazavi_lab/data/rnawg/refs/gencode.v29.pc_translations
 out=${opref}_blastp.out
 ${blastdir}./blastp \
   -evalue 1e-10 \
@@ -75,14 +76,14 @@ python ${tamadir}tama_cds_regions_bed_add.py \
   -f ${fasta} \
   -o ${cds_bed}
 
-# # scan ORFs for protein domains
-# module load hmmer
-# out=${opref}_hmmer.out
-# table=${opref}_hmmer.txt
-# ref=~/mortazavi_lab/ref/pfam/Pfam-A.hmm
-# hmmscan \
-#   -o ${out} \
-#   --noali \
-#   --tblout ${table} \
-#   ${ref} \
-#   ${orf}
+# scan ORFs for protein domains
+module load hmmer
+out=${opref}_hmmer.out
+table=${opref}_hmmer.txt
+ref=~/mortazavi_lab/ref/pfam/Pfam-A.hmm
+hmmscan \
+  -o ${out} \
+  --noali \
+  --tblout ${table} \
+  ${ref} \
+  ${orf}
