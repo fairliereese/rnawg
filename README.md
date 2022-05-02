@@ -7,6 +7,7 @@ Data used for RNAWG paper
 * [TALON filtered abundance matrix](https://drive.google.com/file/d/102CmWTUyIpgNpcpyc-mb1KHogvhTtJ9t/view?usp=sharing)
 * [TALON filtered GTF](https://drive.google.com/file/d/1XLfUGfuRmx7rFhvQHdjMv-LfIpAHxYkb/view?usp=sharing)
 * [TALON filtered GTF (Known, NIC, NNC)](https://drive.google.com/file/d/16rn2VAL7MylJaVhKoTPDPwkOVGoL3HNU/view?usp=sharing)
+* [TALON filtered detected GTF (Known, NIC, NNC transcripts expressed >= 1 TPM)](https://drive.google.com/file/d/1QvkG7H5C3v24ItSGpYjdCcFO_xJbUt6m/view?usp=sharing)
 * [TALON read annot](https://drive.google.com/file/d/1ZBMd4p73TlYsox5KNEkqJqm_u9xvQec7/view?usp=sharing)
 <!-- * [SwanGraph of filtered data (Known, NIC, NNC)]() -->
 
