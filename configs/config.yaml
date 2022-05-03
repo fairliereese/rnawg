@@ -1,6 +1,6 @@
 drive_id:
   human:
-    read_annot: 194GuCA3l1lhI5e1Gsok5Xb9-vh7qf43i
+    read_annot: 1ZBMd4p73TlYsox5KNEkqJqm_u9xvQec7
     gtf: 1O_Vd5-SjyBE9MjxFsoLBjD43Tx7kw-T5
     abundance: 1repLKHfQYV66MEv0FweyKJxtvvs4sFlj
 
@@ -16,12 +16,13 @@ gtf: data/resources/wg/common/{specie}.utr_fix.gtf
 chrom_sizes: data/resources/common/{specie}.chrom_sizes
 
 talon:
-  gtf: data/resources/talon/{specie}_talon.gtf
+  gtf: data/resources/talon/{specie}_talon.gtf 
   abundance_unfiltered: data/resources/talon/{specie}_talon_abundance.tsv
   abundance: data/resources/talon/{specie}_talon_abundance_filtered.tsv
   read_annot: data/resources/talon/{specie}_talon_read_annot.tsv
 
-  gtf_corrected: data/resources/talon/{specie}_talon.corrected.gtf
+  gtf_corrected: data/results/talon/{specie}_talon.corrected.gtf
+  abundance_corrected: data/results/talon/{specie}_talon_abundance_filtered.corrected.tsv
 
 cCREs:
   promotors: data/resources/cCREs/GRCh38-PLS.bed
@@ -50,3 +51,9 @@ cage:
 lapa:
   tes: data/results/lapa/wg_lapa_{specie}
   tss: data/results/lapa_tss/wg_lapa_{specie}
+  link: data/results/wg_{specie}_lapa_tss_to_tes_links.csv
+
+igv:
+  gtf_sorted: data/results/igv/{specie}.utr_fix.sorted.gtf
+  gtf_talon_sorted: data/results/igv/{specie}_talon.sorted.gtf
+  gtf_talon_corrected_sorted: data/results/igv/{specie}_talon.corrected.sorted.gtf

@@ -41,33 +41,33 @@ rule download_chrom_sizes_human:
 #         "wget https://www.encodeproject.org/files/mm10_no_alt.chrom.sizes/@@download/mm10_no_alt.chrom.sizes.tsv -O {output}"
 
 
-rule download_wg_read_annot:
-    params:
-        drive_id = (lambda wildcards:
-                    config['drive_id'][wildcards.specie]['read_annot'])
-    output:
-        config['talon']['read_annot']
-    shell:
-        "gdown --id {params.drive_id} -O {output}"
+# rule download_wg_read_annot:
+#     params:
+#         drive_id = (lambda wildcards:
+#                     config['drive_id'][wildcards.specie]['read_annot'])
+#     output:
+#         config['talon']['read_annot']
+#     shell:
+#         "gdown --id {params.drive_id} -O {output}"
 
 
-rule download_wg_gtf:
-    params:
-        drive_id = (lambda wildcards:
-                    config['drive_id'][wildcards.specie]['gtf'])
-    output:
-        config['talon']['gtf']
-    shell:
-        "gdown --id {params.drive_id} -O {output}"
+# rule download_wg_gtf:
+#     params:
+#         drive_id = (lambda wildcards:
+#                     config['drive_id'][wildcards.specie]['gtf'])
+#     output:
+#         config['talon']['gtf']
+#     shell:
+#         "gdown --id {params.drive_id} -O {output}"
 
-rule download_wg_abundance:
-    params:
-        drive_id = (lambda wildcards:
-                    config['drive_id'][wildcards.specie]['abundance'])
-    output:
-        config['talon']['abundance']
-    shell:
-        "gdown --id {params.drive_id} -O {output}"
+# rule download_wg_abundance:
+#     params:
+#         drive_id = (lambda wildcards:
+#                     config['drive_id'][wildcards.specie]['abundance'])
+#     output:
+#         config['talon']['abundance']
+#     shell:
+#         "gdown --id {params.drive_id} -O {output}"
 
 
 rule download_cage:

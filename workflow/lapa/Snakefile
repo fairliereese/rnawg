@@ -6,7 +6,7 @@ rule lapa:
         chrom_sizes = config['chrom_sizes']
     threads: 4
     resources:
-        mem_gb = 64
+        mem_gb = 128
     output:
         directory(config['lapa']['tes'])
     shell:
@@ -26,37 +26,59 @@ rule lapa_tss:
         chrom_sizes = config['chrom_sizes']
     threads: 4
     resources:
-        mem_gb = 64
+        mem_gb = 128
     output:
         directory(config['lapa']['tss'])
     shell:
         "lapa_tss \
         --alignment {input.aligment} \
         --fasta {input.fasta} \
+        --annotation {input.gtf} \
         --chrom_sizes {input.chrom_sizes} \
         --output_dir {output}"
+
+
+rule lapa_link_tss_to_tes:
+    input:
+        aligment = config['talon']['read_annot'],
+        lapa_dir = config['lapa']['tes'],
+        lapa_tss_dir = config['lapa']['tss']
+    threads: 1
+    resources:
+        mem_gb = 256
+    output:
+        config['lapa']['link']
+    shell:
+        "lapa_link_tss_to_tes \
+        --alignment {input.aligment} \
+        --lapa_dir {input.lapa_dir} \
+        --lapa_tss_dir {input.lapa_tss_dir} \
+        --output {output}"
 
 
 rule lapa_correct_gtf:
     input:
         read_annot = config['talon']['read_annot'],
+        links = config['lapa']['link'],
         gtf = config['talon']['gtf'],
-        lapa_dir = config['lapa']['tes'],
-        lapa_tss_dir = config['lapa']['tes'],
-        fasta = config['fasta']
+        abundance = config['talon']['abundance']
+    threads: 1
+    resources:
+        mem_gb = 128
     output:
-        gtf = protected(config['talon']['gtf_corrected'])
+        gtf = config['talon']['gtf_corrected'],
+        abundance = config['talon']['abundance_corrected']
     shell:
-        "lapa_correct_talon_gtf \
+        "lapa_correct_talon \
+        --links {input.links} \
+        --read_annot {input.read_annot} \
         --gtf_input {input.gtf} \
         --gtf_output {output.gtf} \
-        --lapa_dir {input.lapa_dir} \
-        --lapa_tss_dir {input.lapa_tss_dir} \
-        --read_annot {input.read_annot} \
-        --fasta {input.fasta}"
+        --abundance_input {input.abundance} \
+        --abundance_output {output.abundance} \
+        --keep_unsupported"
 
 
 rule all_lapa:
     input:
-        expand(config['lapa']['tss'], specie='human'),
-        expand(config['lapa']['tes'], specie='human')
+        expand(config['talon']['gtf_corrected'], specie='human')
