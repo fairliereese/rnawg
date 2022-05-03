@@ -1,14 +1,21 @@
+import pandas as pd
+
 configfile: "configs/config.yaml"
+
+df_cage = pd.read_csv('configs/cage_metadata.tsv',
+                      sep='\t').set_index('File accession')
+df_rampage = pd.read_csv('configs/rampage_metadata.tsv',
+                         sep='\t').set_index('File accession')
 
 
 include: "download/Snakefile"
 include: "common/Snakefile"
 include: "lapa/Snakefile"
 include: "igv/Snakefile"
+include: "tss/Snakefile"
 include: "plot/Snakefile"
 
 
 rule all:
     input:
-        rules.all_lapa.input,
-        rules.all_igv.input
+        rules.all_tss.input

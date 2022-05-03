@@ -32,21 +32,12 @@ cCREs:
 fantom: data/resources/fantom/hg38_CAGE.bed
 
 cage:
-
-  bed: data/resources/cage/{encode_id}.bed.gz
-
-  wtc11:
-    - ENCFF084VUM
-    - ENCFF604PAM
-
-  gm12:
-    - ENCFF383NVJ
-    - ENCFF016XXM
-    - ENCFF260HMC
-    - ENCFF103DEY
-    - ENCFF275UYM
-    - ENCFF427KTV
-    - ENCFF189WCY
+  bed: data/resources/cage/idr_peak/{encode_id}.bed
+  merged: data/resources/cage/merged.bed
+  
+rampage:
+  bed: data/resources/rampage/idr_peak/{encode_id}.bed
+  merged: data/resources/rampage/merged.bed
 
 lapa:
   tes: data/results/lapa/wg_lapa_{specie}

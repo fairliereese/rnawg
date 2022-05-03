@@ -74,7 +74,14 @@ rule download_cage:
     output:
         config['cage']['bed']
     shell:
-        "wget https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bed.gz -O {output}"
+        "wget -O - https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bed.gz | gunzip -c > {output}"
+
+
+rule download_rampage:
+    output:
+        config['rampage']['bed']
+    shell:
+        "wget -O - https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bed.gz | gunzip -c > {output}"
 
 
 rule download_cCREs_promotors:
@@ -96,3 +103,9 @@ rule download_cCREs_distal_enhancers:
         config['cCREs']['distal_enhancers']
     shell:
         "wget https://api.wenglab.org/screen_v13/fdownloads/GRCh38-ccREs.dELS.bed -O {output}"
+
+
+rule all_download:
+    input:
+        expand(config['cage']['bed'], encode_id=df_cage.index),
+        expand(config['rampage']['bed'], encode_id=df_rampage.index)

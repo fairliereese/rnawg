@@ -1,0 +1,22 @@
+rule merge_cage:
+    input:
+        beds = expand(config['cage']['bed'], encode_id=df_cage.index)
+    output:
+        bed = config['cage']['merged']
+    script:
+        "../common/merge_beds.py"
+
+
+rule merge_rampage:
+    input:
+        beds = expand(config['rampage']['bed'], encode_id=df_rampage.index)
+    output:
+        bed = config['rampage']['merged']
+    script:
+        "../common/merge_beds.py"
+
+
+rule all_tss:
+    input:
+        rules.merge_cage.output,
+        rules.merge_rampage.output
