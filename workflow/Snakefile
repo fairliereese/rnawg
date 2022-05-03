@@ -1,0 +1,14 @@
+configfile: "configs/config.yaml"
+
+
+include: "download/Snakefile"
+include: "common/Snakefile"
+include: "lapa/Snakefile"
+include: "igv/Snakefile"
+include: "plot/Snakefile"
+
+
+rule all:
+    input:
+        rules.all_lapa.input,
+        rules.all_igv.input
