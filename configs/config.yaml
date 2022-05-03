@@ -4,12 +4,6 @@ drive_id:
     gtf: 1O_Vd5-SjyBE9MjxFsoLBjD43Tx7kw-T5
     abundance: 1repLKHfQYV66MEv0FweyKJxtvvs4sFlj
 
-  # move to mouse repo
-  # mouse:
-  #   read_annot: 1xW2oLzmu2OE2fZwZAO6SUwMebLQP4Ve_
-  #   gtf: 1iAT5iqcmqUyfjYGQwYyYk6j9KEJbLUz9
-  #   abundance: 1nGb8NZ4m0a9CqA54bJb-rTrhUrTQeyeo
-
 fasta: data/resources/common/{specie}.fasta
 gtf_raw: data/resources/common/{specie}.gtf
 gtf: data/resources/wg/common/{specie}.utr_fix.gtf
@@ -33,11 +27,11 @@ fantom: data/resources/fantom/hg38_CAGE.bed
 
 cage:
   bed: data/resources/cage/idr_peak/{encode_id}.bed
-  merged: data/resources/cage/merged.bed
+  merged: data/results/cage/merged.bed
   
 rampage:
   bed: data/resources/rampage/idr_peak/{encode_id}.bed
-  merged: data/resources/rampage/merged.bed
+  merged: data/results/rampage/merged.bed
 
 lapa:
   tes: data/results/lapa/wg_lapa_{specie}

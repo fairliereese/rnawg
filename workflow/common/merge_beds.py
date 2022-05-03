@@ -6,7 +6,7 @@ import pyranges as pr
 
 pr.PyRanges(
     pd.concat([
-        pd.read_csv(snakemake.input['beds'][0], sep='\t', header=None)
+        pd.read_csv(i, sep='\t', header=None)
         .rename(columns={0: 'Chromosome', 1: 'Start', 2: 'End', 5: 'Strand'})
         for i in tqdm(snakemake.input['beds'])
     ])
