@@ -1,0 +1,16 @@
+rule miRNA_bed_all_targets:
+    input:
+        tsv = config['miRNA']['exp_mibr']
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        all_bed = config['miRNA']['all_bed'],
+        family_bed = config['miRNA']['family_bed']
+    script:
+        "./exp_mibr_to_bed.py"
+
+
+rule all_miRNA:
+    input:
+        rules.miRNA_bed_all_targets.output

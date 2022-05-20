@@ -1,0 +1,28 @@
+# IMPORTANT: external dependency need to installed
+# See: https://github.com/pervouchine/sjcount.git
+# I download sjcount to same level with sjcount
+
+rule sjcounts:
+    input:
+        bam = config['short_rna']['bam']
+    params:
+        sjcount_path = '../sjcount/sjcount'
+    log: 'logs/short_rna/sj/{encode_id}.log'
+    priority: 50
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        ssj = config['short_rna']['ssj'],
+        ssc = config['short_rna']['ssc']
+    shell:
+        "{params.sjcount_path} \
+        -bam {input.bam} \
+        -ssj {output.ssj} \
+        -ssc {output.ssc} \
+        -log {log}"
+
+
+rule all_splicing:
+    input:
+        expand(config['short_rna']['ssj'], encode_id=df_short.index)
