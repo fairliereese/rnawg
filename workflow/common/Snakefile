@@ -19,6 +19,18 @@ rule bam_index:
         "samtools index {input.bam}"
 
 
+rule bam_read_count:
+    input:
+        bam = config['lr']['bam']
+    output:
+        txt = config['lr']['read_counts']
+    threads: 1
+    resources:
+        mem_gb = 4
+    shell:
+        "samtools view -F 4 -F 256 -F 2048 -q 10 -c {input.bam} > {output.txt}"
+
+
 rule merge_bams:
     input:
         expand(config['lr']['bam'] + '.bai', encode_id=df_lr.index),
@@ -52,5 +64,6 @@ rule merge_bams:
 
 rule all_common:
     input:
-        config['lr']['merged_bam'],
+        expand(config['lr']['read_counts'], encode_id=df_lr.index)
+        # config['lr']['merged_bam'],
         # expand(config['lr']['bam'] + '.bai', encode_id=df_lr.index)

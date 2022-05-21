@@ -1,9 +1,11 @@
-
 rule lapa_config:
     input:
         expand(config['lr']['bam'], encode_id=df_lr.index)
     params:
         df_lr = df_lr
+    threads: 1
+    resources:
+        mem_gb = 4
     output:
         config = config['lapa']['config']
     script:

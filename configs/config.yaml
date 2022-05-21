@@ -12,6 +12,8 @@ chrom_sizes: data/resources/common/human.chrom_sizes
 lr:
   bam: data/resources/lr/bam/{encode_id}.bam
   merged_bam: data/resources/lr/merged.bam
+  
+  read_counts: data/results/lr/read_counts/{encode_id}.txt
 
 talon:
   gtf: data/resources/talon/human_talon.gtf 
@@ -48,13 +50,23 @@ miRNA:
   sample: data/results/miRNA/{sample}_miRNA_targets_all.bed
 
   bru_bw: data/resources/bru/bigwig/{encode_id}.bigWig
+
   families: data/resources/targetscan/miR_Family_Info.txt
-  # families: data/resources/targetscan/miR_Family_Info.txt
+  targetscan_hg19: data/resources/targetscan/Predicted_Target_Locations.default_predictions.hg19.bed
+  targetscan: data/results/targetscan/predicted_targets.hg38.bed
+
+  counts: configs/human_mirna_counts.tsv
+  counts_biosample: data/results/miRNA/biosample_mirna_counts.tsv
+  biosample_targets: data/results/miRNA/{biosample}_targets.bed
 
 short_rna:
   bam: data/resources/short_rna/bam/{encode_id}.bam
   ssj: data/resources/short_rna/ssj/{encode_id}.ssj.tsv
   ssc: data/resources/short_rna/ssc/{encode_id}.ssc.tsv
+
+  sj: data/results/short_rna/sj/{encode_id}.sj.bed
+  sj_biosample: data/results/short_rna/biosample_sj/{biosample}.sj.bed
+  sj_all: data/results/short_rna/all.sj.bed
 
 lapa:
   config: data/results/lapa/wg_config.csv

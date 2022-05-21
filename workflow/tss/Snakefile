@@ -45,7 +45,7 @@ def cage_bed(wildcards):
 rule tss_rampage_pr_curve:
     input:
         bed = rampage_bed,
-        tss_dir = config['lapa']['tss'].format(specie='human')
+        tss_dir = config['lapa']['tss']
     threads: 1
     resources:
         mem_gb = 8
@@ -58,7 +58,7 @@ rule tss_rampage_pr_curve:
 rule tss_cage_pr_curve:
     input:
         bed = cage_bed,
-        tss_dir = config['lapa']['tss'].format(specie='human'),
+        tss_dir = config['lapa']['tss']
     threads: 1
     resources:
         mem_gb = 8

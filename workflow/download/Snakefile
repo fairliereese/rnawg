@@ -174,9 +174,6 @@ rule download_miRNA_family:
         "wget {params.url} -O {output}.zip && unzip -o {output} -d{params.output_dir}"
 
 
-# https://www.targetscan.org/vert_80/vert_80_data_download/Predicted_Target_Locations.default_predictions.hg19.bed.zip
-
-
 rule download_short_rna_bam:
     threads: 1
     resources:
@@ -218,8 +215,7 @@ rule all_download:
         expand(config['cage']['bed'], encode_id=df_cage.index),
         expand(config['rampage']['bed'], encode_id=df_rampage.index),
         expand(config['lr']['bam'], encode_id=df_lr.index),
-        expand(config['short_rna']['bam'], encode_id=df_short.index),
 
         expand(config['miRNA']['exp_mibr']),
 
-        expand(config['miRNA']['bru_bw'], encode_id=df_bru.index)
+        expand(config['miRNA']['bru_bw'], encode_id=df_bru.index),
