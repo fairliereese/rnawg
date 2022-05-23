@@ -29,8 +29,10 @@ rule human_tes:
     input:
         gtf = config['gtf'].format(specie='human'),
         gtf_talon = config['talon']['gtf'].format(specie='human'),
-        gtf_talon_corrected = config['talon']['gtf_corrected'].format(specie='human'),
-        abundance = config['talon']['abundance_corrected'].format(specie='human'),
+        gtf_talon_corrected = config['talon']['gtf_corrected'].format(
+            specie='human'),
+        abundance = config['talon']['abundance_corrected'].format(
+            specie='human'),
         tss_dir = config['lapa']['tss'].format(specie='human'),
         tes_dir = config['lapa']['tes'].format(specie='human'),
         links = config['lapa']['link'].format(specie='human')
@@ -38,9 +40,6 @@ rule human_tes:
         fig = 'reports/figures/tes.png'
     notebook:
         './tes.ipynb'
-
-
-
 
 
 rule all_plot:

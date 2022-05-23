@@ -11,6 +11,7 @@ dependencies:
     - cython
     - snakemake
     - jupyter
+    - sklearn
     - notebook
     - pytest
     - pyfaidx
@@ -18,5 +19,6 @@ dependencies:
     - snakemk_util
     - gdown
     - igv-notebook
+    - liftover
     - git+https://github.com/mortazavilab/lapa.git#egg=lapa
     - git+https://github.com/MuhammedHasan/gencode_utr_fix.git#egg=gencode_utr_fix
