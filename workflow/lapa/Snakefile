@@ -1,12 +1,25 @@
+rule lapa_config:
+    input:
+        expand(config['lr']['bam'], encode_id=df_lr.index)
+    params:
+        df_lr = df_lr
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        config = config['lapa']['config']
+    script:
+        "./lapa_config.py"
+
 rule lapa:
     input:
-        aligment = config['talon']['read_annot'],
+        aligment = config['lapa']['config'],
         fasta = config['fasta'],
         gtf = config['gtf'],
         chrom_sizes = config['chrom_sizes']
     threads: 4
     resources:
-        mem_gb = 128
+        mem_gb = 32
     output:
         directory(config['lapa']['tes'])
     shell:
@@ -20,13 +33,13 @@ rule lapa:
 
 rule lapa_tss:
     input:
-        aligment = config['talon']['read_annot'],
+        aligment = config['lapa']['config'],
         fasta = config['fasta'],
         gtf = config['gtf'],
         chrom_sizes = config['chrom_sizes']
     threads: 4
     resources:
-        mem_gb = 128
+        mem_gb = 32
     output:
         directory(config['lapa']['tss'])
     shell:
@@ -81,4 +94,6 @@ rule lapa_correct_gtf:
 
 rule all_lapa:
     input:
-        expand(config['talon']['gtf_corrected'], specie='human')
+        rules.lapa.output,
+        rules.lapa_tss.output
+        # expand(config['talon']['gtf_corrected'], specie='human')
