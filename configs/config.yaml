@@ -40,24 +40,42 @@ rampage:
   merged: data/results/rampage/merged.bed
 
 tss:
-  rampage_overlap: data/results/tss/rampage/pr_curve_{sample}.csv
-  cage_overlap: data/results/tss/cage/pr_curve_{sample}.csv
+  rampage_overlap: data/results/tss/rampage_pr_curve/pr_curve_{sample}.csv
+  cage_overlap: data/results/tss/cage_pr_curve/pr_curve_{sample}.csv
 
 miRNA:
+  # Expresimenal dataset
   exp_mibr: data/resources/miRNA/Exp-miBRS_track_information_hg38.tsv
   all_bed: data/results/miRNA/miRNA_targets_all.bed
   family_bed: data/results/miRNA/miRNA_targets_with_families.bed
-  sample: data/results/miRNA/{sample}_miRNA_targets_all.bed
 
+  # BRU-seq dataset
   bru_bw: data/resources/bru/bigwig/{encode_id}.bigWig
+  bru_bam: data/resources/bru/bam/{encode_id}.bam
 
+  bru_counts: data/resources/bru/human_bru_abundance.tsv
+  
+  # human id: 9606, mice: 10090
+  ncbi_tax_id: 9606
+  # human id: hsa, mice: mmu
+  mirbase_specie_id: hsa
+  mirbase_gff: data/resources/mirbase.gff3
+
+  # miRbase and Targetscan dataset
   families: data/resources/targetscan/miR_Family_Info.txt
   targetscan_hg19: data/resources/targetscan/Predicted_Target_Locations.default_predictions.hg19.bed
   targetscan: data/results/targetscan/predicted_targets.hg38.bed
 
+  # mirna genocode id mapping
+  miRNA_gencode: data/results/miRNA/gencode_mirna_family_gene_mapping.csv
+
+  # miRNA expression
   counts: configs/human_mirna_counts.tsv
   counts_biosample: data/results/miRNA/biosample_mirna_counts.tsv
-  biosample_targets: data/results/miRNA/{biosample}_targets.bed
+
+  # targets per biosample
+  all_targets: data/results/miRNA/all_targets_counts_exp.csv
+  targets: data/results/miRNA/biosample/{biosample}_targets_counts_exp.bed
 
 short_rna:
   bam: data/resources/short_rna/bam/{encode_id}.bam
@@ -67,14 +85,62 @@ short_rna:
   sj: data/results/short_rna/sj/{encode_id}.sj.bed
   sj_biosample: data/results/short_rna/biosample_sj/{biosample}.sj.bed
   sj_all: data/results/short_rna/all.sj.bed
+  sample_dataset: data/results/short_rna/biosample_mapping.csv
 
 lapa:
   config: data/results/lapa/wg_config.csv
   tes: data/results/lapa/tes/
   tss: data/results/lapa/tss/
+  link_sample: data/results/lapa/links/{encode_id}_tss_to_tes_links.csv
   link: data/results/lapa/tss_to_tes_links.csv
 
 igv:
   gtf_sorted: data/results/igv/human.utr_fix.sorted.gtf
   gtf_talon_sorted: data/results/igv/human_talon.sorted.gtf
   gtf_talon_corrected_sorted: data/results/igv/human_talon.corrected.sorted.gtf
+
+  gtf_talon_sample: data/results/igv/gtf_samples/{sample}.uncorrected.gtf
+  gtf_talon_corrected_sample: data/results/igv/gtf_samples/{sample}.gtf
+
+gnomad:
+  version: 3.1.2
+  constraint: data/resources/gnomad/gnomad.v2.1.1.lof_metrics.by_gene.txt
+  
+  vcf: data/resources/gnomad/gnomad.genomes.r3.1.2.sites.{chrom}.vcf.bgz
+  vcf_tbi: data/resources/gnomad/gnomad.genomes.r3.1.2.sites.{chrom}.vcf.bgz.tbi
+
+  vcf_url: https://storage.googleapis.com/gcp-public-data--gnomad/release/3.1.2/vcf/genomes/gnomad.genomes.v3.1.2.sites.chr{chrom}.vcf.bgz
+  tbi_url: https://storage.googleapis.com/gcp-public-data--gnomad/release/3.1.2/vcf/genomes/gnomad.genomes.v3.1.2.sites.chr{chrom}.vcf.bgz.tbi
+
+  loeuf_decile: data/results/gnomad/loeuf_decile.csv
+
+polya:
+  final_exons: data/results/polya/final_exons.bed
+  variants_utr_chrom: data/results/polya/gnomad/{chrom}_utr_variants_counts.csv
+  variants_polya_chrom: data/results/polya/gnomad/{chrom}_polya_variants_counts.csv
+
+chroms:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  - 19
+  - 20
+  - 21  
+  - 22
+  - X
+  - Y  

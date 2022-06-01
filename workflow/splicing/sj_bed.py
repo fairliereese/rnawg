@@ -11,8 +11,8 @@ df = pd.DataFrame({
     'End': intervals.map(lambda x: x[-2]),
     'Name': '.',
     'Score': df[3],
-    'Strand': intervals.map(lambda x: x[-1])
+    'Strand': '.'  # intervals.map(lambda x: x[-1])
 })
-df['Start'] = df['Start'].astype('int') - 1
+df['End'] = df['End'].astype('int') - 1
 
 pr.PyRanges(df).to_bed(snakemake.output['sj'])

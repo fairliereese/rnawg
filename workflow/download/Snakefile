@@ -151,7 +151,17 @@ rule download_miRNA:
         "gdown --id {params.drive_id} -O {output}"
 
 
-rule download_bru:
+rule download_bru_bam:
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        config['miRNA']['bru_bam']
+    shell:
+        "wget https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bam -O {output}"
+
+
+rule download_bru_bw:
     threads: 1
     resources:
         mem_gb = 4
@@ -184,30 +194,66 @@ rule download_short_rna_bam:
         "wget https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bam -O {output}"
 
 
-# def gnomad_url_vcf(wildcards):
-#     return expand(
-#         config['download_url'][wildcards['version']]['vcf'],
-#         chrom=wildcards['chrom']
-#     )
+rule download_mirbase_gff:
+    params:
+        mirbase_specie_id = config['miRNA']['mirbase_specie_id']
+    output:
+        config['miRNA']['mirbase_gff']
+    shell:
+        "wget --no-check-certificate https://www.mirbase.org/ftp/CURRENT/genomes/{params.mirbase_specie_id}.gff3 -O {output}"
 
 
-# def gnomad_url_tbi(wildcards):
-#     return expand(
-#         config['download_url'][wildcards['version']]['tbi'],
-#         chrom=wildcards['chrom']
-#     )
+rule download_bru_counts:
+    threads: 1
+    resources:
+        mem_gb = 4
+    params:
+        drive_id = '1i3WtbuN-HHiz8Ute4ygoGxszx3mdjDtL'
+    output:
+        config['miRNA']['bru_counts']
+    shell:
+        "gdown --id {params.drive_id} -O {output}"
 
 
-# rule gnomad_download_vcf:
-#     params:
-#         url_vcf = url_vcf,
-#         url_tbi = url_tbi
-#     output:
-#         vcf = config['vcf'],
-#         tbi = config['vcf_tbi']
-#     run:
-#         shell("wget {params.url_vcf} -O {output.vcf}")
-#         shell("wget {params.url_tbi} -O {output.tbi}")
+def gnomad_url_vcf(wildcards):
+    return expand(
+        config['gnomad']['vcf_url'],
+        chrom=wildcards['chrom']
+    )
+
+
+def gnomad_url_tbi(wildcards):
+    return expand(
+        config['gnomad']['tbi_url'],
+        chrom=wildcards['chrom']
+    )
+
+
+rule gnomad_download_vcf:
+    params:
+        url_vcf = gnomad_url_vcf,
+        url_tbi = gnomad_url_tbi
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        vcf = config['gnomad']['vcf'],
+        tbi = config['gnomad']['vcf_tbi']
+    run:
+        shell("wget {params.url_vcf} -O {output.vcf}")
+        shell("wget {params.url_tbi} -O {output.tbi}")
+
+
+rule gnomad_download_contraints:
+    params:
+        url = '"https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1.1/constraint/gnomad.v2.1.1.lof_metrics.by_gene.txt.bgz"'
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        config['gnomad']['constraint']
+    shell:
+        "wget -O - {params.url} | gunzip -c > {output}"
 
 
 rule all_download:
@@ -218,4 +264,9 @@ rule all_download:
 
         expand(config['miRNA']['exp_mibr']),
 
-        expand(config['miRNA']['bru_bw'], encode_id=df_bru.index),
+        expand(config['miRNA']['bru_bw'], encode_id=df_bru_bw.index),
+        expand(config['miRNA']['bru_bam'], encode_id=df_bru_bam.index),
+
+        expand(rules.gnomad_download_vcf.output,
+               chrom=config['chroms']),
+        config['gnomad']['constraint']

@@ -1,0 +1,55 @@
+rule louef_genes:
+    input:
+        lof = config['gnomad']['constraint'],
+        gtf = config['gtf']
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        csv = config['gnomad']['loeuf_decile']
+    script:
+        "./louef_decile_genes.py"
+
+
+rule gnomad_final_exon:
+    input:
+        gtf = config['talon']['gtf_corrected']
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        bed = config['polya']['final_exons']
+    script:
+        "./final_exon.py"
+
+
+rule gnomad_variants_in_3utr:
+    input:
+        vcf = config['gnomad']['vcf'],
+        bed = config['polya']['final_exons']
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        csv = config['polya']['variants_utr_chrom']
+    script:
+        "./variants_in_3utr.py"
+
+
+rule gnomad_variants_in_polya:
+    input:
+        vcf = config['gnomad']['vcf'],
+        lapa_dir = config['lapa']['tes']
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        csv = config['polya']['variants_polya_chrom']
+    script:
+        "./variants_in_polya.py"
+
+
+rule all_polyA:
+    input:
+        expand(rules.gnomad_variants_in_3utr.output,
+               chrom=config['chroms'])

@@ -42,7 +42,73 @@ rule igv_index_gtf:
     output:
         index = 'data/results/igv/{filename}.gtf.idx'
     shell:
-        "igvtools index {input.gtf}"
+        'igvtools index "{input.gtf}"'
+
+
+rule igv_gtf_talon_sample:
+    input:
+        gtf = config['talon']['gtf'],
+        abundance = config['talon']['abundance']
+    params:
+        cutoff = 5,
+        talon_samples = (
+            lambda wilcards: df_lr[df_lr['sample']
+                                   == wilcards.sample]['hr'].tolist()
+        )
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        gtf = temp(config['igv']['gtf_talon_sample'].replace(
+            '.gtf', '.unsorted.gtf'))
+    script:
+        "./subset_sample.py"
+
+
+rule igv_gtf_talon_sample_sort:
+    input:
+        gtf = config['igv']['gtf_talon_sample'].replace(
+            '.gtf', '.unsorted.gtf')
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        gtf = config['igv']['gtf_talon_sample']
+    shell:
+        'igvtools sort -t {resources.tmpdir} "{input.gtf}" "{output.gtf}"'
+
+
+rule igv_gtf_talon_corrected_sample:
+    input:
+        gtf = config['talon']['gtf_corrected'],
+        abundance = config['talon']['abundance_corrected']
+    params:
+        cutoff = 5,
+        talon_samples = (
+            lambda wilcards: df_lr[df_lr['sample']
+                                   == wilcards.sample]['hr'].tolist()
+        )
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        gtf = temp(config['igv']['gtf_talon_sample'].replace(
+            '.gtf', '.unsorted.gtf'))
+    script:
+        "./subset_sample_corrected.py"
+
+
+rule igv_gtf_talon_corrected_sample_sort:
+    input:
+        gtf = config['igv']['gtf_talon_sample'].replace(
+            '.gtf', '.unsorted.gtf')
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        gtf = config['igv']['gtf_talon_sample']
+    shell:
+        'igvtools sort -t {resources.tmpdir} "{input.gtf}" "{output.gtf}"'
 
 
 rule igv_visualize:
@@ -58,4 +124,7 @@ rule igv_visualize:
 
 rule all_igv:
     input:
-        expand(rules.igv_visualize.input, specie='human')
+        expand(config['igv']['gtf_talon_sample'], sample=lr_samples),
+        expand(config['igv']['gtf_talon_sample'] + '.idx', sample=lr_samples)
+
+        # rules.igv_visualize.input

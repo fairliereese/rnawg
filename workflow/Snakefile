@@ -3,30 +3,50 @@ import pandas as pd
 
 configfile: "configs/config.yaml"
 
+# TODO: move to utils
+
+
+def read_df_lr():
+    df_mapping = pd.read_csv('lr_bulk/biosamp_term_name_map.tsv',  sep='\t', header=None) \
+        .rename(columns={
+            0: 'Experiment accession',
+            1: 'biosamp_term_name_map',
+            4: 'sample'
+        })[['Experiment accession', 'sample']] \
+        .set_index('Experiment accession')
+
+    df_lr = pd.read_csv('lr_bulk/metadata.tsv', sep='\t') \
+        .set_index('Experiment accession') \
+        .join(df_mapping) \
+        .reset_index() \
+        .set_index('File accession')
+    mapping = pd.read_csv('lr_bulk/tissue_rename.csv') \
+                .set_index('tissue name')['tissue name.1'].to_dict()
+    df_lr['sample'] = df_lr['sample'].replace(mapping)
+
+    df_hr = pd.read_csv('lr_bulk/file_to_hr_back.tsv', sep='\t', header=None) \
+        .rename(columns={
+            0: 'File accession',
+            1: 'hr'
+        }).set_index('File accession')
+    df_lr = df_lr.join(df_hr)
+
+    return df_lr
+
+
+df_lr = read_df_lr()
+lr_samples = set(df_lr['sample'])
+
 # Create all the metadata files and format them
 df_cage = pd.read_csv('configs/cage_metadata.tsv',
                       sep='\t').set_index('File accession')
 df_rampage = pd.read_csv('configs/rampage_metadata.tsv',
                          sep='\t').set_index('File accession')
 
-df_mapping = pd.read_csv(
-    'lr_bulk/biosamp_term_name_map.tsv',  sep='\t', header=None) \
-    .rename(columns={
-        0: 'Experiment accession',
-        1: 'biosamp_term_name_map',
-        4: 'sample'
-    })
-df_mapping = df_mapping[['Experiment accession', 'sample']] \
-    .set_index('Experiment accession')
-
-df_lr = pd.read_csv('lr_bulk/metadata.tsv', sep='\t') \
-    .set_index('Experiment accession') \
-    .join(df_mapping) \
-    .reset_index() \
-    .set_index('File accession')
-
 df_bru = pd.read_csv('configs/bru_metadata.tsv', sep='\t')
-df_bru = df_bru[df_bru['Output type'].str.contains('unique')] \
+df_bru_bw = df_bru[df_bru['File type'] == 'bigWig'] \
+    .set_index('File accession')
+df_bru_bam = df_bru[df_bru['File type'] == 'bam'] \
     .set_index('File accession')
 
 df_short = pd.read_csv('configs/short_metadata.tsv', sep='\t') \
@@ -39,18 +59,22 @@ df_mirna = pd.read_csv('configs/human_mirna_metadata.tsv', sep='\t') \
 include: "download/Snakefile"
 include: "common/Snakefile"
 include: "lapa/Snakefile"
-include: "igv/Snakefile"
+# include: "igv/Snakefile"
 include: "tss/Snakefile"
 include: "miRNA/Snakefile"
 include: "splicing/Snakefile"
-include: "plot/Snakefile"
+include: "polyA/Snakefile"
+# include: "plot/Snakefile"
 
 
 rule all:
     input:
-        rules.all_miRNA.input
+        rules.all_polyA.input
+        # rules.all_download.input,
+        # rules.all_igv.input
 
-        # rules.all_splicing.input
-        # rules.all_lapa.input
-        # rules.all_tss.input,
         # rules.all_common.input
+        # rules.all_splicing.input,
+        # rules.all_download.input,
+        # rules.all_tss.input,
+        # rules.all_miRNA.input

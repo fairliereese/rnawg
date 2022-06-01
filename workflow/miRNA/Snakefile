@@ -51,24 +51,56 @@ rule miRNA_count_biosample:
         "./count_biosample.py"
 
 
+rule gencode_miRNA_mapping:
+    input:
+        families = config['miRNA']['families'],
+        mirbase = config['miRNA']['mirbase_gff'],
+        gencode_gtf = config['gtf']
+    params:
+        ncbi_tax_id = config['miRNA']['ncbi_tax_id']
+    output:
+        families = config['miRNA']['miRNA_gencode']
+    script:
+        "./gencode_miRNA_mapping.py"
+
+
 rule miRNA_filter_expression:
     input:
         counts = config['miRNA']['counts_biosample'],
         targetscan = config['miRNA']['targetscan'],
         exp_bed = config['miRNA']['all_bed'],
-        family = config['miRNA']['families']
+        families = config['miRNA']['miRNA_gencode']
     threads: 1
     resources:
         mem_gb = 4
     params:
-        df_miran = df_mirna
+        df_miran = df_mirna,
+        tpm_cutoff = 2
     output:
-        bed = config['miRNA']['biosample_targets']
+        all_targets = config['miRNA']['all_targets'],
+        targets = expand(config['miRNA']['targets'],
+                         biosample=df_mirna['Biosample.term.name'].unique())
     script:
         "./biosample_targets.py"
 
 
+rule miRNA_plot:
+    input:
+        targets = expand(config['miRNA']['targets'],
+                         biosample=df_mirna['Biosample.term.name'].unique()),
+        counts = config['miRNA']['bru_counts'],
+        gtf = config['talon']['gtf'],
+        abundance = config['talon']['abundance']
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        num_targets = 'reports/figures/miRNA/mirna_num_targets_per_sample.png',
+        deplition = 'reports/figures/miRNA/mirna_depletion_rate.png'
+    script:
+        "./num_targets_per_sample.ipynb"
+
+
 rule all_miRNA:
     input:
-        expand(rules.miRNA_filter_expression.output,
-               biosample=df_mirna['Biosample.term.name'].unique())
+        rules.miRNA_filter_expression.output

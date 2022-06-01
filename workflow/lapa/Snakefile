@@ -53,20 +53,37 @@ rule lapa_tss:
 
 rule lapa_link_tss_to_tes:
     input:
-        aligment = config['talon']['read_annot'],
+        aligment = config['lr']['bam'],
         lapa_dir = config['lapa']['tes'],
         lapa_tss_dir = config['lapa']['tss']
+    params:
+        dataset = (lambda wld: df_lr.loc[wld['encode_id'],
+                                         'Experiment accession'])
     threads: 1
     resources:
-        mem_gb = 256
+        mem_gb = 16
     output:
-        config['lapa']['link']
+        config['lapa']['link_sample']
     shell:
-        "lapa_link_tss_to_tes \
+        'lapa_link_tss_to_tes \
         --alignment {input.aligment} \
         --lapa_dir {input.lapa_dir} \
         --lapa_tss_dir {input.lapa_tss_dir} \
-        --output {output}"
+        --dataset "{params.dataset}" \
+        --output {output}'
+
+
+rule lapa_link_merge:
+    input:
+        dfs = expand(rules.lapa_link_tss_to_tes.output,
+                     encode_id=df_lr.index)
+    threads: 1
+    resources:
+        mem_gb = 32
+    output:
+        df = config['lapa']['link']
+    script:
+        "../common/merge_df.py"
 
 
 rule lapa_correct_gtf:
@@ -92,8 +109,21 @@ rule lapa_correct_gtf:
         --keep_unsupported"
 
 
+rule replication_rate_tss:
+    input:
+        lapa_dir = config['lapa']['tss']
+    params:
+        df_lr = df_lr
+    threads: 1
+    resources:
+        mem_gb = 32
+    output:
+        fig = 'reports/figures/replication_rate_tss.png'
+    notebook:
+        "./replication_rate.ipynb"
+
+
 rule all_lapa:
     input:
-        rules.lapa.output,
-        rules.lapa_tss.output
-        # expand(config['talon']['gtf_corrected'], specie='human')
+        rules.lapa_correct_gtf.output
+        # rules.lapa_link_merge.output

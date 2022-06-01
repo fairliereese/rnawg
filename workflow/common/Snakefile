@@ -24,11 +24,51 @@ rule bam_read_count:
         bam = config['lr']['bam']
     output:
         txt = config['lr']['read_counts']
+    params:
+        filters = ''
+        # filters = '-F 4 -F 256 -F 2048 -q 10'
     threads: 1
     resources:
         mem_gb = 4
     shell:
-        "samtools view -F 4 -F 256 -F 2048 -q 10 -c {input.bam} > {output.txt}"
+        "samtools view {params.filters} -c {input.bam} > {output.txt}"
+#
+
+# rule bam_read_count_stats:
+#     input:
+#         counts = expand(config['lr']['read_counts'], encode_id=df_lr.index),
+#         mapping = 'lr_bulk/file_to_hr.tsv',
+#         read_annot_counts = 'configs/human_post_talon_read_count.tsv'
+#     threads: 1
+#     resources:
+#         mem_gb = 4
+#     output:
+#         table = 'reports/tables/read_numbers.csv'
+#     script:
+#         "./read_counts_stats.ipynb"
+
+
+# rule polya_tail_length_plot:
+#     input:
+#         bam = config['lr']['bam']
+#     threads: 1
+#     resources:
+#         mem_gb = 4
+#     output:
+#         plot = 'data/results/common/tail_length/{encode_id}.png'
+#     script:
+#         "./plot_tail_length.py"
+
+rule tail_length_counts:
+    input:
+        bam = config['lr']['bam']
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        counts = 'data/results/common/tail_length/{encode_id}.csv'
+    script:
+        "./tail_length.py"
 
 
 rule merge_bams:
@@ -64,6 +104,10 @@ rule merge_bams:
 
 rule all_common:
     input:
-        expand(config['lr']['read_counts'], encode_id=df_lr.index)
-        # config['lr']['merged_bam'],
-        # expand(config['lr']['bam'] + '.bai', encode_id=df_lr.index)
+        config['lr']['merged_bam'],
+        expand(config['lr']['read_counts'], encode_id=df_lr.index),
+        expand(config['lr']['bam'] + '.bai', encode_id=df_lr.index),
+
+        expand(rules.tail_length_counts.output, encode_id=df_lr.index)
+
+        # rules.bam_read_count_stats.output

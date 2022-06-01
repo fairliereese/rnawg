@@ -66,6 +66,19 @@ rule agg_sj_all:
         "./agg_sj_bed.py"
 
 
+rule sj_sample_dataset:
+    params:
+        df_short = df_short
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        csv = config['short_rna']['sample_dataset']
+    script:
+        "./sj_sample_dataset.py"
+
+
 rule all_splicing:
     input:
+        rules.sj_sample_dataset.output,
         rules.agg_sj_all.output

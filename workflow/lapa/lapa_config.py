@@ -1,8 +1,8 @@
 import pandas as pd
 
 
-df = snakemake.params.df_lr[['sample']].rename(
-    columns={'sample': 'dataset'})
+df = snakemake.params.df_lr[['Experiment accession']].rename(
+    columns={'Experiment accession': 'dataset'})
 df = df.reset_index().rename(
     columns={'File accession': 'sample'})
 
