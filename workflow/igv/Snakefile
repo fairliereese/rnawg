@@ -124,7 +124,15 @@ rule igv_visualize:
 
 rule all_igv:
     input:
-        expand(config['igv']['gtf_talon_sample'], sample=lr_samples),
-        expand(config['igv']['gtf_talon_sample'] + '.idx', sample=lr_samples)
+        config['igv']['gtf_sorted'],
+        config['igv']['gtf_sorted'] + '.idx',
+        config['igv']['gtf_talon_sorted'],
+        config['igv']['gtf_talon_sorted'] + '.idx'
+
+        # rules.igv_gtf_corrected_talon_sort.output,
+        # config['igv']['gtf_talon_corrected_sorted'] + '.idx'
+
+        # expand(config['igv']['gtf_talon_sample'], sample=lr_samples),
+        # expand(config['igv']['gtf_talon_sample'] + '.idx', sample=lr_samples)
 
         # rules.igv_visualize.input

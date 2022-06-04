@@ -2,30 +2,51 @@ rule download_fasta_human:
     threads: 1
     resources:
         mem_gb = 4
+    params:
+        url = 'https://www.encodeproject.org/files/GRCh38_no_alt_analysis_set_GCA_000001405.15/@@download/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz'
     output:
-        config['fasta'].format(specie='human')
+        config['fasta']
     shell:
-        "wget -O - https://www.encodeproject.org/files/GRCh38_no_alt_analysis_set_GCA_000001405.15/@@download/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz | gunzip -c > {output}"
+        "wget -O - {params.url} | gunzip -c > {output}"
 
 
 rule download_gtf_human:
     threads: 1
     resources:
         mem_gb = 4
+    params:
+        url = 'https://www.encodeproject.org/files/gencode.v29.primary_assembly.annotation_UCSC_names/@@download/gencode.v29.primary_assembly.annotation_UCSC_names.gtf.gz'
     output:
-        config['gtf_raw'].format(specie='human')
+        config['gtf_raw']
     shell:
-        "wget -O - https://www.encodeproject.org/files/ENCFF991WIA/@@download/ENCFF991WIA.gtf.gz | gunzip -c > {output}"
+        "wget -O - {params.url} | gunzip -c > {output}"
 
 
-rule download_chrom_sizes_human:
-    threads: 1
-    resources:
-        mem_gb = 4
+rule download_wg_read_annot:
+    params:
+        drive_id = '1ZBMd4p73TlYsox5KNEkqJqm_u9xvQec7'
     output:
-        config['chrom_sizes'].format(specie='human')
+        config['talon']['read_annot']
     shell:
-        "wget https://www.encodeproject.org/files/ENCFF667IGK/@@download/ENCFF667IGK.tsv -O {output}"
+        "gdown --id {params.drive_id} -O {output}"
+
+
+rule download_wg_gtf:
+    params:
+        drive_id = '1XLfUGfuRmx7rFhvQHdjMv-LfIpAHxYkb'
+    output:
+        config['talon']['gtf']
+    shell:
+        "gdown --id {params.drive_id} -O {output}"
+
+
+rule download_wg_abundance:
+    params:
+        drive_id = '102CmWTUyIpgNpcpyc-mb1KHogvhTtJ9t'
+    output:
+        config['talon']['abundance']
+    shell:
+        "gdown --id {params.drive_id} -O {output}"
 
 
 # move to mouse repo
@@ -50,83 +71,76 @@ rule download_chrom_sizes_human:
 #         "wget https://www.encodeproject.org/files/mm10_no_alt.chrom.sizes/@@download/mm10_no_alt.chrom.sizes.tsv -O {output}"
 
 
-# rule download_wg_read_annot:
-#     params:
-#         drive_id = (lambda wildcards:
-#                     config['drive_id'][wildcards.specie]['read_annot'])
-#     output:
-#         config['talon']['read_annot']
-#     shell:
-#         "gdown --id {params.drive_id} -O {output}"
-
-
-# rule download_wg_gtf:
-#     params:
-#         drive_id = (lambda wildcards:
-#                     config['drive_id'][wildcards.specie]['gtf'])
-#     output:
-#         config['talon']['gtf']
-#     shell:
-#         "gdown --id {params.drive_id} -O {output}"
-
-# rule download_wg_abundance:
-#     params:
-#         drive_id = (lambda wildcards:
-#                     config['drive_id'][wildcards.specie]['abundance'])
-#     output:
-#         config['talon']['abundance']
-#     shell:
-#         "gdown --id {params.drive_id} -O {output}"
-
-
 rule download_cage:
+    params:
+        url = 'https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bed.gz'
     threads: 1
     resources:
         mem_gb = 4
     output:
         config['cage']['bed']
     shell:
-        "wget -O - https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bed.gz | gunzip -c > {output}"
+        "wget -O - {params.url} | gunzip -c > {output}"
 
 
 rule download_rampage:
+    params:
+        url = 'https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bed.gz'
     threads: 1
     resources:
         mem_gb = 4
     output:
         config['rampage']['bed']
     shell:
-        "wget -O - https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bed.gz | gunzip -c > {output}"
+        "wget -O - {params.url} | gunzip -c > {output}"
+
+
+rule download_fantom:
+    threads: 1
+    resources:
+        mem_gb = 4
+    params:
+        url = 'https://fantom.gsc.riken.jp/5/datafiles/latest/extra/CAGE_peaks/hg19.cage_peak_phase1and2combined_coord.bed.gz'
+    output:
+        config['fantom']['hg19']
+    shell:
+        "wget -O - {params.url} | gunzip -c > {output}"
 
 
 rule download_cCREs_promotors:
     threads: 1
     resources:
         mem_gb = 4
+    params:
+        url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-PLS.V4.bed.gz'
     output:
         config['cCREs']['promotors']
     shell:
-        "wget https://api.wenglab.org/screen_v13/fdownloads/cCREs/GRCh38-PLS.bed -O {output}"
+        "wget -O - {params.url} | gunzip -c > {output}"
 
 
 rule download_cCREs_proximal_enhancers:
     threads: 1
     resources:
         mem_gb = 4
+    params:
+        url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-pELS.V4.bed.gz'
     output:
         config['cCREs']['proximal_enhancers']
     shell:
-        "wget https://api.wenglab.org/screen_v13/fdownloads/GRCh38-ccREs.pELS.bed -O {output}"
+        "wget -O- {params.url} | gunzip -c > {output}"
 
 
 rule download_cCREs_distal_enhancers:
     threads: 1
     resources:
         mem_gb = 4
+    params:
+        url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-dELS.V4.bed.gz'
     output:
         config['cCREs']['distal_enhancers']
     shell:
-        "wget https://api.wenglab.org/screen_v13/fdownloads/GRCh38-ccREs.dELS.bed -O {output}"
+        "wget -O- {params.url} | gunzip -c > {output}"
 
 
 rule download_lr_bam:
@@ -203,14 +217,26 @@ rule download_mirbase_gff:
         "wget --no-check-certificate https://www.mirbase.org/ftp/CURRENT/genomes/{params.mirbase_specie_id}.gff3 -O {output}"
 
 
-rule download_bru_counts:
+rule download_bru_transcript_counts:
     threads: 1
     resources:
         mem_gb = 4
     params:
         drive_id = '1i3WtbuN-HHiz8Ute4ygoGxszx3mdjDtL'
     output:
-        config['miRNA']['bru_counts']
+        config['miRNA']['bru_counts_transcript']
+    shell:
+        "gdown --id {params.drive_id} -O {output}"
+
+
+rule download_bru_gene_counts:
+    threads: 1
+    resources:
+        mem_gb = 4
+    params:
+        drive_id = '1R0f_rVgLWvD2qWGqiCLIsw2dMAEa2xR4'
+    output:
+        config['miRNA']['bru_counts_gene']
     shell:
         "gdown --id {params.drive_id} -O {output}"
 
@@ -258,15 +284,24 @@ rule gnomad_download_contraints:
 
 rule all_download:
     input:
-        expand(config['cage']['bed'], encode_id=df_cage.index),
-        expand(config['rampage']['bed'], encode_id=df_rampage.index),
-        expand(config['lr']['bam'], encode_id=df_lr.index),
+        rules.download_fasta_human.output,
+        rules.download_gtf_human.output,
 
-        expand(config['miRNA']['exp_mibr']),
+        rules.download_fantom.output,
+        rules.download_cCREs_promotors.output,
+        rules.download_cCREs_proximal_enhancers.output,
+        rules.download_cCREs_distal_enhancers.output,
 
-        expand(config['miRNA']['bru_bw'], encode_id=df_bru_bw.index),
-        expand(config['miRNA']['bru_bam'], encode_id=df_bru_bam.index),
+        # ENCODE dataset
+        # expand(config['cage']['bed'], encode_id=df_cage.index),
+        # expand(config['rampage']['bed'], encode_id=df_rampage.index),
+        # expand(config['lr']['bam'], encode_id=df_lr.index),
+        # expand(config['miRNA']['bru_bw'], encode_id=df_bru_bw.index),
+        # expand(config['miRNA']['bru_bam'], encode_id=df_bru_bam.index),
 
-        expand(rules.gnomad_download_vcf.output,
-               chrom=config['chroms']),
-        config['gnomad']['constraint']
+        # expand(config['miRNA']['exp_mibr']),
+
+        # gNOMAD dataset
+        # expand(rules.gnomad_download_vcf.output,
+        #        chrom=config['chroms']),
+        # config['gnomad']['constraint']

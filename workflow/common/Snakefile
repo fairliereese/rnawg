@@ -1,6 +1,21 @@
+rule chrom_sizes_human:
+    input:
+        fasta = config['fasta']
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        chrom_sizes = config['chrom_sizes']
+    shell:
+        "faidx {input.fasta} -i chromsizes > {output.chrom_sizes}"
+
+
 rule wg_utr_fix:
     input:
         gtf = config['gtf_raw']
+    threads: 1
+    resources:
+        mem_gb = 16
     output:
         gtf = config['gtf']
     shell:
@@ -102,12 +117,27 @@ rule merge_bams:
         shell("samtools index -@ {threads} {output.bam}")
 
 
+rule gencode_cds_start_end:
+    input:
+        gtf = config['gtf']
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        bed = config['gencode']['cds']
+    script:
+        "./extract_cds.py"
+
+
 rule all_common:
     input:
-        config['lr']['merged_bam'],
-        expand(config['lr']['read_counts'], encode_id=df_lr.index),
-        expand(config['lr']['bam'] + '.bai', encode_id=df_lr.index),
+        rules.wg_utr_fix.output,
+        rules.gencode_cds_start_end.output
 
-        expand(rules.tail_length_counts.output, encode_id=df_lr.index)
+        # config['lr']['merged_bam'],
+        # expand(config['lr']['read_counts'], encode_id=df_lr.index),
+        # expand(config['lr']['bam'] + '.bai', encode_id=df_lr.index),
+
+        # expand(rules.tail_length_counts.output, encode_id=df_lr.index)
 
         # rules.bam_read_count_stats.output

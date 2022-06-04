@@ -2,7 +2,6 @@ import pandas as pd
 
 
 configfile: "configs/config.yaml"
-
 # TODO: move to utils
 
 
@@ -59,22 +58,21 @@ df_mirna = pd.read_csv('configs/human_mirna_metadata.tsv', sep='\t') \
 include: "download/Snakefile"
 include: "common/Snakefile"
 include: "lapa/Snakefile"
-# include: "igv/Snakefile"
+include: "igv/Snakefile"
 include: "tss/Snakefile"
+include: "polyA/Snakefile"
 include: "miRNA/Snakefile"
 include: "splicing/Snakefile"
-include: "polyA/Snakefile"
 # include: "plot/Snakefile"
 
 
 rule all:
     input:
-        rules.all_polyA.input
-        # rules.all_download.input,
-        # rules.all_igv.input
+        rules.all_lapa.input
 
-        # rules.all_common.input
-        # rules.all_splicing.input,
-        # rules.all_download.input,
-        # rules.all_tss.input,
-        # rules.all_miRNA.input
+        # rules.all_miRNA.input,
+
+        # rules.all_igv.input,
+
+        # rules.all_common.input,
+        # rules.all_splicing.input

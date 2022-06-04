@@ -1,18 +1,14 @@
-drive_id:
-  human:
-    read_annot: 1ZBMd4p73TlYsox5KNEkqJqm_u9xvQec7
-    gtf: 1O_Vd5-SjyBE9MjxFsoLBjD43Tx7kw-T5
-    abundance: 1repLKHfQYV66MEv0FweyKJxtvvs4sFlj
-
 fasta: data/resources/common/human.fasta
 gtf_raw: data/resources/common/human.gtf
-gtf: data/resources/wg/common/human.utr_fix.gtf
+gtf: data/resources/common/human.utr_fix.gtf
 chrom_sizes: data/resources/common/human.chrom_sizes
+
+gencode:
+  cds: data/results/gencode/gencode_cds.bed
 
 lr:
   bam: data/resources/lr/bam/{encode_id}.bam
   merged_bam: data/resources/lr/merged.bam
-  
   read_counts: data/results/lr/read_counts/{encode_id}.txt
 
 talon:
@@ -29,7 +25,9 @@ cCREs:
   proximal_enhancers: data/resources/cCREs/GRCh38-ccREs.pELS.bed
   distal_enhancers: data/resources/cCREs/GRCh38-ccREs.dELS.bed
 
-fantom: data/resources/fantom/hg38_CAGE.bed
+fantom:
+  hg19: data/resources/fantom/hg19.cage_peak_phase1and2combined_coord.bed
+  hg38: data/results/fantom/hg38_fantom.bed
 
 cage:
   bed: data/resources/cage/idr_peak/{encode_id}.bed
@@ -53,7 +51,10 @@ miRNA:
   bru_bw: data/resources/bru/bigwig/{encode_id}.bigWig
   bru_bam: data/resources/bru/bam/{encode_id}.bam
 
-  bru_counts: data/resources/bru/human_bru_abundance.tsv
+  bru_counts: data/results/bru/counts/{encode_id}.bed
+
+  bru_counts_gene: data/resource/bru/human_bru_gene_abundance.tsv
+  bru_counts_transcript: data/resources/bru/human_bru_abundance.tsv
   
   # human id: 9606, mice: 10090
   ncbi_tax_id: 9606
@@ -76,6 +77,8 @@ miRNA:
   # targets per biosample
   all_targets: data/results/miRNA/all_targets_counts_exp.csv
   targets: data/results/miRNA/biosample/{biosample}_targets_counts_exp.bed
+
+  utr3_regions: data/results/miRNA/utr3_regions.csv
 
 short_rna:
   bam: data/resources/short_rna/bam/{encode_id}.bam
@@ -115,7 +118,8 @@ gnomad:
   loeuf_decile: data/results/gnomad/loeuf_decile.csv
 
 polya:
-  final_exons: data/results/polya/final_exons.bed
+  three_prime_utr: data/results/polya/three_prime_utr.bed
+
   variants_utr_chrom: data/results/polya/gnomad/{chrom}_utr_variants_counts.csv
   variants_polya_chrom: data/results/polya/gnomad/{chrom}_polya_variants_counts.csv
 

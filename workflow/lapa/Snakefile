@@ -11,12 +11,15 @@ rule lapa_config:
     script:
         "./lapa_config.py"
 
+
 rule lapa:
     input:
         aligment = config['lapa']['config'],
         fasta = config['fasta'],
         gtf = config['gtf'],
         chrom_sizes = config['chrom_sizes']
+    params:
+        non_replicates_read_threhold = 7
     threads: 4
     resources:
         mem_gb = 32
@@ -28,7 +31,8 @@ rule lapa:
         --fasta {input.fasta} \
         --annotation {input.gtf} \
         --chrom_sizes {input.chrom_sizes} \
-        --output_dir {output}"
+        --output_dir {output} \
+        --non_replicates_read_threhold {params.non_replicates_read_threhold}"
 
 
 rule lapa_tss:
@@ -37,6 +41,8 @@ rule lapa_tss:
         fasta = config['fasta'],
         gtf = config['gtf'],
         chrom_sizes = config['chrom_sizes']
+    params:
+        non_replicates_read_threhold = 7
     threads: 4
     resources:
         mem_gb = 32
@@ -48,7 +54,8 @@ rule lapa_tss:
         --fasta {input.fasta} \
         --annotation {input.gtf} \
         --chrom_sizes {input.chrom_sizes} \
-        --output_dir {output}"
+        --output_dir {output} \
+        --non_replicates_read_threhold {params.non_replicates_read_threhold}"
 
 
 rule lapa_link_tss_to_tes:
@@ -109,21 +116,26 @@ rule lapa_correct_gtf:
         --keep_unsupported"
 
 
-rule replication_rate_tss:
+rule lapa_replication_rate:
     input:
-        lapa_dir = config['lapa']['tss']
+        lapa_dir = (lambda wld: config['lapa'][wld['site']])
     params:
         df_lr = df_lr
     threads: 1
     resources:
         mem_gb = 32
     output:
-        fig = 'reports/figures/replication_rate_tss.png'
+        fig_replication = 'reports/figures/replication_rate_{site}.png',
+        fig_threshold = 'reports/figures/threshold_min_read_{site}.png',
+        table_threshold = 'reports/tables/threshold_min_read_{site}.csv'
     notebook:
         "./replication_rate.ipynb"
 
 
 rule all_lapa:
     input:
-        rules.lapa_correct_gtf.output
-        # rules.lapa_link_merge.output
+        rules.lapa_correct_gtf.output,
+        # rules.lapa.output,
+        # rules.lapa_tss.output,
+        # rules.lapa_link_merge.output,
+        # expand(rules.lapa_replication_rate.output, site=['tss', 'tes'])

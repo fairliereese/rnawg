@@ -84,23 +84,41 @@ rule miRNA_filter_expression:
         "./biosample_targets.py"
 
 
+rule miRNA_3utr_bru_counting:
+    input:
+        utr = config['polya']['three_prime_utr'],
+        bam = config['miRNA']['bru_bam']
+    threads: 1
+    resources:
+        mem_gb = 64
+    output:
+        counts = config['miRNA']['bru_counts']
+    script:
+        "./count_bru_reads.py"
+
+
 rule miRNA_plot:
     input:
         targets = expand(config['miRNA']['targets'],
                          biosample=df_mirna['Biosample.term.name'].unique()),
-        counts = config['miRNA']['bru_counts'],
+        counts = expand(rules.miRNA_3utr_bru_counting.output,
+                        encode_id=df_bru_bam.index),
         gtf = config['talon']['gtf'],
         abundance = config['talon']['abundance']
+    params:
+        df_bru_bam = df_bru_bam,
+        df_lr = df_lr,
+        df_mirna = df_mirna
     threads: 1
     resources:
         mem_gb = 16
     output:
         num_targets = 'reports/figures/miRNA/mirna_num_targets_per_sample.png',
         deplition = 'reports/figures/miRNA/mirna_depletion_rate.png'
-    script:
+    notebook:
         "./num_targets_per_sample.ipynb"
 
 
 rule all_miRNA:
     input:
-        rules.miRNA_filter_expression.output
+        rules.miRNA_plot.output

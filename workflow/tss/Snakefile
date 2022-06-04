@@ -47,11 +47,12 @@ rule tss_rampage_pr_curve:
         bed = rampage_bed,
         tss_dir = config['lapa']['tss'],
         other_bed = cage_bed
+    params:
+        other_label = 'CAGE',
+        df_lr = df_lr
     threads: 1
     resources:
         mem_gb = 8
-    params:
-        other_label = 'CAGE'
     output:
         pr = config['tss']['rampage_overlap'],
         fig = 'data/results/tss/rampage_pr_curve/pr_curve_{sample}.png'
@@ -65,7 +66,8 @@ rule tss_cage_pr_curve:
         tss_dir = config['lapa']['tss'],
         other_bed = rampage_bed
     params:
-        other_label = 'RAMPAGE'
+        other_label = 'RAMPAGE',
+        df_lr = df_lr
     threads: 1
     resources:
         mem_gb = 8
@@ -112,10 +114,25 @@ rule rampage_benchmark:
         "./tss_benchmark.ipynb"
 
 
+rule tss_fantom_overlap:
+    input:
+        fantom = config['fantom'],
+        lapa_dir = config['lapa']['tss']
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        fig = 'reports/tss/fantom_tss_overlap.png'
+    notebook:
+        "./tss_fantom.ipynb"
+
+
 rule all_tss:
     input:
+        rules.merge_cage.output,
+        rules.merge_rampage.output,
+
         rules.cage_benchmark.output,
         rules.rampage_benchmark.output,
 
-        # rules.merge_cage.output,
-        # rules.merge_rampage.output
+        rules.tss_fantom_overlap.output
