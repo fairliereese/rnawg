@@ -138,4 +138,3 @@ rule all_lapa:
         # rules.lapa.output,
         # rules.lapa_tss.output,
         # rules.lapa_link_merge.output,
-        # expand(rules.lapa_replication_rate.output, site=['tss', 'tes'])

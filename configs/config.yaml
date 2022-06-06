@@ -21,7 +21,7 @@ talon:
   abundance_corrected: data/results/talon/human_talon_abundance_filtered.corrected.tsv
 
 cCREs:
-  promotors: data/resources/cCREs/GRCh38-PLS.bed
+  promoters: data/resources/cCREs/GRCh38-PLS.bed
   proximal_enhancers: data/resources/cCREs/GRCh38-ccREs.pELS.bed
   distal_enhancers: data/resources/cCREs/GRCh38-ccREs.dELS.bed
 
@@ -40,6 +40,13 @@ rampage:
 tss:
   rampage_overlap: data/results/tss/rampage_pr_curve/pr_curve_{sample}.csv
   cage_overlap: data/results/tss/cage_pr_curve/pr_curve_{sample}.csv
+
+polyasite_atlas: data/resources/polyasite_atlas/atlas.clusters.2.0.GRCh38.96.bed
+
+pas:
+  bam: data/resources/pas/{encode_id}.bam
+  config: data/results/pas/pas_config.csv
+  lapa: data/results/pas/lapa/
 
 miRNA:
   # Expresimenal dataset
@@ -82,8 +89,10 @@ miRNA:
 
 short_rna:
   bam: data/resources/short_rna/bam/{encode_id}.bam
-  ssj: data/resources/short_rna/ssj/{encode_id}.ssj.tsv
-  ssc: data/resources/short_rna/ssc/{encode_id}.ssc.tsv
+  bam_mapq10: data/results/short_rna/bam_mapq10/{encode_id}.bam
+  
+  ssj: data/results/short_rna/ssj/{encode_id}.ssj.tsv
+  ssc: data/results/short_rna/ssc/{encode_id}.ssc.tsv
 
   sj: data/results/short_rna/sj/{encode_id}.sj.bed
   sj_biosample: data/results/short_rna/biosample_sj/{biosample}.sj.bed

@@ -22,7 +22,7 @@ rule download_gtf_human:
         "wget -O - {params.url} | gunzip -c > {output}"
 
 
-rule download_wg_read_annot:
+rule download_talon_read_annot:
     params:
         drive_id = '1ZBMd4p73TlYsox5KNEkqJqm_u9xvQec7'
     output:
@@ -31,7 +31,7 @@ rule download_wg_read_annot:
         "gdown --id {params.drive_id} -O {output}"
 
 
-rule download_wg_gtf:
+rule download_talon_gtf:
     params:
         drive_id = '1XLfUGfuRmx7rFhvQHdjMv-LfIpAHxYkb'
     output:
@@ -40,7 +40,7 @@ rule download_wg_gtf:
         "gdown --id {params.drive_id} -O {output}"
 
 
-rule download_wg_abundance:
+rule download_talon_abundance:
     params:
         drive_id = '102CmWTUyIpgNpcpyc-mb1KHogvhTtJ9t'
     output:
@@ -73,7 +73,7 @@ rule download_wg_abundance:
 
 rule download_cage:
     params:
-        url = 'https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bed.gz'
+        url = 'https://www.encodeproject.org/files/{encode_id}/@@download/{encode_id}.bed.gz'
     threads: 1
     resources:
         mem_gb = 4
@@ -85,7 +85,7 @@ rule download_cage:
 
 rule download_rampage:
     params:
-        url = 'https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bed.gz'
+        url = 'https://www.encodeproject.org/files/{encode_id}/@@download/{encode_id}.bed.gz'
     threads: 1
     resources:
         mem_gb = 4
@@ -107,14 +107,14 @@ rule download_fantom:
         "wget -O - {params.url} | gunzip -c > {output}"
 
 
-rule download_cCREs_promotors:
+rule download_cCREs_promoters:
     threads: 1
     resources:
         mem_gb = 4
     params:
         url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-PLS.V4.bed.gz'
     output:
-        config['cCREs']['promotors']
+        config['cCREs']['promoters']
     shell:
         "wget -O - {params.url} | gunzip -c > {output}"
 
@@ -143,14 +143,40 @@ rule download_cCREs_distal_enhancers:
         "wget -O- {params.url} | gunzip -c > {output}"
 
 
+rule download_polyasite_atlas:
+    threads: 1
+    resources:
+        mem_gb = 4
+    params:
+        url = 'https://www.polyasite.unibas.ch/download/atlas/2.0/GRCh38.96/atlas.clusters.2.0.GRCh38.96.bed.gz'
+    output:
+        config['polyasite_atlas']
+    shell:
+        "wget -O- {params.url} | gunzip -c > {output}"
+
+
 rule download_lr_bam:
+    params:
+        url = "https://www.encodeproject.org/files/{encode_id}/@@download/{encode_id}.bam"
     threads: 1
     resources:
         mem_gb = 4
     output:
         bam = config['lr']['bam']
     shell:
-        "wget https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bam -O {output}"
+        "wget {params.url} -O {output}"
+
+
+rule download_pas:
+    params:
+        url = "https://www.encodeproject.org/files/{encode_id}/@@download/{encode_id}.bam"
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        bam = config['pas']['bam']
+    shell:
+        "wget {params.url} -O {output}"
 
 
 rule download_miRNA:
@@ -166,13 +192,15 @@ rule download_miRNA:
 
 
 rule download_bru_bam:
+    params:
+        url = "https://www.encodeproject.org/files/{encode_id}/@@download/{encode_id}.bam"
     threads: 1
     resources:
         mem_gb = 4
     output:
         config['miRNA']['bru_bam']
     shell:
-        "wget https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bam -O {output}"
+        "wget {params.url} -O {output}"
 
 
 rule download_bru_bw:
@@ -182,7 +210,7 @@ rule download_bru_bw:
     output:
         config['miRNA']['bru_bw']
     shell:
-        "wget https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bigWig -O {output}"
+        "wget https://www.encodeproject.org/files/{encode_id}/@@download/{encode_id}.bigWig -O {output}"
 
 
 rule download_miRNA_family:
@@ -199,13 +227,15 @@ rule download_miRNA_family:
 
 
 rule download_short_rna_bam:
+    params:
+        url = 'https://www.encodeproject.org/files/{encode_id}/@@download/{encode_id}.bam'
     threads: 1
     resources:
         mem_gb = 4
     output:
         bam = temp(config['short_rna']['bam'])
     shell:
-        "wget https://www.encodeproject.org/files/{wildcards.encode_id}/@@download/{wildcards.encode_id}.bam -O {output}"
+        "wget {params.url} -O {output}"
 
 
 rule download_mirbase_gff:
@@ -239,6 +269,19 @@ rule download_bru_gene_counts:
         config['miRNA']['bru_counts_gene']
     shell:
         "gdown --id {params.drive_id} -O {output}"
+
+
+rule download_miRNA_targetscan:
+    params:
+        output_dir = str(Path(config['miRNA']['targetscan_hg19']).parent),
+        url = 'https://www.targetscan.org/vert_80/vert_80_data_download/Predicted_Target_Locations.default_predictions.hg19.bed.zip'
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        config['miRNA']['targetscan_hg19']
+    shell:
+        "wget {params.url} -O {output}.zip && unzip -o {output} -d{params.output_dir}"
 
 
 def gnomad_url_vcf(wildcards):
@@ -284,13 +327,21 @@ rule gnomad_download_contraints:
 
 rule all_download:
     input:
-        rules.download_fasta_human.output,
-        rules.download_gtf_human.output,
+        expand(rules.download_pas.output, encode_id=df_pas.index),
 
-        rules.download_fantom.output,
-        rules.download_cCREs_promotors.output,
-        rules.download_cCREs_proximal_enhancers.output,
-        rules.download_cCREs_distal_enhancers.output,
+        # rules.download_fasta_human.output,
+        # rules.download_gtf_human.output,
+
+        rules.download_talon_gtf.output,
+        rules.download_talon_abundance.output,
+        rules.download_talon_gtf.output,
+
+        # rules.download_fantom.output,
+        # rules.download_cCREs_promotors.output,
+        # rules.download_cCREs_proximal_enhancers.output,
+        # rules.download_cCREs_distal_enhancers.output,
+
+        rules.download_polyasite_atlas.output,
 
         # ENCODE dataset
         # expand(config['cage']['bed'], encode_id=df_cage.index),

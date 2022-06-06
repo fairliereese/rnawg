@@ -24,12 +24,12 @@ rule wg_utr_fix:
 
 rule bam_index:
     input:
-        bam = config['lr']['bam']
+        bam = '{bam_path}.bam'
     threads: 1
     resources:
         mem_gb = 4
     output:
-        bai = config['lr']['bam'] + '.bai'
+        bai = '{bam_path}.bam.bai'
     shell:
         "samtools index {input.bam}"
 
@@ -47,7 +47,6 @@ rule bam_read_count:
         mem_gb = 4
     shell:
         "samtools view {params.filters} -c {input.bam} > {output.txt}"
-#
 
 # rule bam_read_count_stats:
 #     input:
@@ -61,29 +60,6 @@ rule bam_read_count:
 #         table = 'reports/tables/read_numbers.csv'
 #     script:
 #         "./read_counts_stats.ipynb"
-
-
-# rule polya_tail_length_plot:
-#     input:
-#         bam = config['lr']['bam']
-#     threads: 1
-#     resources:
-#         mem_gb = 4
-#     output:
-#         plot = 'data/results/common/tail_length/{encode_id}.png'
-#     script:
-#         "./plot_tail_length.py"
-
-rule tail_length_counts:
-    input:
-        bam = config['lr']['bam']
-    threads: 1
-    resources:
-        mem_gb = 4
-    output:
-        counts = 'data/results/common/tail_length/{encode_id}.csv'
-    script:
-        "./tail_length.py"
 
 
 rule merge_bams:
@@ -129,15 +105,30 @@ rule gencode_cds_start_end:
         "./extract_cds.py"
 
 
+rule liftover_fantom:
+    input:
+        bed = config['fantom']['hg19']
+    threads: 1
+    resources:
+        mem_gb = 16
+    log: 'logs/fantom/liftover.log'
+    output:
+        bed = config['fantom']['hg38']
+    script:
+        "./liftover_fantom.py"
+
+
 rule all_common:
     input:
-        rules.wg_utr_fix.output,
-        rules.gencode_cds_start_end.output
+        rules.liftover_fantom.output,
+
+        # rules.wg_utr_fix.output,
+        # rules.gencode_cds_start_end.output
 
         # config['lr']['merged_bam'],
         # expand(config['lr']['read_counts'], encode_id=df_lr.index),
-        # expand(config['lr']['bam'] + '.bai', encode_id=df_lr.index),
 
-        # expand(rules.tail_length_counts.output, encode_id=df_lr.index)
+        # expand(config['lr']['bam'] + '.bai', encode_id=df_lr.index),
+        expand(config['pas']['bam'] + '.bai', encode_id=df_pas.index),
 
         # rules.bam_read_count_stats.output

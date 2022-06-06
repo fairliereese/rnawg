@@ -54,6 +54,9 @@ df_short = pd.read_csv('configs/short_metadata.tsv', sep='\t') \
 df_mirna = pd.read_csv('configs/human_mirna_metadata.tsv', sep='\t') \
              .set_index('File.accession')
 
+df_pas = pd.read_csv('configs/pas_metadata.tsv', sep='\t') \
+           .set_index('File accession')
+
 
 include: "download/Snakefile"
 include: "common/Snakefile"
@@ -61,6 +64,7 @@ include: "lapa/Snakefile"
 include: "igv/Snakefile"
 include: "tss/Snakefile"
 include: "polyA/Snakefile"
+include: "pas/Snakefile"
 include: "miRNA/Snakefile"
 include: "splicing/Snakefile"
 # include: "plot/Snakefile"
@@ -68,7 +72,8 @@ include: "splicing/Snakefile"
 
 rule all:
     input:
-        rules.all_lapa.input
+        rules.all_splicing.input
+        # rules.all_common.input
 
         # rules.all_miRNA.input,
 

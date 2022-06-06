@@ -1,16 +1,3 @@
-rule download_miRNA_targetscan:
-    params:
-        output_dir = str(Path(config['miRNA']['targetscan_hg19']).parent),
-        url = 'https://www.targetscan.org/vert_80/vert_80_data_download/Predicted_Target_Locations.default_predictions.hg19.bed.zip'
-    threads: 1
-    resources:
-        mem_gb = 4
-    output:
-        config['miRNA']['targetscan_hg19']
-    shell:
-        "wget {params.url} -O {output}.zip && unzip -o {output} -d{params.output_dir}"
-
-
 rule miRNA_bed_all_targets:
     input:
         tsv = config['miRNA']['exp_mibr']

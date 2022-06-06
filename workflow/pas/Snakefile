@@ -1,0 +1,56 @@
+rule pas_lapa_config:
+    input:
+        expand(config['pas']['bam'], encode_id=df_pas.index)
+    params:
+        df_pas = df_pas
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        config = config['pas']['config']
+    script:
+        "./lapa_pas_config.py"
+
+
+rule pas_lapa:
+    input:
+        aligment = config['pas']['config'],
+        fasta = config['fasta'],
+        gtf = config['gtf'],
+        chrom_sizes = config['chrom_sizes']
+    params:
+        replication_num_sample = 3
+    threads: 2
+    resources:
+        mem_gb = 32
+    output:
+        directory(config['pas']['lapa'])
+    shell:
+        "lapa \
+        --alignment {input.aligment} \
+        --fasta {input.fasta} \
+        --annotation {input.gtf} \
+        --chrom_sizes {input.chrom_sizes} \
+        --replication_num_sample {params.replication_num_sample} \
+        --output_dir {output}"
+
+
+rule pas_replication_rate:
+    input:
+        lapa_dir = config['pas']['lapa']
+    params:
+        df_pas = df_pas
+    threads: 1
+    resources:
+        mem_gb = 32
+    output:
+        fig_replication = 'reports/figures/pas/replication_rate.png',
+        table_threshold = 'reports/tables/pas/threshold_min_read.csv'
+    notebook:
+        "./pas_replication_rate.ipynb"
+
+
+rule all_pas:
+    input:
+        rules.pas_lapa.output,
+        # rules.pas_replication_rate.output

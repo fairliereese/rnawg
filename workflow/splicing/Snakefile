@@ -2,9 +2,23 @@
 # See: https://github.com/pervouchine/sjcount.git
 # I download sjcount to same level with sjcount
 
-rule sjcounts:
+rule short_read_quality_filter:
     input:
         bam = config['short_rna']['bam']
+    params:
+        mapq = 10
+    threads: 1
+    resources:
+        mem_gb = 4
+    output:
+        bam = temp(config['short_rna']['bam_mapq10'])
+    shell:
+        "samtools view -q {params.mapq} -b {input.bam} > {output.bam}"
+
+
+rule sjcounts:
+    input:
+        bam = config['short_rna']['bam_mapq10']
     params:
         sjcount_path = '../sjcount/sjcount'
     log: 'logs/short_rna/sj/{encode_id}.log'
@@ -80,5 +94,7 @@ rule sj_sample_dataset:
 
 rule all_splicing:
     input:
-        rules.sj_sample_dataset.output,
-        rules.agg_sj_all.output
+        expand(rules.sjcounts.output, encode_id=df_short.index)
+
+        # rules.sj_sample_dataset.output,
+        # rules.agg_sj_all.output

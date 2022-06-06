@@ -116,15 +116,32 @@ rule rampage_benchmark:
 
 rule tss_fantom_overlap:
     input:
-        fantom = config['fantom'],
+        fantom = config['fantom']['hg38'],
         lapa_dir = config['lapa']['tss']
     threads: 1
     resources:
         mem_gb = 16
     output:
-        fig = 'reports/tss/fantom_tss_overlap.png'
+        fig = 'reports/tss/fantom_tss_overlap.png',
+        table = 'reports/tables/fantom_tss_overlap.csv'
     notebook:
         "./tss_fantom.ipynb"
+
+
+rule tss_ccres_overlap:
+    input:
+        ccres_promoters = config['cCREs']['promoters'],
+        ccres_proximal_enhancers = config['cCREs']['proximal_enhancers'],
+        ccres_distal_enhancers = config['cCREs']['distal_enhancers'],
+        lapa_dir = config['lapa']['tss']
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        fig = 'reports/tss/ccres_tss_overlap.png',
+        table = 'reports/tables/ccres_tss_overlap.csv'
+    notebook:
+        "./tss_ccres.ipynb"
 
 
 rule all_tss:
@@ -135,4 +152,5 @@ rule all_tss:
         rules.cage_benchmark.output,
         rules.rampage_benchmark.output,
 
-        rules.tss_fantom_overlap.output
+        rules.tss_fantom_overlap.output,
+        rules.tss_ccres_overlap.output
