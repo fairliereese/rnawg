@@ -44,6 +44,10 @@ def get_sector_colors(cats=None):
     c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
 
+def get_end_colors():
+    c_dict, order = get_sector_colors(['tes', 'tss'])
+    return c_dict, order
+
 def get_edge_colors():
     """
     Get colors for introns and exons
@@ -1032,14 +1036,15 @@ def plot_biosamp_det(df,
         df (pandas DataFrame): DataFrame detailing how many samples
             each gene or isoform was seen in
     """
-    
+    if nov:
+        nov = [nov]
     df = get_det_table(df,
                      how=how,
                      min_tpm=min_tpm,
                      gene_subset=gene_subset,
                      sample=sample,
                      groupby=groupby,
-                     nov=[nov])
+                     nov=nov)
     
     # finally, calculate the number of biosamples / libraries these 
     # genes or transcripts are expressed >= min TPM
@@ -1050,7 +1055,10 @@ def plot_biosamp_det(df,
     sns.set_context('paper', font_scale=2)
     
     c_dict, order = get_talon_nov_colors()
-    color = c_dict[nov]
+    if nov:
+        color = c_dict[nov]
+    else:
+        color = c_dict['Known']
     ax = sns.displot(data=df, x='n_samples', kind='hist',
                  color=color, binwidth=1, linewidth=0)
 

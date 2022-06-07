@@ -24,8 +24,10 @@ printf "${lapa_gtf},True,lapa\n" >> ${gtf_config}
 
 
 # tss config - nothing yet
+# lapa, cage, rampage, ccre tss, ccre pels, ccre dels
 
 # tes config - nothing yet
+# lapa, pas seq
 
 h5=cerberus_ref.h5
 
@@ -42,23 +44,57 @@ cerberus gen_reference \
 
 # annotate transcriptome
 h5=cerberus_ref.h5
-talon_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/talon/human_known_nic_nnc_talon.gtf
+# talon_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/talon/human_known_nic_nnc_talon.gtf
+lapa_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_swan_talon.corrected.gtf
 o=human_cerberus.h5
 cerberus convert_transcriptome \
-  --gtf ${talon_gtf} \
+  --gtf ${lapa_gtf} \
+  --h5 ${h5} \
+  -o ${o}
+
+# annotate transcriptome v29
+h5=cerberus_ref.h5
+gtf=~/mortazavi_lab/data/rnawg/refs/gencode_v29_sirv4_ercc.gtf
+o=v29_cerberus.h5
+cerberus convert_transcriptome \
+  --gtf ${gtf} \
+  --h5 ${h5} \
+  -o ${o}
+
+
+# annotate transcriptome v40
+h5=cerberus_ref.h5
+gtf=~/mortazavi_lab/ref/gencode.v40/gencode.v40.annotation.gtf
+o=v40_cerberus.h5
+cerberus convert_transcriptome \
+  --gtf ${gtf} \
   --h5 ${h5} \
   -o ${o}
 
 # replace ids in abundance
 h5=human_cerberus.h5
-ab=~/mortazavi_lab/data/rnawg/lr_bulk/talon/human_talon_abundance_filtered.tsv
-o=human_cerberus.tsv
+ab=../lapa/human_talon_abundance_filtered.corrected.tsv
+o=human_cerberus_abundance.tsv
 cerberus replace_ab_ids \
   --h5 ${h5} \
   --ab ${ab} \
   --collapse \
   -o ${o}
+
+# replace ids in gtf
+h5=human_cerberus.h5
+gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_swan_talon.corrected.gtf
+o=human_cerberus.gtf
+cerberus replace_gtf_ids \
+  --h5 $h5 \
+  --gtf $gtf \
+  --update_ends \
+  --collapse \
+  -o $o
+
 ```
+
+
 
 Other cmds
 ```bash
@@ -90,3 +126,11 @@ cerberus agg_ends \
   --input ${cfg} \
   --mode tes \
   -o test_tes.bed
+
+# Printed settings for agg_ends tes:
+# ['/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/temp/v40_tes.bed', '/Users/fairliereese/Documents/programming/mortazavi_
+# lab/data/rnawg/lr_bulk/cerberus/temp/v29_tes.bed', '/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/temp/lapa_tes.bed']
+# ['v40', 'v29', 'lapa']
+# [True, True, True]
+# 20
+# tes
