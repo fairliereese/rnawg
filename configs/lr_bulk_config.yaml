@@ -1,0 +1,102 @@
+ref:
+  v29_gtf: refs/gencode_v29_sirv4_ercc.gtf
+  v40_gtf: refs/gencode.v40.annotation.gtf
+  hg38: refs/hg38_sirv4_ercc.fa
+  pc_prefix: refs/gencode.v29.pc_translations
+
+talon:
+  prefix: lr_bulk/talon/human
+  db: lr_bulk/talon/human.db
+  read_annot: lr_bulk/talon/human_talon_read_annot.tsv
+  pass_list: lr_bulk/talon/human_pass_list.csv
+  ab: lr_bulk/talon/human_talon_abundance.tsv
+  filt_ab: lr_bulk/talon/human_talon_abundance_filtered.tsv
+  filt_gtf: lr_bulk/talon/human_talon.gtf
+  known_nic_nnc_pass_list: lr_bulk/talon/human_known_nic_nnc_pass_list.csv
+  known_nic_nnc_gtf: lr_bulk/talon/human_known_nic_nnc_talon.gtf
+
+swan:
+  pass_list: lr_bulk/swan/human_talon_swan_pass_list.csv
+  gtf: lr_bulk/swan/human_swan_talon.gtf
+  meta: lr_bulk/swan/swan_metadata.tsv
+  sg: lr_bulk/swan/swan.p
+
+pp:
+  gtf_to_bed: ~/mortazavi_lab/bin/tama/tama_go/format_converter/tama_format_gtf_to_bed12_ensembl.py
+  orf_nmd: ~/mortazavi_lab/bin/tama/tama_go/orf_nmd_predictions/tama_orf_seeker.py
+  blastp: ~/mortazavi_lab/bin/ncbi-blast-2.12.0+/bin/./blastp
+  blastp_parse: ~/mortazavi_lab/bin/tama/tama_go/orf_nmd_predictions/tama_orf_blastp_parser.py
+  gtf_bed: lr_bulk/protein_pred/human_tama.bed
+  fa: lr_bulk/protein_pred/human.fa
+  orf_fa: lr_bulk/protein_pred/human_orf.fa
+  blastp_out: lr_bulk/protein_pred/human_blastp.out
+  blastp_parsed: lr_bulk/protein_pred/human_blastp_parsed.tsv
+
+lapa:
+    # paths to hasan's material
+    hasan_gtf: /dfs3b/samlab/mcelik/rnawg/data/results/talon/human_talon.corrected.gtf
+    hasan_ab: /dfs3b/samlab/mcelik/rnawg/data/results/talon/human_talon_abundance_filtered.corrected.tsv
+
+    # corrected output right from lapa
+    gtf: lr_bulk/lapa/human_talon.corrected.gtf
+    ab: lr_bulk/lapa/human_talon_abundance_filtered.corrected.tsv
+
+    # output with ISM_rescue category added
+    nov_ab: lr_bulk/lapa/human_talon_abundance_filtered.nov_corrected.tsv
+    nov_gtf: lr_bulk/lapa/human_talon.nov_corrected.gtf
+
+    # output filtered for the relevant novelty categories
+    filt_ab: lr_bulk/lapa/human_abundance_filtered.tsv
+    filt_gtf: lr_bulk/lapa/human_lapa.gtf
+
+    # tss / tes clusters from lapa
+    tss: /dfs3b/samlab/mcelik/rnawg/data/results/lapa/tss/tss_clusters.bed
+    tes: /dfs3b/samlab/mcelik/rnawg/data/results/lapa/tes/polyA_clusters.bed
+
+cerberus:
+  gtf:
+    ends: lr_bulk/cerberus/{source}_{mode}.bed
+  tss:
+    lapa: lr_bulk/lapa/lapa_tss.bed
+    cfg: lr_bulk/cerberus/agg_tss_config.csv
+    agg: lr_bulk/cerberus/agg_tss.bed
+    source_map: lr_bulk/cerberus/agg_tss_source_map.bed
+  tes:
+    lapa: lr_bulk/lapa/lapa_tes.bed
+    pas: lr_bulk/lapa/pas_tes.bed
+    cfg: lr_bulk/cerberus/agg_tes_config.csv
+    agg: lr_bulk/cerberus/agg_tes.bed
+    source_map: lr_bulk/cerberus/agg_tes_source_map.bed
+
+polyasite_atlas:
+  original: /dfs3b/samlab/mcelik/rnawg/data/resources/polyasite_atlas/atlas.clusters.2.0.GRCh38.96.bed
+  formatted: /dfs3b/samlab/mcelik/rnawg/data/resources/polyasite_atlas/atlas.clusters_formatted.bed
+
+pas:
+  tes: /dfs3b/samlab/mcelik/rnawg/data/results/pas/lapa/polyA_clusters.bed
+
+fantom:
+  hg19: /dfs3b/samlab/mcelik/rnawg/data/resources/fantom/hg19.cage_peak_phase1and2combined_coord.bed
+  hg38: /dfs3b/samlab/mcelik/rnawg/data/results/fantom/hg38_fantom.bed
+
+cage:
+  bed: /dfs3b/samlab/mcelik/rnawg/data/resources/cage/idr_peak/{encode_id}.bed
+  merged: /dfs3b/samlab/mcelik/rnawg/data/results/cage/merged.bed
+
+rampage:
+  bed: /dfs3b/samlab/mcelik/rnawg/data/resources/rampage/idr_peak/{encode_id}.bed
+  merged: /dfs3b/samlab/mcelik/rnawg/data/results/rampage/merged.bed
+
+cCREs:
+  all: /dfs3b/samlab/mcelik/rnawg/data/resource/cCREs/all.cCREs.bed
+  promoters: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-PLS.bed
+  proximal_enhancers: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-ccREs.pELS.bed
+  distal_enhancers: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-ccREs.dELS.bed
+  CA_H3K4me3: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA-H3K4me3.V4.bed
+  CA_CTCF: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA-CTCF.V4.bed
+  CA_TF: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA-TF.V4.bed
+  CA: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA.V4.bed
+  TF: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-TF.V4.bed
+
+
+script_dir: scripts/

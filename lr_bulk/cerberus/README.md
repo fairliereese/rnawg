@@ -126,7 +126,7 @@ cerberus agg_ends \
   --input ${cfg} \
   --mode tes \
   -o test_tes.bed
-
+```
 # Printed settings for agg_ends tes:
 # ['/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/temp/v40_tes.bed', '/Users/fairliereese/Documents/programming/mortazavi_
 # lab/data/rnawg/lr_bulk/cerberus/temp/v29_tes.bed', '/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/temp/lapa_tes.bed']
@@ -134,3 +134,24 @@ cerberus agg_ends \
 # [True, True, True]
 # 20
 # tes
+
+## aggregate ends w/ lapa tss
+```
+# tss config - nothing yet
+# lapa, cage, rampage, ccre tss, ccre pels, ccre dels
+
+config=test_tss_config.csv
+v40_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v40_tss.bed
+v29_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v29_tss.bed
+lapa_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/lapa/lapa_tss.bed
+
+touch ${config}
+printf "${v40_bed},True,v40\n" > $config
+printf "${v29_bed},True,v29\n" >> $config
+printf "${lapa_bed},True,lapa\n" >> $config
+
+cerberus agg_ends \
+  --input $config \
+  --mode tss \
+  -o test_agg_tss.bed
+```
