@@ -21,10 +21,16 @@ talon:
   abundance_corrected: data/results/talon/human_talon_abundance_filtered.corrected.tsv
 
 cCREs:
+  all: data/resource/cCREs/all.cCREs.bed
   promoters: data/resources/cCREs/GRCh38-PLS.bed
   proximal_enhancers: data/resources/cCREs/GRCh38-ccREs.pELS.bed
   distal_enhancers: data/resources/cCREs/GRCh38-ccREs.dELS.bed
-
+  CA_H3K4me3: data/resources/cCREs/GRCh38-CA-H3K4me3.V4.bed
+  CA_CTCF: data/resources/cCREs/GRCh38-CA-CTCF.V4.bed
+  CA_TF: data/resources/cCREs/GRCh38-CA-TF.V4.bed
+  CA: data/resources/cCREs/GRCh38-CA.V4.bed
+  TF: data/resources/cCREs/GRCh38-TF.V4.bed
+  
 fantom:
   hg19: data/resources/fantom/hg19.cage_peak_phase1and2combined_coord.bed
   hg38: data/results/fantom/hg38_fantom.bed

@@ -130,10 +130,16 @@ rule tss_fantom_overlap:
 
 rule tss_ccres_overlap:
     input:
+        lapa_dir = config['lapa']['tss'],
+        ccres_all = config['cCREs']['all'],
         ccres_promoters = config['cCREs']['promoters'],
         ccres_proximal_enhancers = config['cCREs']['proximal_enhancers'],
         ccres_distal_enhancers = config['cCREs']['distal_enhancers'],
-        lapa_dir = config['lapa']['tss']
+        # ccres_CA_H3K4me3 = config['cCREs']['CA_H3K4me3'],
+        # ccres_CA_CTCF = config['cCREs']['CA_CTCF'],
+        # ccres_CA_TF = config['cCREs']['CA_TF'],
+        # ccres_CA = config['cCREs']['CA'],
+        # ccres_TF = config['cCREs']['TF']
     threads: 1
     resources:
         mem_gb = 16

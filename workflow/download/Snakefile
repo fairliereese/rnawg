@@ -107,6 +107,18 @@ rule download_fantom:
         "wget -O - {params.url} | gunzip -c > {output}"
 
 
+rule download_cCREs_all:
+    threads: 1
+    resources:
+        mem_gb = 4
+    params:
+        url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-cCREs.V4.bed.gz'
+    output:
+        config['cCREs']['all']
+    shell:
+        "wget -O - {params.url} | gunzip -c > {output}"
+
+
 rule download_cCREs_promoters:
     threads: 1
     resources:
@@ -139,6 +151,66 @@ rule download_cCREs_distal_enhancers:
         url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-dELS.V4.bed.gz'
     output:
         config['cCREs']['distal_enhancers']
+    shell:
+        "wget -O- {params.url} | gunzip -c > {output}"
+
+
+rule download_cCREs_CA_H3K4me3:
+    threads: 1
+    resources:
+        mem_gb = 4
+    params:
+        url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-CA-H3K4me3.V4.bed.gz'
+    output:
+        config['cCREs']['CA_H3K4me3']
+    shell:
+        "wget -O- {params.url} | gunzip -c > {output}"
+
+
+rule download_cCREs_CA_CTCF:
+    threads: 1
+    resources:
+        mem_gb = 4
+    params:
+        url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-CA-CTCF.V4.bed.gz'
+    output:
+        config['cCREs']['CA_CTCF']
+    shell:
+        "wget -O- {params.url} | gunzip -c > {output}"
+
+
+rule download_cCREs_CA_TF:
+    threads: 1
+    resources:
+        mem_gb = 4
+    params:
+        url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-CA-TF.V4.bed.gz'
+    output:
+        config['cCREs']['CA_TF']
+    shell:
+        "wget -O- {params.url} | gunzip -c > {output}"
+
+
+rule download_cCREs_CA:
+    threads: 1
+    resources:
+        mem_gb = 4
+    params:
+        url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-CA.V4.bed.gz'
+    output:
+        config['cCREs']['CA']
+    shell:
+        "wget -O- {params.url} | gunzip -c > {output}"
+
+
+rule download_cCREs_TF:
+    threads: 1
+    resources:
+        mem_gb = 4
+    params:
+        url = 'http://users.wenglab.org/moorej3/Registry-cCREs-WG/V4-Files/GRCh38-TF.V4.bed.gz'
+    output:
+        config['cCREs']['TF']
     shell:
         "wget -O- {params.url} | gunzip -c > {output}"
 
@@ -337,9 +409,16 @@ rule all_download:
         rules.download_talon_gtf.output,
 
         # rules.download_fantom.output,
-        # rules.download_cCREs_promotors.output,
-        # rules.download_cCREs_proximal_enhancers.output,
-        # rules.download_cCREs_distal_enhancers.output,
+
+        rules.download_cCREs_all.output,
+        rules.download_cCREs_promoters.output,
+        rules.download_cCREs_proximal_enhancers.output,
+        rules.download_cCREs_distal_enhancers.output,
+        rules.download_cCREs_CA_H3K4me3.output,
+        rules.download_cCREs_CA_CTCF.output,
+        rules.download_cCREs_CA_TF.output,
+        rules.download_cCREs_CA.output,
+        rules.download_cCREs_TF.output,
 
         rules.download_polyasite_atlas.output,
 

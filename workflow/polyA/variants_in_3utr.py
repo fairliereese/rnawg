@@ -5,8 +5,9 @@ from kipoiseq.extractors import MultiSampleVCF
 from kipoiseq import Interval
 
 vcf = MultiSampleVCF(snakemake.input['vcf'])
-df = pr.read_bed(snakemake.input['bed'], as_df=True) \
-       .rename(columns={'Name': 'transcript_id', 'ThickStart': 'gene_id'})
+
+df = pr.read_bed(snakemake.input['bed']).merge(by='ThickStart').df \
+    .rename(columns={'ThickStart': 'gene_id'})
 
 
 chrom = snakemake.wildcards['chrom']
@@ -20,7 +21,6 @@ for row in tqdm(df.itertuples(), total=df.shape[0]):
     interval = Interval(row.Chromosome, row.Start,
                         row.End, strand=row.Strand)
     variants = vcf.fetch_variants(interval)
-    transcript_id = row.transcript_id.split('.')[0]
 
     num_3utr_variants = 0
 
@@ -29,21 +29,7 @@ for row in tqdm(df.itertuples(), total=df.shape[0]):
         # Rare variants
         if (variant.source.INFO.get('AC', 0) > 0) \
            and (variant.source.INFO.get('AF', 0) < 0.001):
-
-            # parse consequences
-            annotations = variant.source.INFO.get('vep') \
-                                             .split(f',{variant.alt}|')
-            annotations[0] = annotations[0].replace('{variant.alt}|', '')
-
-            for annotation in annotations:
-                annotation = annotation.split('|')
-
-                vep_transcript_id = annotation[5]
-
-                if transcript_id == vep_transcript_id:
-                    csq = annotation[0]
-                    if csq == '3_prime_UTR_variant':
-                        num_3utr_variants += 1
+            num_3utr_variants += 1
 
     df_counts.append({
         'Chromosome': row.Chromosome,

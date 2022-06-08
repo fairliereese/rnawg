@@ -24,68 +24,51 @@ rule louef_genes:
         "./louef_decile_genes.py"
 
 
-# rule gnomad_final_exon:
-#     input:
-#         gtf = config['talon']['gtf_corrected'],
-#         abundance = config['talon']['abundance_corrected']
-#     threads: 1
-#     resources:
-#         mem_gb = 16
-#     output:
-#         bed = config['polya']['final_exons']
-#     script:
-#         "./final_exon.py"
+rule gnomad_variants_in_3utr:
+    input:
+        vcf = config['gnomad']['vcf'],
+        bed = config['polya']['three_prime_utr']
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        csv = config['polya']['variants_utr_chrom']
+    script:
+        "./variants_in_3utr.py"
 
 
-# rule gnomad_variants_in_3utr:
-#     input:
-#         vcf = config['gnomad']['vcf'],
-#         bed = config['polya']['final_exons']
-#     threads: 1
-#     resources:
-#         mem_gb = 16
-#     output:
-#         csv = config['polya']['variants_utr_chrom']
-#     script:
-#         "./variants_in_3utr.py"
+rule gnomad_variants_in_polya:
+    input:
+        vcf = config['gnomad']['vcf'],
+        lapa_dir = config['lapa']['tes'],
+        bed = config['polya']['three_prime_utr']
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        csv = config['polya']['variants_polya_chrom']
+    script:
+        "./variants_in_polya.py"
 
 
-# rule gnomad_variants_in_polya:
-#     input:
-#         vcf = config['gnomad']['vcf'],
-#         lapa_dir = config['lapa']['tes'],
-#         bed = config['polya']['final_exons']
-#     threads: 1
-#     resources:
-#         mem_gb = 16
-#     output:
-#         csv = config['polya']['variants_polya_chrom']
-#     script:
-#         "./variants_in_polya.py"
-
-
-# rule gnomad_loeuf_genes:
-#     input:
-#         lapa_dir = config['lapa']['tes'],
-#         loeuf_decile = config['gnomad']['loeuf_decile'],
-#         variant_polya = expand(config['polya']['variants_polya_chrom'],
-#                                chrom=config['chroms']),
-#         variant_3utr = expand(config['polya']['variants_utr_chrom'],
-#                               chrom=config['chroms'])
-#     threads: 1
-#     resources:
-#         mem_gb = 16
-#     output:
-#         fig_loeuf = 'reports/figures/polyA/loeuf_polyA_signal.png',
-#         fig_signal = 'reports/figures/polyA/signal_usage.png'
-#     notebook:
-#         "./loeuf_genes_polya_signal.ipynb"
+rule gnomad_loeuf_genes_polyA_signal:
+    input:
+        lapa_dir = config['lapa']['tes'],
+        loeuf_decile = config['gnomad']['loeuf_decile'],
+        variant_polya = expand(config['polya']['variants_polya_chrom'],
+                               chrom=config['chroms']),
+        variant_3utr = expand(config['polya']['variants_utr_chrom'],
+                              chrom=config['chroms'])
+    threads: 1
+    resources:
+        mem_gb = 16
+    output:
+        fig_loeuf = 'reports/figures/polyA/loeuf_polyA_signal.png',
+        fig_signal = 'reports/figures/polyA/signal_usage.png'
+    notebook:
+        "./loeuf_genes_polya_signal.ipynb"
 
 
 rule all_polyA:
     input:
-        config['polya']['three_prime_utr']
-        # expand(rules.gnomad_variants_in_3utr.output, chrom=config['chroms']),
-        # expand(rules.gnomad_variants_in_polya.output, chrom=config['chroms'])
-
-        # rules.gnomad_loeuf_genes.output
+        rules.gnomad_loeuf_genes.output

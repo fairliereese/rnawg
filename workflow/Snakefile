@@ -72,7 +72,7 @@ include: "splicing/Snakefile"
 
 rule all:
     input:
-        rules.all_splicing.input
+        rules.all_polyA.input
         # rules.all_common.input
 
         # rules.all_miRNA.input,

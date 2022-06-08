@@ -6,14 +6,16 @@ from kipoiseq import Interval
 from kipoiseq.extractors import MultiSampleVCF
 
 
-df_3utr = pr.read_bed(snakemake.input['bed'], as_df=True) \
-    .rename(columns={'Name': 'transcript_id', 'ThickStart': 'gene_id'})
+df_3utr = pr.read_bed(snakemake.input['bed']).merge(by='ThickStart').df \
+    .rename(columns={'ThickStart': 'gene_id'})
 pos_strand = df_3utr['Strand'] == '+'
 df_3utr.loc[pos_strand, 'Start'] = df_3utr.loc[pos_strand, 'End'] - 1
 df_3utr.loc[~pos_strand, 'End'] = df_3utr.loc[~pos_strand, 'Start'] + 1
 gr_3utr = pr.PyRanges(df_3utr)
 
 df_cluster = LapaResult(snakemake.input['lapa_dir']).read_clusters()
+df_cluster = df_cluster.drop_duplicates(
+    ['Chromosome', 'Start', 'End', 'Strand'])
 chrom = snakemake.wildcards['chrom']
 df_cluster = df_cluster[df_cluster.Chromosome == 'chr' + chrom]
 df_cluster = df_cluster[~(df_cluster.signal == 'None@None')]

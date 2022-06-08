@@ -43,9 +43,8 @@ df_neg['End'] = df_neg['Start_cds'] - 3
 df = pd.concat([df_pos, df_neg])
 
 core_cols = ['Chromosome', 'Start', 'End', 'Strand']
-
-df = df[[*core_cols, 'transcript_id']]
-df = df.groupby(core_cols) \
+df = df[[*core_cols, 'transcript_id', 'gene_id']]
+df = df.groupby([*core_cols, 'gene_id']) \
        .agg(lambda x: ';'.join(x)) \
        .reset_index() \
        .rename(columns={'transcript_id': 'Name'})
