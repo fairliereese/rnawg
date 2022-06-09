@@ -40,7 +40,13 @@ rule all:
         config['polyasite_atlas']['formatted'],
         config['cerberus']['tes']['pas'],
         config['cerberus']['tss']['agg'],
-        config['cerberus']['tes']['agg']
+        config['cerberus']['tes']['agg'],
+        expand(config['cerberus']['gtf']['ics'],
+               source=['v40', 'v29', 'lapa']),
+        config['cerberus']['ics']['agg'],
+        config['cerberus']['update_gtf'],
+        config['cerberus']['update_ab']
+
 
         # expand(config['cerberus']['gtf']['ends'],
         #         source=['v40', 'v29'],
@@ -278,7 +284,7 @@ rule update_lapa_ab:
     run:
         df = pd.read_csv(input.lapa_ab, sep='\t')
         df.loc[(df.annot_transcript_id.str.contains('#'))&(df.transcript_novelty=='ISM'),
-            'ISM_rescue'] = 'TRUE'
+            'transcript_novelty'] = 'TRUE'
         df.to_csv(output.nov_ab, sep='\t', index=False)
 
 def filter_lapa(ab):
@@ -316,7 +322,7 @@ rule filter_lapa_ab:
         filt_ab = config['lapa']['filt_ab']
     run:
         tids = filter_lapa(input.nov_ab)
-        df = pd.read_csv(input.nov_ab)
+        df = pd.read_csv(input.nov_ab, sep='\t')
         df = df.loc[df.annot_transcript_id.isin(tids)]
         df.to_csv(output.filt_ab, sep='\t', index=False)
 
@@ -328,6 +334,19 @@ def get_cerberus_gtf_input(wildcards):
     elif 'lapa' == wildcards.source:
         gtf = config['lapa']['filt_gtf']
     return gtf
+
+rule cerberus_gtf_to_ics:
+    input:
+        gtf = get_cerberus_gtf_input
+    resources:
+        mem_gb = 28,
+        threads = 1
+    output:
+        ics = config['cerberus']['gtf']['ics'],
+    shell:
+        "cerberus gtf_to_ics \
+            --gtf {input.gtf} \
+            -o {output.ics}"
 
 rule cerberus_gtf_to_ends:
     input:
@@ -467,7 +486,7 @@ rule cerberus_agg_tss_config:
                     False, False,
                     False,
                     False, False, False],
-        sources = ['v40', 'v29', 'lapa', 'lapa_gtf',
+        sources = ['v40', 'v29', 'lapa', 'lapa',
                    'encode_cage', 'fantom_cage',
                    'encode_rampage',
                    'pls', 'pels', 'dels']
@@ -507,7 +526,7 @@ rule cerberus_agg_tes_config:
     params:
         add_ends = [True, True, True, True,
                     True, False],
-        sources = ['v40', 'v29', 'lapa', 'lapa_gtf',
+        sources = ['v40', 'v29', 'lapa', 'lapa',
                    'pas', 'polya_atlas']
     output:
         cfg = config['cerberus']['tes']['cfg']
@@ -560,22 +579,104 @@ rule cerberus_agg_tes_ends:
             --slack {params.slack} \
             -o {output.bed}"
 
+rule cerberus_agg_ics_config:
+    input:
+        v40_ics = expand(config['cerberus']['gtf']['ics'], source=['v40']),
+        v29_ics = expand(config['cerberus']['gtf']['ics'], source=['v29']),
+        lapa_ics = expand(config['cerberus']['gtf']['ics'], source=['lapa'])
+    params:
+        sources = ['v40', 'v29', 'lapa']
+    resources:
+        mem_gb = 1,
+        threads = 1
+    output:
+        cfg = config['cerberus']['ics']['cfg']
+    run:
+        files = [input.v40_ics, input.v29_ics, input.lapa_ics]
+        sources = ['v40', 'v29', 'lapa']
+        df = pd.DataFrame()
+        df['fname'] = files
+        df['source'] = sources
+        df.to_csv(output.cfg, header=None, index=False, sep=',')
 
 
+rule cerberus_agg_ics:
+    input:
+        cfg = config['cerberus']['ics']['cfg']
+    resources:
+        mem_gb = 28,
+        threads = 1
+    output:
+        agg_ics = config['cerberus']['ics']['agg']
+    shell:
+        "cerberus agg_ics \
+            --input {input.cfg} \
+            -o {output.agg_ics}"
 
+rule cerberus_write_ref:
+    input:
+        tss = config['cerberus']['tss']['agg'],
+        tes = config['cerberus']['tes']['agg'],
+        ics = config['cerberus']['ics']['agg']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    output:
+        ref = config['cerberus']['ref']
+    shell:
+        "cerberus write_reference \
+            --tss {input.tss} \
+            --tes {input.tes} \
+            --ics {input.ics} \
+            -o {output.ref}"
 
-# rule cerberus_agg_tes_ends:
+rule cerberus_annotate_transcriptome:
+    input:
+        gtf = config['lapa']['filt_gtf'],
+        ref = config['cerberus']['ref']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    output:
+        annot = config['cerberus']['annot']
+    shell:
+        "cerberus convert_transcriptome \
+            --gtf {input.gtf} \
+            --h5 {input.ref} \
+            -o {output.annot}"
 
+rule cerberus_update_abundance:
+    input:
+        annot = config['cerberus']['annot'],
+        ab = config['lapa']['filt_ab']
+    resources:
+        mem_gb = 28,
+        threads = 1
+    output:
+        update_ab = config['cerberus']['update_ab']
+    shell:
+        "cerberus replace_ab_ids \
+            --h5 {input.annot} \
+            --ab {input.ab} \
+            --collapse \
+            -o {output.update_ab}"
 
-# rule cerberus_agg_ics
-
-# rule cerberus_write_ref
-
-# rule cerberus_annotate_transcriptome:
-
-# rule cerberus_update_abundance
-
-# rule cerberus_update_gtf
+rule cerberus_update_gtf:
+    input:
+        annot = config['cerberus']['annot'],
+        gtf = config['lapa']['filt_gtf']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    output:
+        update_gtf = config['cerberus']['update_gtf']
+    shell:
+        "cerberus replace_gtf_ids \
+            --h5 {input.annot} \
+            --gtf {input.gtf} \
+            --update_ends \
+            --collapse \
+            -o {output.update_gtf}"
 
 #### Swan ####
 rule swan:

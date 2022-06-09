@@ -56,6 +56,7 @@ lapa:
 cerberus:
   gtf:
     ends: lr_bulk/cerberus/{source}_{mode}.bed
+    ics: lr_bulk/cerberus/{source}_ics.tsv
   tss:
     lapa: lr_bulk/lapa/lapa_tss.bed
     cfg: lr_bulk/cerberus/agg_tss_config.csv
@@ -67,6 +68,14 @@ cerberus:
     cfg: lr_bulk/cerberus/agg_tes_config.csv
     agg: lr_bulk/cerberus/agg_tes.bed
     source_map: lr_bulk/cerberus/agg_tes_source_map.bed
+  ics:
+    cfg: lr_bulk/cerberus/agg_ics_config.csv
+    agg: lr_bulk/cerberus/agg_ics.tsv
+  ref: lr_bulk/cerberus/cerberus_ref.h5 # does not contain full transcripts
+  annot: lr_bulk/cerberus/cerberus_annot.h5 # does contain full transcripts
+  update_ab: lr_bulk/cerberus/cerberus_filtered_abundance.tsv
+  update_gtf: lr_bulk/cerberus/cerberus.gtf
+
 
 polyasite_atlas:
   original: /dfs3b/samlab/mcelik/rnawg/data/resources/polyasite_atlas/atlas.clusters.2.0.GRCh38.96.bed

@@ -252,7 +252,60 @@ def plot_genes_n_ic_ends(counts,
     ax.set_ylim(lims)
     
     fname = '{}_{}_n_genes_ic_tss_tes.png'.format(opref, kind)
-    plt.savefig(fname, dpi=300, bbox_inches='tight')               
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+
+def plot_end_upset(h5, mode,
+                   subset=None,
+                   sources=None,
+                   gids=None,
+                   max_n_subsets=None,
+                   opref='figures/cerberus'):
+    _, tss, tes, _, _, _ = read_h5(h5, as_pyranges=False)
+    if mode == 'tss':
+        df = tss
+    elif mode == 'tes':
+        df = tes
+    
+    # filter ends for gene subset
+    if subset:
+        df = filter_cerberus_genes(df, subset=subset)
+    
+    # only plot for detected genes?
+    # TODO
+    
+    # get melted version of regions
+    end_upset = upsetplot.from_memberships(df.source.str.split(','), data=df)
+    
+    # limit just to n subsets 
+    if max_n_subsets:
+        content = from_contents(data)
+        uniques, counts = np.unique(content.index, return_counts=True)
+
+        sorted_uniques = [x for _, x in sorted(zip(counts, uniques), reverse=True)]
+    
+    # filter for given sources
+    temp = pd.DataFrame()
+    if sources:
+        end_upset.reset_index(inplace=True)
+        for source in sources:
+            df = end_upset.loc[end_upset[source] == True].copy(deep=True)
+            temp = pd.concat([temp, df])
+        df = temp
+        df.set_index(sources, inplace=True)
+    else:
+        df = end_upset.copy(deep=True)
+    
+    # make the plot
+    c_dict, _ = get_end_colors()
+    c = c_dict[mode]
+    fig = plt.figure(figsize=(11,6))
+    sns.set_context('paper', font_scale=1.5)
+    upsetplot.plot(df, subset_size='auto',
+                    show_counts='%d', sort_by='cardinality', 
+                    facecolor=c, fig=fig, shading_color='white', element_size=None)
+
+    fname = '{}_{}_source_upset.png'.format(opref, mode)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
         
 def plot_n_ic_tss_tes(counts,
                       label_genes=None,
