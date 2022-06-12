@@ -253,13 +253,59 @@ def plot_genes_n_ic_ends(counts,
     
     fname = '{}_{}_n_genes_ic_tss_tes.png'.format(opref, kind)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+def plot_ic_upset(h5, 
+                   subset=None,
+                   sources=None,
+                   gids=None,
+                   max_n_subsets=None,
+                   opref='figures/cerberus',
+                   **kwargs):
+    df, _, _, _, _, _ = read_h5(h5, as_pyranges=False) 
+    # filter ends for gene subset
+    if subset:
+        df = filter_cerberus_genes(df, subset=subset)
+
+    if gids:
+        df = df.loc[df.gene_id.isin(gids)]
+        
+    # get melted version of regions
+    ic_upset = upsetplot.from_memberships(df.source.str.split(','), data=df)
+    
+    # filter for given sources
+    if sources:
+        temp = ic_upset.copy(deep=True)
+        all_sources = temp.index.names
+        temp = temp.reset_index()
+        temp = temp.loc[temp[sources].any(axis=1)]
+        drop_sources = list(set(all_sources)-set(sources))
+        temp.drop(drop_sources, axis=1, inplace=True)
+        temp.set_index(sources, inplace=True)
+        ic_upset = temp.copy(deep=True)
+        
+    # make the plot
+    c_dict = get_edge_colors()
+    mode = 'intron'
+    c = c_dict[mode]
+    fig = plt.figure(figsize=(11,6))
+    sns.set_context('paper', font_scale=1.5)
+    upsetplot.plot(ic_upset, subset_size='auto',
+                    show_counts='%d', sort_by='cardinality', 
+                    facecolor=c, fig=fig, shading_color='white', element_size=None,
+                    **kwargs)
+
+    fname = '{}_{}_source_upset.png'.format(opref, mode)
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+    return ic_upset
 
 def plot_end_upset(h5, mode,
                    subset=None,
                    sources=None,
                    gids=None,
                    max_n_subsets=None,
-                   opref='figures/cerberus'):
+                   opref='figures/cerberus',
+                   **kwargs):
     _, tss, tes, _, _, _ = read_h5(h5, as_pyranges=False)
     if mode == 'tss':
         df = tss
@@ -270,42 +316,45 @@ def plot_end_upset(h5, mode,
     if subset:
         df = filter_cerberus_genes(df, subset=subset)
     
-    # only plot for detected genes?
-    # TODO
+    if gids:
+        df = df.loc[df.gene_id.isin(gids)]
     
     # get melted version of regions
     end_upset = upsetplot.from_memberships(df.source.str.split(','), data=df)
     
     # limit just to n subsets 
-    if max_n_subsets:
-        content = from_contents(data)
-        uniques, counts = np.unique(content.index, return_counts=True)
+#     if max_n_subsets:
+#         content = from_contents(data)
+#         uniques, counts = np.unique(content.index, return_counts=True)
 
-        sorted_uniques = [x for _, x in sorted(zip(counts, uniques), reverse=True)]
+#         sorted_uniques = [x for _, x in sorted(zip(counts, uniques), reverse=True)]
     
     # filter for given sources
-    temp = pd.DataFrame()
     if sources:
-        end_upset.reset_index(inplace=True)
-        for source in sources:
-            df = end_upset.loc[end_upset[source] == True].copy(deep=True)
-            temp = pd.concat([temp, df])
-        df = temp
-        df.set_index(sources, inplace=True)
-    else:
-        df = end_upset.copy(deep=True)
+        temp = end_upset.copy(deep=True)
+        all_sources = temp.index.names
+        temp = temp.reset_index()
+        temp = temp.loc[temp[sources].any(axis=1)]
+        drop_sources = list(set(all_sources)-set(sources))
+        temp.drop(drop_sources, axis=1, inplace=True)
+        temp.set_index(sources, inplace=True)
+        end_upset = temp.copy(deep=True)
+
     
     # make the plot
     c_dict, _ = get_end_colors()
     c = c_dict[mode]
     fig = plt.figure(figsize=(11,6))
     sns.set_context('paper', font_scale=1.5)
-    upsetplot.plot(df, subset_size='auto',
+    upsetplot.plot(end_upset, subset_size='auto',
                     show_counts='%d', sort_by='cardinality', 
-                    facecolor=c, fig=fig, shading_color='white', element_size=None)
+                    facecolor=c, fig=fig, shading_color='white', element_size=None,
+                   **kwargs)
 
     fname = '{}_{}_source_upset.png'.format(opref, mode)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+    return end_upset
         
 def plot_n_ic_tss_tes(counts,
                       label_genes=None,

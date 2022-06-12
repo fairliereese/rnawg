@@ -526,7 +526,7 @@ rule cerberus_agg_tes_config:
     params:
         add_ends = [True, True, True, True,
                     True, False],
-        sources = ['v40', 'v29', 'lapa', 'lapa',
+        sources = ['v40', 'v29', 'lapa', 'lapa_gtf',
                    'pas', 'polya_atlas']
     output:
         cfg = config['cerberus']['tes']['cfg']

@@ -76,6 +76,24 @@ cerberus:
   update_ab: lr_bulk/cerberus/cerberus_filtered_abundance.tsv
   update_gtf: lr_bulk/cerberus/cerberus.gtf
 
+wtc11:
+  cage:
+    unfilt: /dfs3b/samlab/mcelik/lapa/data/resources/cage/GSM5625727.count.bed
+    filt: /dfs3b/samlab/mcelik/lapa/data/results/cage/wtc11_replicated.bed
+    format: refs/wtc11_cage.bed
+  lapa:
+    filt: /dfs3b/samlab/mcelik/rnawg/data/results/lapa/tss/dataset/ENCSR507JOF.bed
+    format: lr_bulk/lapa/wtc11_lapa_tss.bed
+  ccre:
+    bed_zip: refs/wtc11_ccre.bed.gz
+    bed: refs/wtc11_ccre.bed
+  cerberus:
+    cfg: lr_bulk/cerberus/wtc11_tss_config.csv
+    tss: lr_bulk/cerberus/wtc11_tss_agg.bed
+    source_map: lr_bulk/cerberus/wtc11_tss_source_map.bed
+    ref: lr_bulk/cerberus/wtc11_ref.h5
+
+
 
 polyasite_atlas:
   original: /dfs3b/samlab/mcelik/rnawg/data/resources/polyasite_atlas/atlas.clusters.2.0.GRCh38.96.bed

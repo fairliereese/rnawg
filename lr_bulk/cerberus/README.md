@@ -155,3 +155,15 @@ cerberus agg_ends \
   --mode tss \
   -o test_agg_tss.bed
 ```
+
+```
+tss=agg_tss.bed
+tes=agg_tes.bed
+ics=agg_ics.tsv
+ref=cerberus_ref.h5
+cerberus write_reference \
+        --tss ${tss} \
+        --tes ${tes} \
+        --ics ${ics} \
+        -o ${ref}
+```
