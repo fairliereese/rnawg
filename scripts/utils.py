@@ -1270,8 +1270,7 @@ def read_ends(h5,
     
     return df
     
-def read_h5(h5, as_pyranges=True,
-            collapse_lapa=False):
+def read_h5(h5, as_pyranges=True):
     """
     Read h5 representation of a transcriptome
 

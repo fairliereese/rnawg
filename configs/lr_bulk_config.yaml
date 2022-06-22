@@ -1,6 +1,15 @@
 ref:
-  v29_gtf: refs/gencode_v29_sirv4_ercc.gtf
-  v40_gtf: refs/gencode.v40.annotation.gtf
+  v29:
+      gtf: refs/gencode_v29_sirv4_ercc.gtf
+      gtf_no_sirv: refs/gencode.v29.annotation.gtf
+      cerberus:
+          annot: lr_bulk/cerberus/v29_cerberus.h5
+          gtf: lr_bulk/cerberus/v29_cerberus.gtf
+  v40:
+      gtf: refs/gencode.v40.annotation.gtf
+      cerberus:
+          annot: lr_bulk/cerberus/v40_cerberus.h5
+          gtf: lr_bulk/cerberus/v40_cerberus.gtf
   hg38: refs/hg38_sirv4_ercc.fa
   pc_prefix: refs/gencode.v29.pc_translations
 
@@ -34,8 +43,8 @@ pp:
 
 lapa:
     # paths to hasan's material
-    hasan_gtf: /dfs3b/samlab/mcelik/rnawg/data/results/talon/human_talon.corrected.gtf
-    hasan_ab: /dfs3b/samlab/mcelik/rnawg/data/results/talon/human_talon_abundance_filtered.corrected.tsv
+    hasan_gtf: /dfs7/samlab/mcelik/rnawg/data/results/talon/human_talon.corrected.gtf
+    hasan_ab: /dfs7/samlab/mcelik/rnawg/data/results/talon/human_talon_abundance_filtered.corrected.tsv
 
     # corrected output right from lapa
     gtf: lr_bulk/lapa/human_talon.corrected.gtf
@@ -50,8 +59,8 @@ lapa:
     filt_gtf: lr_bulk/lapa/human_lapa.gtf
 
     # tss / tes clusters from lapa
-    tss: /dfs3b/samlab/mcelik/rnawg/data/results/lapa/tss/tss_clusters.bed
-    tes: /dfs3b/samlab/mcelik/rnawg/data/results/lapa/tes/polyA_clusters.bed
+    tss: /dfs7/samlab/mcelik/rnawg/data/results/lapa/tss/tss_clusters.bed
+    tes: /dfs7/samlab/mcelik/rnawg/data/results/lapa/tes/polyA_clusters.bed
 
 cerberus:
   gtf:
@@ -78,11 +87,11 @@ cerberus:
 
 wtc11:
   cage:
-    unfilt: /dfs3b/samlab/mcelik/lapa/data/resources/cage/GSM5625727.count.bed
-    filt: /dfs3b/samlab/mcelik/lapa/data/results/cage/wtc11_replicated.bed
+    unfilt: /dfs7/samlab/mcelik/lapa/data/resources/cage/GSM5625727.count.bed
+    filt: /dfs7/samlab/mcelik/lapa/data/results/cage/wtc11_replicated.bed
     format: refs/wtc11_cage.bed
   lapa:
-    filt: /dfs3b/samlab/mcelik/rnawg/data/results/lapa/tss/dataset/ENCSR507JOF.bed
+    filt: /dfs7/samlab/mcelik/rnawg/data/results/lapa/tss/dataset/ENCSR507JOF.bed
     format: lr_bulk/lapa/wtc11_lapa_tss.bed
   ccre:
     bed_zip: refs/wtc11_ccre.bed.gz
@@ -96,34 +105,34 @@ wtc11:
 
 
 polyasite_atlas:
-  original: /dfs3b/samlab/mcelik/rnawg/data/resources/polyasite_atlas/atlas.clusters.2.0.GRCh38.96.bed
-  formatted: /dfs3b/samlab/mcelik/rnawg/data/resources/polyasite_atlas/atlas.clusters_formatted.bed
+  original: /dfs7/samlab/mcelik/rnawg/data/resources/polyasite_atlas/atlas.clusters.2.0.GRCh38.96.bed
+  formatted: /dfs7/samlab/mcelik/rnawg/data/resources/polyasite_atlas/atlas.clusters_formatted.bed
 
 pas:
-  tes: /dfs3b/samlab/mcelik/rnawg/data/results/pas/lapa/polyA_clusters.bed
+  tes: /dfs7/samlab/mcelik/rnawg/data/results/pas/lapa/polyA_clusters.bed
 
 fantom:
-  hg19: /dfs3b/samlab/mcelik/rnawg/data/resources/fantom/hg19.cage_peak_phase1and2combined_coord.bed
-  hg38: /dfs3b/samlab/mcelik/rnawg/data/results/fantom/hg38_fantom.bed
+  hg19: /dfs7/samlab/mcelik/rnawg/data/resources/fantom/hg19.cage_peak_phase1and2combined_coord.bed
+  hg38: /dfs7/samlab/mcelik/rnawg/data/results/fantom/hg38_fantom.bed
 
 cage:
-  bed: /dfs3b/samlab/mcelik/rnawg/data/resources/cage/idr_peak/{encode_id}.bed
-  merged: /dfs3b/samlab/mcelik/rnawg/data/results/cage/merged.bed
+  bed: /dfs7/samlab/mcelik/rnawg/data/resources/cage/idr_peak/{encode_id}.bed
+  merged: /dfs7/samlab/mcelik/rnawg/data/results/cage/merged.bed
 
 rampage:
-  bed: /dfs3b/samlab/mcelik/rnawg/data/resources/rampage/idr_peak/{encode_id}.bed
-  merged: /dfs3b/samlab/mcelik/rnawg/data/results/rampage/merged.bed
+  bed: /dfs7/samlab/mcelik/rnawg/data/resources/rampage/idr_peak/{encode_id}.bed
+  merged: /dfs7/samlab/mcelik/rnawg/data/results/rampage/merged.bed
 
 cCREs:
-  all: /dfs3b/samlab/mcelik/rnawg/data/resource/cCREs/all.cCREs.bed
-  promoters: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-PLS.bed
-  proximal_enhancers: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-ccREs.pELS.bed
-  distal_enhancers: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-ccREs.dELS.bed
-  CA_H3K4me3: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA-H3K4me3.V4.bed
-  CA_CTCF: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA-CTCF.V4.bed
-  CA_TF: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA-TF.V4.bed
-  CA: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA.V4.bed
-  TF: /dfs3b/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-TF.V4.bed
+  all: /dfs7/samlab/mcelik/rnawg/data/resource/cCREs/all.cCREs.bed
+  promoters: /dfs7/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-PLS.bed
+  proximal_enhancers: /dfs7/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-ccREs.pELS.bed
+  distal_enhancers: /dfs7/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-ccREs.dELS.bed
+  CA_H3K4me3: /dfs7/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA-H3K4me3.V4.bed
+  CA_CTCF: /dfs7/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA-CTCF.V4.bed
+  CA_TF: /dfs7/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA-TF.V4.bed
+  CA: /dfs7/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-CA.V4.bed
+  TF: /dfs7/samlab/mcelik/rnawg/data/resources/cCREs/GRCh38-TF.V4.bed
 
 
 script_dir: scripts/

@@ -2284,7 +2284,7 @@ def scatter_dorito(counts,
         
     # get color
     if hue:
-        
+            
         # categorical
         if counts[hue].dtype.name == 'object':
             hue_type = 'cat'

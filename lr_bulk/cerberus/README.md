@@ -42,10 +42,19 @@ cerberus gen_reference \
   --tes_slack 20 \
   --keep_tmp
 
+get intron chans
+```bash
+lapa_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
+out=~/mortazavi_lab/data/rnawg/lr_bulk/cerberus/test_ics.tsv
+cerberus gtf_to_ics \
+  --gtf ${lapa_gtf} \
+  -o $out
+```
+
 # annotate transcriptome
 h5=cerberus_ref.h5
 # talon_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/talon/human_known_nic_nnc_talon.gtf
-lapa_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_swan_talon.corrected.gtf
+lapa_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
 o=human_cerberus.h5
 cerberus convert_transcriptome \
   --gtf ${lapa_gtf} \
@@ -72,7 +81,7 @@ cerberus convert_transcriptome \
   -o ${o}
 
 # replace ids in abundance
-h5=human_cerberus.h5
+h5=cerberus_annot.h5
 ab=../lapa/human_talon_abundance_filtered.corrected.tsv
 o=human_cerberus_abundance.tsv
 cerberus replace_ab_ids \
@@ -82,8 +91,8 @@ cerberus replace_ab_ids \
   -o ${o}
 
 # replace ids in gtf
-h5=human_cerberus.h5
-gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_swan_talon.corrected.gtf
+h5=cerberus_annot.h5
+gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
 o=human_cerberus.gtf
 cerberus replace_gtf_ids \
   --h5 $h5 \
@@ -166,4 +175,34 @@ cerberus write_reference \
         --tes ${tes} \
         --ics ${ics} \
         -o ${ref}
+```
+
+```
+# update gtf with cerberus
+old_gtf=lr_bulk/lapa/human_lapa.gtf
+new_gtf=lr_bulk/cerberus/cerberus.gtf
+annot=lr_bulk/cerberus/cerberus_annot.h5
+cerberus replace_gtf_ids \
+    --h5 $annot \
+    --gtf $old_gtf \
+    --update_ends \
+    --collapse \
+    -o $new_gtf
+```
+
+
+Another test
+```bash
+config=test_tss_config_2.csv
+v40_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v40_tss.bed
+v29_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v29_tss.bed
+
+touch ${config}
+printf "${v40_bed},True,v40\n" > $config
+printf "${v29_bed},True,v29\n" >> $config
+
+cerberus agg_ends \
+  --input $config \
+  --mode tss \
+  -o test_agg_tss_2.bed
 ```

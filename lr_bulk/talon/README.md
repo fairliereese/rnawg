@@ -23,3 +23,14 @@ Snakemake command
 conda activate snakemake
 snakemake -s workflow/lr_bulk/Snakefile -j 10 --latency-wait 120 --cluster "sbatch -A seyedam_lab --mem={resources.mem_gb}GB -c {resources.threads} --mail-user=freese@uci.edu --mail-type=START,END, --time=72:00:00" -n
 ```
+
+Wtc11 stuff
+```bash
+conda activate snakemake
+snakemake -s workflow/lr_bulk/wtc11/Snakefile -j 10 --latency-wait 120 --cluster "sbatch -A seyedam_lab --mem={resources.mem_gb}GB -c {resources.threads} --mail-user=freese@uci.edu --mail-type=START,END, --time=72:00:00" -n
+```
+dfs3b is down
+```bash
+conda activate snakemake
+snakemake -s workflow/lr_bulk/temp_nodfs3/Snakefile -j 10 --latency-wait 120 --cluster "sbatch -A seyedam_lab --mem={resources.mem_gb}GB -c {resources.threads} --mail-user=freese@uci.edu --mail-type=START,END, --time=72:00:00" -n
+```

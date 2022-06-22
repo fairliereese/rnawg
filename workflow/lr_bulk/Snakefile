@@ -29,21 +29,27 @@ rule all:
         # config['talon']['known_nic_nnc_gtf'],
         # config['swan']['pass_list'],
         # config['swan']['gtf'],
-        config['swan']['sg'],
-        expand(config['cerberus']['gtf']['ends'],
-                source=['v40', 'v29', 'lapa'],
-                mode=['tss', 'tes']),
-        config['cerberus']['tss']['lapa'],
-        config['cerberus']['tes']['lapa'],
-        config['cerberus']['tss']['cfg'],
-        config['cerberus']['tes']['cfg'],
-        config['polyasite_atlas']['formatted'],
-        config['cerberus']['tes']['pas'],
-        config['cerberus']['tss']['agg'],
-        config['cerberus']['tes']['agg'],
+        # config['swan']['sg'],
+        # expand(config['cerberus']['gtf']['ends'],
+        #         source=['v40', 'v29', 'lapa'],
+        #         mode=['tss', 'tes']),
+        # config['cerberus']['tss']['lapa'],
+        # config['cerberus']['tes']['lapa'],
+        # config['cerberus']['tss']['cfg'],
+        # config['cerberus']['tes']['cfg'],
+        # config['polyasite_atlas']['formatted'],
+        # config['cerberus']['tes']['pas'],
+        # config['cerberus']['tss']['agg'],
+        # config['cerberus']['tes']['agg'],
         expand(config['cerberus']['gtf']['ics'],
                source=['v40', 'v29', 'lapa']),
         config['cerberus']['ics']['agg'],
+        config['cerberus']['ref'],
+        config['cerberus']['annot'],
+        config['cerberus']['update_gtf'],
+        config['ref']['v29']['cerberus']['annot'],
+        config['ref']['v40']['cerberus']['annot'],
+        config['ref']['v29']['cerberus']['gtf'],
         config['cerberus']['update_gtf'],
         config['cerberus']['update_ab']
 
@@ -307,7 +313,7 @@ rule filter_lapa_gtf:
     run:
         tids = filter_lapa(input.nov_ab)
         gtf = pr.read_gtf(input.nov_gtf).df
-        gtf = gtf.loc[gtf.transcript_id.isin(tids)]
+        gtf = gtf.loc[(gtf.transcript_id.isin(tids))|(gtf.Feature=='gene')]
         gtf = pr.PyRanges(gtf)
         gtf.to_gtf(output.filt_gtf)
 
@@ -328,9 +334,9 @@ rule filter_lapa_ab:
 
 def get_cerberus_gtf_input(wildcards):
     if 'v40' == wildcards.source:
-        gtf = config['ref']['v40_gtf']
+        gtf = config['ref']['v40']['gtf']
     elif 'v29' == wildcards.source:
-        gtf = config['ref']['v29_gtf']
+        gtf = config['ref']['v29']['gtf']
     elif 'lapa' == wildcards.source:
         gtf = config['lapa']['filt_gtf']
     return gtf
@@ -526,7 +532,7 @@ rule cerberus_agg_tes_config:
     params:
         add_ends = [True, True, True, True,
                     True, False],
-        sources = ['v40', 'v29', 'lapa', 'lapa_gtf',
+        sources = ['v40', 'v29', 'lapa', 'lapa',
                    'pas', 'polya_atlas']
     output:
         cfg = config['cerberus']['tes']['cfg']
@@ -645,6 +651,36 @@ rule cerberus_annotate_transcriptome:
             --h5 {input.ref} \
             -o {output.annot}"
 
+rule cerberus_annotate_v29:
+    input:
+        gtf = config['ref']['v29']['gtf_no_sirv'],
+        ref = config['cerberus']['ref']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    output:
+        annot = config['ref']['v29']['cerberus']['annot']
+    shell:
+        "cerberus convert_transcriptome \
+            --gtf {input.gtf} \
+            --h5 {input.ref} \
+            -o {output.annot}"
+
+rule cerberus_annotate_v40:
+    input:
+        gtf = config['ref']['v40']['gtf'],
+        ref = config['cerberus']['ref']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    output:
+        annot = config['ref']['v40']['cerberus']['annot']
+    shell:
+        "cerberus convert_transcriptome \
+            --gtf {input.gtf} \
+            --h5 {input.ref} \
+            -o {output.annot}"
+
 rule cerberus_update_abundance:
     input:
         annot = config['cerberus']['annot'],
@@ -678,10 +714,27 @@ rule cerberus_update_gtf:
             --collapse \
             -o {output.update_gtf}"
 
+rule cerberus_update_v29_gtf:
+    input:
+        annot = config['ref']['v29']['cerberus']['annot'],
+        gtf = config['ref']['v29']['gtf_no_sirv']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    output:
+        update_gtf = config['ref']['v29']['cerberus']['gtf']
+    shell:
+        "cerberus replace_gtf_ids \
+            --h5 {input.annot} \
+            --gtf {input.gtf} \
+            --update_ends \
+            --collapse \
+            -o {output.update_gtf}"
+
 #### Swan ####
 rule swan:
     input:
-        annot = config['ref']['v29_gtf'],
+        annot = config['ref']['v29']['gtf'],
         ab = config['talon']['filt_ab'],
         gtf = config['swan']['gtf']
     params:
