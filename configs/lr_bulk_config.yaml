@@ -5,13 +5,17 @@ ref:
       cerberus:
           annot: lr_bulk/cerberus/v29_cerberus.h5
           gtf: lr_bulk/cerberus/v29_cerberus.gtf
+          t_info: lr_bulk/cerberus/v29_transcript_metadata.tsv
   v40:
       gtf: refs/gencode.v40.annotation.gtf
       cerberus:
           annot: lr_bulk/cerberus/v40_cerberus.h5
           gtf: lr_bulk/cerberus/v40_cerberus.gtf
+          t_info: lr_bulk/cerberus/v40_transcript_metadata.tsv
   hg38: refs/hg38_sirv4_ercc.fa
   pc_prefix: refs/gencode.v29.pc_translations
+  tf:
+    gid: refs/biomart_tf_gids.tsv
 
 talon:
   prefix: lr_bulk/talon/human

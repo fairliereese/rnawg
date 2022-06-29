@@ -30,17 +30,19 @@ rule all:
         # config['swan']['pass_list'],
         # config['swan']['gtf'],
         # config['swan']['sg'],
+        # config['lapa']['nov_ab'],
+        # config['lapa']['filt_gtf'],
         # expand(config['cerberus']['gtf']['ends'],
         #         source=['v40', 'v29', 'lapa'],
         #         mode=['tss', 'tes']),
-        # config['cerberus']['tss']['lapa'],
-        # config['cerberus']['tes']['lapa'],
-        # config['cerberus']['tss']['cfg'],
-        # config['cerberus']['tes']['cfg'],
-        # config['polyasite_atlas']['formatted'],
-        # config['cerberus']['tes']['pas'],
-        # config['cerberus']['tss']['agg'],
-        # config['cerberus']['tes']['agg'],
+        config['cerberus']['tss']['lapa'],
+        config['cerberus']['tes']['lapa'],
+        config['cerberus']['tss']['cfg'],
+        config['cerberus']['tes']['cfg'],
+        config['polyasite_atlas']['formatted'],
+        config['cerberus']['tes']['pas'],
+        config['cerberus']['tss']['agg'],
+        config['cerberus']['tes']['agg'],
         expand(config['cerberus']['gtf']['ics'],
                source=['v40', 'v29', 'lapa']),
         config['cerberus']['ics']['agg'],
@@ -50,13 +52,20 @@ rule all:
         config['ref']['v29']['cerberus']['annot'],
         config['ref']['v40']['cerberus']['annot'],
         config['ref']['v29']['cerberus']['gtf'],
+        config['ref']['v40']['cerberus']['gtf'],
         config['cerberus']['update_gtf'],
-        config['cerberus']['update_ab']
+        config['cerberus']['update_ab'],
+        config['ref']['v40']['cerberus']['t_info']
+
 
 
         # expand(config['cerberus']['gtf']['ends'],
         #         source=['v40', 'v29'],
         #         mode=['tss', 'tes'])
+
+#### refs ####
+# rule dl_v29:
+#
 
 #### Post-TALON stuff ####
 rule talon_annot:
@@ -289,8 +298,7 @@ rule update_lapa_ab:
         nov_ab = config['lapa']['nov_ab']
     run:
         df = pd.read_csv(input.lapa_ab, sep='\t')
-        df.loc[(df.annot_transcript_id.str.contains('#'))&(df.transcript_novelty=='ISM'),
-            'transcript_novelty'] = 'TRUE'
+        df.loc[(df.annot_transcript_id.str.contains('#'))&(df.transcript_novelty=='ISM'), 'transcript_novelty'] = 'ISM_rescue'
         df.to_csv(output.nov_ab, sep='\t', index=False)
 
 def filter_lapa(ab):
@@ -336,7 +344,7 @@ def get_cerberus_gtf_input(wildcards):
     if 'v40' == wildcards.source:
         gtf = config['ref']['v40']['gtf']
     elif 'v29' == wildcards.source:
-        gtf = config['ref']['v29']['gtf']
+        gtf = config['ref']['v29']['gtf_no_sirv']
     elif 'lapa' == wildcards.source:
         gtf = config['lapa']['filt_gtf']
     return gtf
@@ -394,12 +402,12 @@ def format_lapa_ends(bed, o):
     df = df.loc[~df.Name.str.contains('intergenic')]
 
     # add arbitrary unique index to name
-    df['num'] = [i for i in range(len(df.index))]
-    df['Name'] = df.Name+'_'+df.num.astype(str)
-
-    df.to_csv(o+'.tsv')
+    df['ThickEnd'] = [i for i in range(len(df.index))]
+    df['Name'] = df.Name+'_'+df.ThickEnd.astype(str)
+    df.drop('ThickEnd', axis=1, inplace=True)
     df = pr.PyRanges(df)
-    df.to_bed(o)
+    df = df.to_bed(o, chain=True)
+    return df
 #
 # rule format_lapa_ends:
 #     input:
@@ -599,7 +607,7 @@ rule cerberus_agg_ics_config:
         cfg = config['cerberus']['ics']['cfg']
     run:
         files = [input.v40_ics, input.v29_ics, input.lapa_ics]
-        sources = ['v40', 'v29', 'lapa']
+        sources = params.sources
         df = pd.DataFrame()
         df['fname'] = files
         df['source'] = sources
@@ -731,10 +739,39 @@ rule cerberus_update_v29_gtf:
             --collapse \
             -o {output.update_gtf}"
 
+rule cerberus_update_v40_gtf:
+    input:
+        annot = config['ref']['v40']['cerberus']['annot'],
+        gtf = config['ref']['v40']['gtf_no_sirv']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    output:
+        update_gtf = config['ref']['v40']['cerberus']['gtf']
+    shell:
+        "cerberus replace_gtf_ids \
+            --h5 {input.annot} \
+            --gtf {input.gtf} \
+            --update_ends \
+            --collapse \
+            -o {output.update_gtf}"
+
+rule cerberus_get_t_info_v40:
+    input:
+        gtf = config['ref']['v40']['cerberus']['gtf']
+        tfs = config['ref']['tf']['gid']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    output:
+        o = config['ref']['v40']['cerberus']['t_info']
+    run:
+        get_transcript_info(input.gtf, output.o)
+
 #### Swan ####
 rule swan:
     input:
-        annot = config['ref']['v29']['gtf'],
+        annot = config['ref']['v29']['gtf_no_sirv'],
         ab = config['talon']['filt_ab'],
         gtf = config['swan']['gtf']
     params:
