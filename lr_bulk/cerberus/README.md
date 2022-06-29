@@ -206,3 +206,22 @@ cerberus agg_ends \
   --mode tss \
   -o test_agg_tss_2.bed
 ```
+
+Another test with lapa
+```bash
+config=test_tes_config_3.csv
+v40_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v40_tes.bed
+v29_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v29_tes.bed
+lapa_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/lapa/lapa_tes.bed
+
+touch ${config}
+printf "${v40_bed},True,v40\n" > $config
+printf "${v29_bed},True,v29\n" >> $config
+printf "${lapa_bed},True,lapa\n" >> $config
+
+
+cerberus agg_ends \
+  --input $config \
+  --mode tes \
+  -o test_agg_tes_3.bed
+```
