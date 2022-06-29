@@ -89,7 +89,8 @@ def get_gene_info(gtf, o):
     # add TF info
     df['tf'] = False
     d = os.path.dirname(__file__)
-    tf_df = pd.read_csv('{}/../refs/biomart_tf_gids.tsv'.format(d), sep='\t')    tf_gids = tf_df['Gene stable ID'].unique().tolist()
+    tf_df = pd.read_csv('{}/../refs/biomart_tf_gids.tsv'.format(d), sep='\t')
+    tf_gids = tf_df['Gene stable ID'].unique().tolist()
     df['gid_stable'] = df['gid'].str.split('.', expand=True)[0]
     df.loc[df.gid_stable.isin(tf_gids), 'tf'] = True
     df.drop('gid_stable', axis=1, inplace=True)
