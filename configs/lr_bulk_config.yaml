@@ -12,6 +12,8 @@ ref:
           annot: lr_bulk/cerberus/v40_cerberus.h5
           gtf: lr_bulk/cerberus/v40_cerberus.gtf
           t_info: lr_bulk/cerberus/v40_transcript_metadata.tsv
+          g_info: lr_bulk/cerberus/v40_gene_metadata.tsv
+
   hg38: refs/hg38_sirv4_ercc.fa
   pc_prefix: refs/gencode.v29.pc_translations
   tf:

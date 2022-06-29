@@ -9,33 +9,10 @@ import pyranges as pr
 import pyranges as pyranges
 import scipy.stats as st
 
-def get_transcript_info(gtf, o):
+def get_biotype_map():
     """
-    Get a file with relevant information about each transcript in a gtf
-
-    Parameters:
-        gtf (str): Path to gtf
-        o (str): Output file name
+    Get a dictionary mapping each gene type to a more general biotype
     """
-
-    df = pr.read_gtf(gtf, as_df=True)
-
-    # remove sirvs and erccs
-    print(len(df.index))
-    df = df.loc[(~df.Chromosome.str.contains('SIRV'))&~(df.Chromosome.str.contains('ERCC'))]
-    print(len(df.index))
-
-    # only exons
-    df = df.loc[df.Feature == 'exon'].copy(deep=True)
-
-    # rename some columns
-    m = {'gene_id': 'gid',
-         'gene_name': 'gname',
-         'transcript_id': 'tid',
-         'gene_type': 'biotype'}
-    df.rename(m, axis=1, inplace=True)
-
-    # biotype map
     map = {'protein_coding': ['protein_coding'],
            'lncRNA': ['lincRNA',
                       'processed_transcript',
@@ -71,6 +48,83 @@ def get_transcript_info(gtf, o):
                      'IG_pseudogene', 'Mt_tRNA',
                      'Mt_rRNA', 'TR_J_pseudogene',
                      'IG_J_pseudogene']}
+    return map
+
+def get_gene_info(gtf, o):
+    df = pr.read_gtf(gtf, as_df=True)
+
+    # remove sirvs and erccs
+    print(len(df.index))
+    df = df.loc[(~df.Chromosome.str.contains('SIRV'))&~(df.Chromosome.str.contains('ERCC'))]
+    print(len(df.index))
+
+    # only gene
+    df = df.loc[df.Feature == 'gene'].copy(deep=True)
+
+    # rename some columns
+    m = {'gene_id': 'gid',
+         'gene_name': 'gname',
+         'transcript_id': 'tid',
+         'gene_type': 'biotype'}
+    df.rename(m, axis=1, inplace=True)
+
+    beeps = []
+    for key, item in map.items():
+        beeps += item
+
+    set(df.biotype.unique().tolist())-set(beeps)
+
+    # pivot map
+    biotype_map = {}
+    for key, biotypes in map.items():
+        for biotype in biotypes:
+            biotype_map[biotype] = key
+
+    # then add map to df
+    df['biotype_category'] = df.biotype.map(biotype_map)
+
+    # gene length
+    df['length'] = (df.start-df.stop).abs()
+
+    # add TF info
+    df['tf'] = False
+    d = os.path.dirname(__file__)
+    tf_df = pd.read_csv('{}/../refs/biomart_tf_gids.tsv'.format(d), sep='\t')    tf_gids = tf_df['Gene stable ID'].unique().tolist()
+    df['gid_stable'] = df['gid'].str.split('.', expand=True)[0]
+    df.loc[df.gid_stable.isin(tf_gids), 'tf'] = True
+    df.drop('gid_stable', axis=1, inplace=True)
+
+    # and save
+    df = df[['gid', 'gname', 'length', 'biotype', 'biotype_category', 'tf']]
+    df.to_csv(o, sep='\t', index=False)
+
+def get_transcript_info(gtf, o):
+    """
+    Get a file with relevant information about each transcript in a gtf
+
+    Parameters:
+        gtf (str): Path to gtf
+        o (str): Output file name
+    """
+
+    df = pr.read_gtf(gtf, as_df=True)
+
+    # remove sirvs and erccs
+    print(len(df.index))
+    df = df.loc[(~df.Chromosome.str.contains('SIRV'))&~(df.Chromosome.str.contains('ERCC'))]
+    print(len(df.index))
+
+    # only exons
+    df = df.loc[df.Feature == 'exon'].copy(deep=True)
+
+    # rename some columns
+    m = {'gene_id': 'gid',
+         'gene_name': 'gname',
+         'transcript_id': 'tid',
+         'gene_type': 'biotype'}
+    df.rename(m, axis=1, inplace=True)
+
+    map = get_biotype_map()
 
     beeps = []
     for key, item in map.items():
@@ -833,6 +887,10 @@ def get_gtf_info(how='gene',
         fname = '{}/../refs/gencode_v29_gene_metadata.tsv'.format(d)
     elif how == 'iso':
         fname = '{}/../refs/gencode_v29_transcript_metadata.tsv'.format(d)
+    elif how == 'v40_gene':
+        pass
+    elif how == 'v40_iso':
+        fname = '{}../lr_bulk/cerberus/v40_transcript_metadata.tsv'.format(d)
 
     df = pd.read_csv(fname, sep='\t')
 

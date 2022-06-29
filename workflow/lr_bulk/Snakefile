@@ -55,7 +55,9 @@ rule all:
         config['ref']['v40']['cerberus']['gtf'],
         config['cerberus']['update_gtf'],
         config['cerberus']['update_ab'],
-        config['ref']['v40']['cerberus']['t_info']
+        config['ref']['v40']['cerberus']['t_info'],
+        config['ref']['v40']['cerberus']['g_info']
+
 
 
 
@@ -742,7 +744,7 @@ rule cerberus_update_v29_gtf:
 rule cerberus_update_v40_gtf:
     input:
         annot = config['ref']['v40']['cerberus']['annot'],
-        gtf = config['ref']['v40']['gtf_no_sirv']
+        gtf = config['ref']['v40']['gtf']
     resources:
         mem_gb = 56,
         threads = 1
@@ -758,7 +760,7 @@ rule cerberus_update_v40_gtf:
 
 rule cerberus_get_t_info_v40:
     input:
-        gtf = config['ref']['v40']['cerberus']['gtf']
+        gtf = config['ref']['v40']['cerberus']['gtf'],
         tfs = config['ref']['tf']['gid']
     resources:
         mem_gb = 56,
@@ -767,6 +769,18 @@ rule cerberus_get_t_info_v40:
         o = config['ref']['v40']['cerberus']['t_info']
     run:
         get_transcript_info(input.gtf, output.o)
+
+rule cerberus_get_g_info_v40:
+    input:
+        gtf = config['ref']['v40']['cerberus']['gtf'],
+        tfs = config['ref']['tf']['gid']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    output:
+        o = config['ref']['v40']['cerberus']['g_info']
+    run:
+        get_gene_info(input.gtf, output.o)
 
 #### Swan ####
 rule swan:
