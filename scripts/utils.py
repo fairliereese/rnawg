@@ -870,13 +870,16 @@ def add_stable_gid(gtf):
 
 def get_gtf_info(how='gene',
                  subset=None,
-                 add_stable_gid=False):
+                 add_stable_gid=False,
+                 ver='v29'):
     """
     Gets the info from the annotation about genes / transcripts
 
     Parameters:
         how (str): 'gene' or 'iso'
         subset (str): 'polya', 'tf', 'protein_coding' or None
+        add_stable_gid (bool): Add stable gid (code from cerberus)
+        ver (str): {'v29', 'v40_cerberus'}
 
     Returns:
         df (pandas DataFrame): DataFrame with info for gene / transcript
@@ -886,14 +889,14 @@ def get_gtf_info(how='gene',
             per meta biotype reported in gencode
     """
     d = os.path.dirname(__file__)
-    if how == 'gene':
+    if how == 'gene' and ver == 'v29':
         fname = '{}/../refs/gencode_v29_gene_metadata.tsv'.format(d)
-    elif how == 'iso':
+    elif how == 'iso' and ver == 'v29':
         fname = '{}/../refs/gencode_v29_transcript_metadata.tsv'.format(d)
-    elif how == 'v40_gene':
-        pass
-    elif how == 'v40_iso':
-        fname = '{}../lr_bulk/cerberus/v40_transcript_metadata.tsv'.format(d)
+    elif how == 'gene' and ver == 'v40_cerberus':
+        fname = '{}/../refs/cerberus/v40_gene_metadata.tsv'.format(d)
+    elif how == 'iso' and ver == 'v40_cerberus':
+        fname = '{}/../refs/cerberus/v40_transcript_metadata.tsv'.format(d)
 
     df = pd.read_csv(fname, sep='\t')
 
