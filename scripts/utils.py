@@ -68,6 +68,8 @@ def get_gene_info(gtf, o):
          'gene_type': 'biotype'}
     df.rename(m, axis=1, inplace=True)
 
+    map = get_biotype_map()
+
     beeps = []
     for key, item in map.items():
         beeps += item
