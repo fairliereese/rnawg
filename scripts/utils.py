@@ -86,7 +86,7 @@ def get_gene_info(gtf, o):
     df['biotype_category'] = df.biotype.map(biotype_map)
 
     # gene length
-    df['length'] = (df.start-df.stop).abs()
+    df['length'] = (df.Start-df.End).abs()
 
     # add TF info
     df['tf'] = False
