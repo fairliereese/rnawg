@@ -1,3 +1,4 @@
+import pdb
 import scanpy as sc
 import pandas as pd
 import anndata
@@ -7,6 +8,7 @@ import os
 import numpy as np
 import pyranges as pr
 import pyranges as pyranges
+import cerberus
 import scipy.stats as st
 
 def get_biotype_map():
@@ -846,29 +848,29 @@ def get_gene_number(df, col, pref):
     df = df.merge(temp, how='left', on=['gid', col])
     return df
 
-def add_stable_gid(gtf):
-    """
-    Add stable gene id that accounts for PAR_X and PAR_Y
-    chromosomes to gtf df
-
-    Parameters:
-        gtf (pandas DataFrame): GTF dataframe
-
-    Returns:
-        gtf (pandas DataFrame): GTF dataframe with gene id turned into its
-            stable version
-    """
-    try:
-        gtf[['temp', 'par_region_1', 'par_region_2']] = gtf.gene_id.str.split('_', n=2, expand=True)
-        gtf['gene_id'] = gtf.gene_id.str.split('.', expand=True)[0]
-        gtf[['par_region_1', 'par_region_2']] = gtf[['par_region_1',
-                                                           'par_region_2']].fillna('')
-        gtf['gene_id'] = gtf.gene_id+gtf.par_region_1+gtf.par_region_2
-        gtf.drop(['temp', 'par_region_1', 'par_region_2'], axis=1, inplace=True)
-    except:
-        gtf['gene_id'] = gtf.gene_id.str.split('.', expand=True)[0]
-
-    return gtf
+# def add_stable_gid(gtf):
+#     """
+#     Add stable gene id that accounts for PAR_X and PAR_Y
+#     chromosomes to gtf df
+#
+#     Parameters:
+#         gtf (pandas DataFrame): GTF dataframe
+#
+#     Returns:
+#         gtf (pandas DataFrame): GTF dataframe with gene id turned into its
+#             stable version
+#     """
+#     try:
+#         gtf[['temp', 'par_region_1', 'par_region_2']] = gtf.gene_id.str.split('_', n=2, expand=True)
+#         gtf['gene_id'] = gtf.gene_id.str.split('.', expand=True)[0]
+#         gtf[['par_region_1', 'par_region_2']] = gtf[['par_region_1',
+#                                                            'par_region_2']].fillna('')
+#         gtf['gene_id'] = gtf.gene_id+gtf.par_region_1+gtf.par_region_2
+#         gtf.drop(['temp', 'par_region_1', 'par_region_2'], axis=1, inplace=True)
+#     except:
+#         gtf['gene_id'] = gtf.gene_id.str.split('.', expand=True)[0]
+#
+#     return gtf
 
 def get_gtf_info(how='gene',
                  subset=None,
@@ -927,12 +929,7 @@ def get_gtf_info(how='gene',
 
     # add stable gid if requested
     if add_stable_gid:
-        df[['temp', 'par_region_1', 'par_region_2']] = df.gid.str.split('_', n=2, expand=True)
-        df['gid_stable'] = df.gid.str.split('.', expand=True)[0]
-        df[['par_region_1', 'par_region_2']] = df[['par_region_1',
-                                                   'par_region_2']].fillna('')
-        df['gid_stable'] = df.gid_stable+df.par_region_1+df.par_region_2
-        df.drop(['temp', 'par_region_1', 'par_region_2'], axis=1, inplace=True)
+        df['gid_stable'] = cerberus.get_stable_gid(df, 'gid')
 
     return df, biotype_counts, biotype_cat_counts
 

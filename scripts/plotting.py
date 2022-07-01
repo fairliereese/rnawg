@@ -73,12 +73,13 @@ def get_biosample_colors():
 def get_talon_nov_colors(cats=None):
     c_dict = {'Known': '#009E73',
               'ISM': '#0072B2',
+              'ISM_rescue': '#0072B2',
               'NIC': '#D55E00',
               'NNC': '#E69F00',
               'Antisense': '#000000',
               'Intergenic': '#CC79A7',
               'Genomic': '#F0E442'}
-    order = ['Known', 'ISM', 'NIC', 'NNC', 'Antisense', 'Intergenic', 'Genomic']
+    order = ['Known', 'ISM', 'ISM_rescue', 'NIC', 'NNC', 'Antisense', 'Intergenic', 'Genomic']
     
     c_dict, order = rm_color_cats(c_dict, order, cats)            
     return c_dict, order
@@ -1139,14 +1140,14 @@ def plot_biosamp_det(df,
             each gene or isoform was seen in
     """
     if nov:
-        nov = [nov]
+        nov_list = [nov]
     df = get_det_table(df,
                      how=how,
                      min_tpm=min_tpm,
                      gene_subset=gene_subset,
                      sample=sample,
                      groupby=groupby,
-                     nov=nov)
+                     nov=nov_list)
     
     # finally, calculate the number of biosamples / libraries these 
     # genes or transcripts are expressed >= min TPM
@@ -1686,6 +1687,7 @@ def plot_det_len_kde(df,
                      min_tpm=1,
                      xlim=None,
                      split_biotypes=False,
+                     ver='v29',
                      opref='figures/'):
     """
     Plots dist. of gene or transcript length based on whether 
@@ -1709,7 +1711,7 @@ def plot_det_len_kde(df,
                    min_tpm=min_tpm,
                    nov=['Known'],
                    gene_subset=subset)
-    gene_df, _, _ = get_gtf_info(how=how, subset=subset)   
+    gene_df, _, _ = get_gtf_info(how=how, subset=subset, ver=ver)   
     df.reset_index(inplace=True)
     
     if how == 'gene':
@@ -1944,7 +1946,7 @@ def plot_transcript_novelty(df, oprefix,
     temp.reset_index(inplace=True)
     temp.rename({'transcript_ID': 'counts'}, axis=1, inplace=True)
     print(temp)
-    novs = ['NIC', 'Known', 'NNC']
+    novs = ['NIC', 'Known', 'ISM_rescue', 'NNC']
     complete = temp.loc[temp.transcript_novelty.isin(novs), 'counts'].sum(axis=0)
     print('Number of complete isoforms: {}'.format(complete))
     
