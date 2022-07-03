@@ -1961,10 +1961,17 @@ def count_gisx_region_genes(df, source, tss, tes, spl):
     print('{} ({:.2f}%) genes are simple in {}'.format(n, (n/t)*100, source))
 
 def assign_gisx_sector(df):
-    df['total'] = df.tss+df.tes+df.splicing_ratio
-    df['tss_ratio'] = df.tss / df.total
-    df['tes_ratio'] = df.tes / df.total
-    df['spl_ratio'] = df.splicing_ratio / df.total
+    if 'n_tss' in df.columns.tolist():
+        tss = 'n_tss'
+        tes = 'n_tes'
+    else:
+        tss = 'tss'
+        tes = 'tes'
+    spl = 'splicing_ratio'
+    df['total'] = df[tss]+df[tes]+df[spl]
+    df['tss_ratio'] = df[tss] / df.total
+    df['tes_ratio'] = df[tes] / df.total
+    df['spl_ratio'] = df[spl] / df.total
 
     df['sector'] = 'simple'
 
