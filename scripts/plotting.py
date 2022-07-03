@@ -1,3 +1,4 @@
+import cerberus
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -1443,6 +1444,7 @@ def plot_det_vs_gencode_isos(df,
                          nov=['Known', 'NIC', 'NNC'],
                          label_genes=None,
                          opref='figures/',
+                         ver='v29',
                          ylim=None, 
                          xlim=None):
     """
@@ -1457,15 +1459,23 @@ def plot_det_vs_gencode_isos(df,
                        groupby='all', 
                        nov=nov)
     det_df.rename({'all': 'n_isos_det'}, axis=1, inplace=True)
+    det_df.reset_index(inplace=True)
+    det_df['gid'] = cerberus.get_stable_gid(det_df, 'annot_gene_id')
     
     # annotated isoforms
-    gc_df = get_n_gencode_isos(subset='polya')
+    gc_df = get_n_gencode_isos(subset='polya', ver=ver)
+    gc_df.drop('gid', axis=1, inplace=True)
+    gc_df.rename({'gid_stable': 'gid'}, axis=1, inplace=True)
     gc_df = gc_df[['gid', 'n_isos_gencode']]
+    # pdb.set_trace()
     
-    df = det_df.merge(gc_df, how='left', left_index=True, right_on='gid')    
+    
+    df = det_df.merge(gc_df, how='left', on='gid')    
     
     # add gene name 
-    gene_df, _, _ = get_gtf_info(how='gene', subset='polya')
+    gene_df, _, _ = get_gtf_info(how='gene', subset='polya', ver=ver, add_stable_gid=True)
+    gene_df.drop('gid', axis=1, inplace=True)
+    gene_df.rename({'gid_stable': 'gid'}, axis=1, inplace=True)
     gene_df = gene_df[['gid', 'gname']]
     df = df.merge(gene_df, how='left', on='gid')
     
@@ -1533,7 +1543,11 @@ def plot_det_vs_gencode_isos(df,
 #     print(fig.get_size_inches())
 
     fname = '{}_total_v_gencode_isos_per_gene.png'.format(opref)
-    # plt.savefig(fname, dpi=300, bbox_inches='tight')
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+    # remove pseudocount for analysis
+    df['n_isos_det'] = df.n_isos_det-1
+    df['n_isos_gencode'] = df.n_isos_gencode-1
     
     return df
     

@@ -782,6 +782,18 @@ rule cerberus_get_g_info_v40:
     run:
         get_gene_info(input.gtf, output.o)
 
+#### Bru ####
+# rule get_bru_tids:
+#     input:
+#         exp_meta = config['bru']['meta']['exp'],
+#         file_to_hr = config['meta']['file_to_hr'],
+#         ab = config['cerberus']['update_ab']
+#     output:
+#         datasets = config['bru']['datasets'],
+#         pass_list = config['bru']['pass_list']
+
+
+
 #### Swan ####
 rule swan:
     input:

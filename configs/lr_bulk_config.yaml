@@ -30,6 +30,17 @@ talon:
   known_nic_nnc_pass_list: lr_bulk/talon/human_known_nic_nnc_pass_list.csv
   known_nic_nnc_gtf: lr_bulk/talon/human_known_nic_nnc_talon.gtf
 
+
+bru:
+  meta:
+    exp: bru/exp_metadata.tsv
+  datasets: bru/ljungman_datasets.tsv
+
+# lr bulk metadata
+meta:
+  file_to_hr: lr_bulk/file_to_hr.tsv
+
+
 swan:
   pass_list: lr_bulk/swan/human_talon_swan_pass_list.csv
   gtf: lr_bulk/swan/human_swan_talon.gtf
