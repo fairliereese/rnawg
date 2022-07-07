@@ -39,8 +39,9 @@ def get_sector_colors(cats=None):
     c_dict = {'tss': tss,
               'splicing': splicing,
               'tes': tes,
-              'simple': simple}
-    order = ['tss', 'splicing', 'tes', 'simple']
+              'simple': simple, 
+              'mixed': '#b7b7b7'}
+    order = ['tss', 'splicing', 'tes', 'mixed', 'simple']
     
     c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
@@ -2636,7 +2637,7 @@ def plot_species_sector_gene_counts(m_counts, h_counts):
 
 def plot_sector_gene_counts(counts):
     temp = pd.DataFrame()
-    for source in ['GENCODE', 'obs']:
+    for source in counts.source.unique():
         df = assign_gisx_sector(counts)
         df = df.loc[df.source == source]
         df = df[['gid', 'source', 'sector']].groupby(['source', 'sector']).count().reset_index()
@@ -2646,9 +2647,9 @@ def plot_sector_gene_counts(counts):
     temp['perc'] = (temp.n_genes/temp.total_genes)*100
     temp = temp.loc[temp.sector != 'simple'] 
     
-    y = '% annotated / observed genes'
+    y = '% of total genes'
     temp.rename({'perc': y}, axis=1, inplace=True)
-    c_dict, order = get_sector_colors(['tss', 'splicing', 'tes'])
+    c_dict, order = get_sector_colors(['tss', 'splicing', 'tes', 'mixed'])
     # plot both together
     sns.set_context('paper', font_scale=1.8)
     ax = sns.catplot(data=temp, x='source',
@@ -2669,7 +2670,7 @@ def plot_sector_gene_counts(counts):
     a = ax.axes[0,0]
     add_perc_2(a)
     
-    return temp            
+    return temp          
 
 def plot_sankey(df,
                 source,
@@ -2699,3 +2700,4 @@ def plot_sankey(df,
     fig = go.Figure(data)
     fig.update_layout(title_text=title)
     fig.show()
+    return fig

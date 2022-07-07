@@ -1978,7 +1978,10 @@ def assign_gisx_sector(df):
     df.loc[df.tss_ratio > 0.5, 'sector'] = 'tss'
     df.loc[df.tes_ratio > 0.5, 'sector'] = 'tes'
     df.loc[df.spl_ratio > 0.5, 'sector'] = 'splicing'
-
+    
+    # mixed genes
+    df.loc[(df.sector=='simple')&(df.n_iso>1), 'sector'] = 'mixed'
+    
     return df
 
 def compare_species(h_counts, m_counts, source='obs'):

@@ -8,6 +8,7 @@ Downloadable links and file descriptions available at each of the links below.
 * [cerberus filtered GTF](https://sandbox.zenodo.org/record/1078206)
 * [cerberus TSS regions](https://sandbox.zenodo.org/record/1078194)
 * [cerberus TES regions](https://sandbox.zenodo.org/record/1078198)
+* [cerberus annotation](https://sandbox.zenodo.org/record/1080949)
 * [cerberus source triplets](https://sandbox.zenodo.org/record/1078186)
 * [cerberus expressed triplets](https://sandbox.zenodo.org/record/1078188)
 * [TALON read annot](https://sandbox.zenodo.org/record/1055429)
