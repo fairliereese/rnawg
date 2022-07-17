@@ -8,6 +8,7 @@ import gseapy as gp
 import swan_vis as swan
 from scipy import sparse
 import pyranges
+import cerberus
 
 p = os.getcwd()
 sys.path.append(p)
@@ -413,7 +414,7 @@ def format_lapa_ends(bed, o):
     df.columns = ['Chromosome', 'Start', 'End', 'Strand', 'gene_id']
 
     # get stable gid
-    df = add_stable_gid(df)
+    df = cerberus.add_stable_gid(df)
     df.rename({'gene_id': 'Name'}, axis=1, inplace=True)
 
     # add indicator that this file came from lapa
