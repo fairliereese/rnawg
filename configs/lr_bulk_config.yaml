@@ -6,13 +6,13 @@ ref:
           annot: refs/cerberus/v29_cerberus.h5
           gtf: refs/cerberus/v29_cerberus.gtf
           t_info: refs/cerberus/v29_transcript_metadata.tsv
-  v40:
-      gtf: refs/gencode.v40.annotation.gtf
+  v41:
+      gtf: refs/gencode.v41.annotation.gtf
       cerberus:
-          annot: refs/cerberus/v40_cerberus.h5
-          gtf: refs/cerberus/v40_cerberus.gtf
-          t_info: refs/cerberus/v40_transcript_metadata.tsv
-          g_info: refs/cerberus/v40_gene_metadata.tsv
+          annot: refs/cerberus/v41_cerberus.h5
+          gtf: refs/cerberus/v41_cerberus.gtf
+          t_info: refs/cerberus/v41_transcript_metadata.tsv
+          g_info: refs/cerberus/v41_gene_metadata.tsv
 
   hg38: refs/hg38_sirv4_ercc.fa
   pc_prefix: refs/gencode.v29.pc_translations

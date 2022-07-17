@@ -33,7 +33,7 @@ rule all:
         # config['lapa']['nov_ab'],
         # config['lapa']['filt_gtf'],
         # expand(config['cerberus']['gtf']['ends'],
-        #         source=['v40', 'v29', 'lapa'],
+        #         source=['v41', 'v29', 'lapa'],
         #         mode=['tss', 'tes']),
         config['cerberus']['tss']['lapa'],
         config['cerberus']['tes']['lapa'],
@@ -44,30 +44,49 @@ rule all:
         config['cerberus']['tss']['agg'],
         config['cerberus']['tes']['agg'],
         expand(config['cerberus']['gtf']['ics'],
-               source=['v40', 'v29', 'lapa']),
+               source=['v41', 'v29', 'lapa']),
         config['cerberus']['ics']['agg'],
         config['cerberus']['ref'],
         config['cerberus']['annot'],
         config['cerberus']['update_gtf'],
         config['ref']['v29']['cerberus']['annot'],
-        config['ref']['v40']['cerberus']['annot'],
+        config['ref']['v41']['cerberus']['annot'],
         config['ref']['v29']['cerberus']['gtf'],
-        config['ref']['v40']['cerberus']['gtf'],
+        config['ref']['v41']['cerberus']['gtf'],
         config['cerberus']['update_gtf'],
         config['cerberus']['update_ab'],
-        config['ref']['v40']['cerberus']['t_info'],
-        config['ref']['v40']['cerberus']['g_info']
+        config['ref']['v41']['cerberus']['t_info'],
+        config['ref']['v41']['cerberus']['g_info']
 
 
 
 
         # expand(config['cerberus']['gtf']['ends'],
-        #         source=['v40', 'v29'],
+        #         source=['v41', 'v29'],
         #         mode=['tss', 'tes'])
 
 #### refs ####
-# rule dl_v29:
-#
+rule dl_v41:
+    params:
+        link = config['ref']['v41']['link']
+    resources:
+        mem_gb = 4,
+        threads = 1
+    output:
+        gz = config['ref']['v41']['gz']
+    shell:
+        "wget -O {output.gz} {params.link}"
+
+rule gunzip_v41:
+    input:
+        gz = config['ref']['v41']['gz']
+    resources:
+        mem_gb = 4,
+        threads = 1
+    output:
+        gtf = config['ref']['v41']['gtf']
+    shell:
+        "gunzip {input.gz}"
 
 #### Post-TALON stuff ####
 rule talon_annot:
@@ -343,8 +362,8 @@ rule filter_lapa_ab:
         df.to_csv(output.filt_ab, sep='\t', index=False)
 
 def get_cerberus_gtf_input(wildcards):
-    if 'v40' == wildcards.source:
-        gtf = config['ref']['v40']['gtf']
+    if 'v41' == wildcards.source:
+        gtf = config['ref']['v41']['gtf']
     elif 'v29' == wildcards.source:
         gtf = config['ref']['v29']['gtf_no_sirv']
     elif 'lapa' == wildcards.source:
@@ -375,7 +394,7 @@ rule cerberus_gtf_to_ends:
         threads = 1
     output:
         bed = config['cerberus']['gtf']['ends'],
-                # source=['v40', 'v29', 'lapa'],
+                # source=['v41', 'v29', 'lapa'],
                 # mode=['tss', 'tes'])
     shell:
         "cerberus gtf_to_bed \
@@ -481,8 +500,8 @@ rule format_polya_atlas:
 
 rule cerberus_agg_tss_config:
     input:
-        v40 = expand(config['cerberus']['gtf']['ends'],
-            mode=['tss'], source=['v40']),
+        v41 = expand(config['cerberus']['gtf']['ends'],
+            mode=['tss'], source=['v41']),
         v29 = expand(config['cerberus']['gtf']['ends'],
             mode=['tss'], source=['v29']),
         lapa = config['cerberus']['tss']['lapa'],
@@ -502,14 +521,14 @@ rule cerberus_agg_tss_config:
                     False, False,
                     False,
                     False, False, False],
-        sources = ['v40', 'v29', 'lapa', 'lapa',
+        sources = ['v41', 'v29', 'lapa', 'lapa',
                    'encode_cage', 'fantom_cage',
                    'encode_rampage',
                    'pls', 'pels', 'dels']
     output:
         cfg = config['cerberus']['tss']['cfg']
     run:
-        files = [input.v40,
+        files = [input.v41,
                  input.v29,
                  input.lapa,
                  input.lapa_gtf,
@@ -527,8 +546,8 @@ rule cerberus_agg_tss_config:
 
 rule cerberus_agg_tes_config:
     input:
-        v40 = expand(config['cerberus']['gtf']['ends'],
-            mode=['tes'], source=['v40']),
+        v41 = expand(config['cerberus']['gtf']['ends'],
+            mode=['tes'], source=['v41']),
         v29 = expand(config['cerberus']['gtf']['ends'],
             mode=['tes'], source=['v29']),
         lapa = config['cerberus']['tes']['lapa'],
@@ -542,12 +561,12 @@ rule cerberus_agg_tes_config:
     params:
         add_ends = [True, True, True, True,
                     True, False],
-        sources = ['v40', 'v29', 'lapa', 'lapa',
+        sources = ['v41', 'v29', 'lapa', 'lapa',
                    'pas', 'polya_atlas']
     output:
         cfg = config['cerberus']['tes']['cfg']
     run:
-        files = [input.v40,
+        files = [input.v41,
                  input.v29,
                  input.lapa,
                  input.lapa_gtf,
@@ -597,18 +616,18 @@ rule cerberus_agg_tes_ends:
 
 rule cerberus_agg_ics_config:
     input:
-        v40_ics = expand(config['cerberus']['gtf']['ics'], source=['v40']),
+        v41_ics = expand(config['cerberus']['gtf']['ics'], source=['v41']),
         v29_ics = expand(config['cerberus']['gtf']['ics'], source=['v29']),
         lapa_ics = expand(config['cerberus']['gtf']['ics'], source=['lapa'])
     params:
-        sources = ['v40', 'v29', 'lapa']
+        sources = ['v41', 'v29', 'lapa']
     resources:
         mem_gb = 1,
         threads = 1
     output:
         cfg = config['cerberus']['ics']['cfg']
     run:
-        files = [input.v40_ics, input.v29_ics, input.lapa_ics]
+        files = [input.v41_ics, input.v29_ics, input.lapa_ics]
         sources = params.sources
         df = pd.DataFrame()
         df['fname'] = files
@@ -664,17 +683,17 @@ rule cerberus_annotate_v29:
             --source {params.source} \
             -o {output.annot}"
 
-rule cerberus_annotate_v40:
+rule cerberus_annotate_v41:
     input:
-        gtf = config['ref']['v40']['gtf'],
+        gtf = config['ref']['v41']['gtf'],
         ref = config['ref']['v29']['cerberus']['annot']
     resources:
         mem_gb = 56,
         threads = 1
     params:
-        source = 'v40'
+        source = 'v41'
     output:
-        annot = config['ref']['v40']['cerberus']['annot']
+        annot = config['ref']['v41']['cerberus']['annot']
     shell:
         "cerberus annotate_transcriptome \
             --gtf {input.gtf} \
@@ -685,7 +704,7 @@ rule cerberus_annotate_v40:
 rule cerberus_annotate_transcriptome:
     input:
         gtf = config['lapa']['filt_gtf'],
-        ref = config['ref']['v40']['cerberus']['annot']
+        ref = config['ref']['v41']['cerberus']['annot']
     resources:
         mem_gb = 56,
         threads = 1
@@ -759,17 +778,17 @@ rule cerberus_update_v29_gtf:
             --collapse \
             -o {output.update_gtf}"
 
-rule cerberus_update_v40_gtf:
+rule cerberus_update_v41_gtf:
     input:
         annot = config['cerberus']['annot'],
-        gtf = config['ref']['v40']['gtf']
+        gtf = config['ref']['v41']['gtf']
     resources:
         mem_gb = 56,
         threads = 1
     params:
-        source = 'v40'
+        source = 'v41'
     output:
-        update_gtf = config['ref']['v40']['cerberus']['gtf']
+        update_gtf = config['ref']['v41']['cerberus']['gtf']
     shell:
         "cerberus replace_gtf_ids \
             --h5 {input.annot} \
@@ -779,27 +798,27 @@ rule cerberus_update_v40_gtf:
             --collapse \
             -o {output.update_gtf}"
 
-rule cerberus_get_t_info_v40:
+rule cerberus_get_t_info_v41:
     input:
-        gtf = config['ref']['v40']['cerberus']['gtf'],
+        gtf = config['ref']['v41']['cerberus']['gtf'],
         tfs = config['ref']['tf']['gid']
     resources:
         mem_gb = 56,
         threads = 1
     output:
-        o = config['ref']['v40']['cerberus']['t_info']
+        o = config['ref']['v41']['cerberus']['t_info']
     run:
         get_transcript_info(input.gtf, output.o)
 
-rule cerberus_get_g_info_v40:
+rule cerberus_get_g_info_v41:
     input:
-        gtf = config['ref']['v40']['cerberus']['gtf'],
+        gtf = config['ref']['v41']['cerberus']['gtf'],
         tfs = config['ref']['tf']['gid']
     resources:
         mem_gb = 56,
         threads = 1
     output:
-        o = config['ref']['v40']['cerberus']['g_info']
+        o = config['ref']['v41']['cerberus']['g_info']
     run:
         get_gene_info(input.gtf, output.o)
 
