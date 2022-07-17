@@ -877,6 +877,42 @@ def get_gene_number(df, col, pref):
 #
 #     return gtf
 
+def add_feat(df, col, kind, as_index=False):
+    """
+    Add ic, tss, tes info to a df from the transcript id
+    
+    Parameters:
+        df (pandas DataFrame): Df w/ tid in there
+        col (str): Which column to use
+        kind (str): {'tss', 'ic', 'tes'}
+        as_index (bool): Whether to replace current index with 
+            new feat
+    
+    Returns:
+        df (pandas DataFrame): DF w/ additional "kind" col
+    """
+
+    if col == 'index':
+        df['temp_tid'] = df.index.tolist()
+    else:
+        df['temp_tid'] = df[col].tolist()
+    df['triplet'] = df.temp_tid.str.split('[', expand=True)[1].str.split(']', expand=True)[0]
+    df['temp_gid'] = df.temp_tid.str.split('[', expand=True)[0]
+    if kind == 'tss':
+        ind = 0
+    elif kind == 'ic':
+        ind = 1
+    elif kind == 'tes':
+        ind = 2
+    df[kind] = df.triplet.str.split(',', expand=True)[ind]
+    df[kind] = df.temp_gid+'_'+df[kind]
+    df.drop(['temp_tid', 'temp_gid', 'triplet'], axis=1, inplace=True)
+    
+    if as_index:
+        df.reset_index(inplace=True, drop=True)
+        df.index = df[kind]
+    return df
+        
 def get_gtf_info(how='gene',
                  subset=None,
                  add_stable_gid=False,

@@ -55,48 +55,62 @@ cerberus gtf_to_ics \
 h5=cerberus_ref.h5
 # talon_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/talon/human_known_nic_nnc_talon.gtf
 lapa_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
-o=human_cerberus.h5
-cerberus convert_transcriptome \
+# o=human_cerberus.h5
+o=test.h5
+source=lapa
+cerberus annotate_transcriptome \
   --gtf ${lapa_gtf} \
   --h5 ${h5} \
+  --source ${source} \
   -o ${o}
 
 # annotate transcriptome v29
-h5=cerberus_ref.h5
+# h5=cerberus_ref.h5
+h5=test.h5
 gtf=~/mortazavi_lab/data/rnawg/refs/gencode_v29_sirv4_ercc.gtf
-o=v29_cerberus.h5
-cerberus convert_transcriptome \
+# o=v29_cerberus.h5
+o=test.h5
+source=v29
+cerberus annotate_transcriptome \
   --gtf ${gtf} \
   --h5 ${h5} \
+  --source ${source} \
   -o ${o}
 
 
 # annotate transcriptome v40
 h5=cerberus_ref.h5
 gtf=~/mortazavi_lab/ref/gencode.v40/gencode.v40.annotation.gtf
-o=v40_cerberus.h5
-cerberus convert_transcriptome \
+# o=v40_cerberus.h5
+o=test.h5
+source=v40
+cerberus annotate_transcriptome \
   --gtf ${gtf} \
   --h5 ${h5} \
+  --source ${source} \
   -o ${o}
 
 # replace ids in abundance
-h5=cerberus_annot.h5
+# h5=cerberus_annot.h5
+h5=~/mortazavi_lab/data/rnawg/lr_bulk/cerberus/test.h5
 ab=../lapa/human_talon_abundance_filtered.corrected.tsv
-o=human_cerberus_abundance.tsv
+o=test_human_cerberus_abundance.tsv
 cerberus replace_ab_ids \
   --h5 ${h5} \
   --ab ${ab} \
+  --source lapa \
   --collapse \
   -o ${o}
 
 # replace ids in gtf
-h5=cerberus_annot.h5
+# h5=cerberus_annot.h5
+h5=~/mortazavi_lab/data/rnawg/lr_bulk/cerberus/test.h5
 gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
-o=human_cerberus.gtf
+o=test_human_cerberus.gtf
 cerberus replace_gtf_ids \
   --h5 $h5 \
   --gtf $gtf \
+  --source lapa \
   --update_ends \
   --collapse \
   -o $o

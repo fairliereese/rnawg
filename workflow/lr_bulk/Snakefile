@@ -646,21 +646,6 @@ rule cerberus_write_ref:
             --ics {input.ics} \
             -o {output.ref}"
 
-rule cerberus_annotate_transcriptome:
-    input:
-        gtf = config['lapa']['filt_gtf'],
-        ref = config['cerberus']['ref']
-    resources:
-        mem_gb = 56,
-        threads = 1
-    output:
-        annot = config['cerberus']['annot']
-    shell:
-        "cerberus convert_transcriptome \
-            --gtf {input.gtf} \
-            --h5 {input.ref} \
-            -o {output.annot}"
-
 rule cerberus_annotate_v29:
     input:
         gtf = config['ref']['v29']['gtf_no_sirv'],
@@ -668,27 +653,51 @@ rule cerberus_annotate_v29:
     resources:
         mem_gb = 56,
         threads = 1
+    params:
+        source = 'v29'
     output:
         annot = config['ref']['v29']['cerberus']['annot']
     shell:
-        "cerberus convert_transcriptome \
+        "cerberus annotate_transcriptome \
             --gtf {input.gtf} \
             --h5 {input.ref} \
+            --source {params.source} \
             -o {output.annot}"
 
 rule cerberus_annotate_v40:
     input:
         gtf = config['ref']['v40']['gtf'],
-        ref = config['cerberus']['ref']
+        ref = config['ref']['v29']['cerberus']['annot']
     resources:
         mem_gb = 56,
         threads = 1
+    params:
+        source = 'v40'
     output:
         annot = config['ref']['v40']['cerberus']['annot']
     shell:
-        "cerberus convert_transcriptome \
+        "cerberus annotate_transcriptome \
             --gtf {input.gtf} \
             --h5 {input.ref} \
+            --source {params.source} \
+            -o {output.annot}"
+
+rule cerberus_annotate_transcriptome:
+    input:
+        gtf = config['lapa']['filt_gtf'],
+        ref = config['ref']['v40']['cerberus']['annot']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    params:
+        source = 'lapa'
+    output:
+        annot = config['cerberus']['annot']
+    shell:
+        "cerberus annotate_transcriptome \
+            --gtf {input.gtf} \
+            --h5 {input.ref} \
+            --source {params.source} \
             -o {output.annot}"
 
 rule cerberus_update_abundance:
@@ -698,12 +707,15 @@ rule cerberus_update_abundance:
     resources:
         mem_gb = 28,
         threads = 1
+    params:
+        source = 'lapa'
     output:
         update_ab = config['cerberus']['update_ab']
     shell:
         "cerberus replace_ab_ids \
             --h5 {input.annot} \
             --ab {input.ab} \
+            --source {params.source} \
             --collapse \
             -o {output.update_ab}"
 
@@ -714,46 +726,55 @@ rule cerberus_update_gtf:
     resources:
         mem_gb = 56,
         threads = 1
+    params:
+        source = 'lapa'
     output:
         update_gtf = config['cerberus']['update_gtf']
     shell:
         "cerberus replace_gtf_ids \
             --h5 {input.annot} \
             --gtf {input.gtf} \
+            --source {params.source} \
             --update_ends \
             --collapse \
             -o {output.update_gtf}"
 
 rule cerberus_update_v29_gtf:
     input:
-        annot = config['ref']['v29']['cerberus']['annot'],
+        annot = config['cerberus']['annot'],
         gtf = config['ref']['v29']['gtf_no_sirv']
     resources:
         mem_gb = 56,
         threads = 1
+    params:
+        source = 'v29'
     output:
         update_gtf = config['ref']['v29']['cerberus']['gtf']
     shell:
         "cerberus replace_gtf_ids \
             --h5 {input.annot} \
             --gtf {input.gtf} \
+            --source {params.source} \
             --update_ends \
             --collapse \
             -o {output.update_gtf}"
 
 rule cerberus_update_v40_gtf:
     input:
-        annot = config['ref']['v40']['cerberus']['annot'],
+        annot = config['cerberus']['annot'],
         gtf = config['ref']['v40']['gtf']
     resources:
         mem_gb = 56,
         threads = 1
+    params:
+        source = 'v40'
     output:
         update_gtf = config['ref']['v40']['cerberus']['gtf']
     shell:
         "cerberus replace_gtf_ids \
             --h5 {input.annot} \
             --gtf {input.gtf} \
+            --source {params.source} \
             --update_ends \
             --collapse \
             -o {output.update_gtf}"
