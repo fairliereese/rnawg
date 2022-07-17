@@ -7,6 +7,8 @@ ref:
           gtf: refs/cerberus/v29_cerberus.gtf
           t_info: refs/cerberus/v29_transcript_metadata.tsv
   v41:
+      link: https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.annotation.gtf.gz
+      gz: refs/gencode.v41.annotation.gtf.gz
       gtf: refs/gencode.v41.annotation.gtf
       cerberus:
           annot: refs/cerberus/v41_cerberus.h5
