@@ -911,6 +911,7 @@ def add_feat(df, col, kind, as_index=False):
     if as_index:
         df.reset_index(inplace=True, drop=True)
         df.index = df[kind]
+        df.drop(kind, axis=1, inplace=True)
     return df
         
 def get_gtf_info(how='gene',
@@ -921,7 +922,7 @@ def get_gtf_info(how='gene',
     Gets the info from the annotation about genes / transcripts
 
     Parameters:
-        how (str): 'gene' or 'iso'
+        how (str): 'gene', 'iso', 'ic', 'tss', 'tes'
         subset (str): 'polya', 'tf', 'protein_coding' or None
         add_stable_gid (bool): Add stable gid (code from cerberus)
         ver (str): {'v29', 'v40_cerberus'}
@@ -933,22 +934,48 @@ def get_gtf_info(how='gene',
         biotype_cat_counts (pandas DataFrame): DataFrame with the counts
             per meta biotype reported in gencode
     """
+    iso_hows = ['iso', 'tss', 'tes', 'ic']
     d = os.path.dirname(__file__)
     if how == 'gene' and ver == 'v29':
         fname = '{}/../refs/gencode_v29_gene_metadata.tsv'.format(d)
-    elif how == 'iso' and ver == 'v29':
+    elif how in iso_hows and ver == 'v29':
         fname = '{}/../refs/gencode_v29_transcript_metadata.tsv'.format(d)
     elif how == 'gene' and ver == 'v40_cerberus':
         fname = '{}/../refs/cerberus/v40_gene_metadata.tsv'.format(d)
-    elif how == 'iso' and ver == 'v40_cerberus':
+    elif how in iso_hows and ver == 'v40_cerberus':
         fname = '{}/../refs/cerberus/v40_transcript_metadata.tsv'.format(d)
 
     df = pd.read_csv(fname, sep='\t')
+    
+    # pdb.set_trace()
 
     if how == 'gene':
         id_col = 'gid'
     elif how == 'iso':
         id_col = 'tid'
+    elif how == 'ic':
+        iso_col = 'tid'
+        id_col = 'ic'
+    elif how == 'tss':
+        iso_col = 'tid'
+        id_col = 'tss'
+    elif how == 'tes':
+        iso_col = 'tid'
+        id_col = 'tes'
+    
+    # if using cerberus features, drop duplicate  entries that come
+    # from the different transcripts using the same features
+    # also ignore the transcript length column
+    if how in ['ic', 'tss', 'tes']:
+        df = add_feat(df, kind=id_col, col=iso_col)
+        df.drop([iso_col, 't_len'], axis=1, inplace=True)
+        
+        # double check
+        n_feats = len(df[id_col].unique().tolist())
+        n_drop_dupes = len(df.drop_duplicates().index)
+        if n_feats != n_drop_dupes:
+            print('Warning: number of unique {}s does not match length of deduped info table'.format(how))
+        df.drop_duplicates(inplace=True)
 
     if subset == 'polya':
         polya_cats = ['protein_coding', 'lncRNA', 'pseudogene']
@@ -1292,10 +1319,19 @@ def get_tpm_table(df,
     elif how == 'iso':
         id_col = 'annot_transcript_id'
         nov_col = 'transcript_novelty'
+    elif how == 'ic':
+        id_col = 'ic'
+        nov_col = 'transcript_novelty'
     elif how == 'tss':
         id_col = 'tss'
+        nov_col = 'transcript_novelty'
     elif how == 'tes':
         id_col = 'tes'
+        nov_col = 'transcript_novelty'
+        
+    # if we're looking at a cerberus feature, add that feature
+    if how in ['tss', 'tes', 'ic']:
+        df = add_feat(df, kind=how, col='annot_transcript_id')
 
     # filter on novelty
     if nov:
@@ -1318,10 +1354,11 @@ def get_tpm_table(df,
     # get intersection of both
     subset_inds = list(set(nov_inds)&set(gene_inds))
 
-    # sum up counts across the same gene
-    if how == 'gene':
+    # sum up counts across the same gene, ic, tss, or tes
+    sum_hows = ['gene', 'ic', 'tss', 'tes']
+    if how in sum_hows:
         df = df[dataset_cols+[id_col]]
-        df = df.groupby(id_col).sum().reset_index()
+        df = df.groupby(id_col).sum().reset_index() 
 
     # set index so that all values in df reflect
     # counts per transcript or gene
