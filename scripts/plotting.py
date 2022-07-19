@@ -46,6 +46,18 @@ def get_sector_colors(cats=None):
     c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
 
+def get_feat_colors(cats=None):
+    tss = '#56B4E9'
+    tes = '#E69F00'
+    splicing = '#CC79A7'
+    c_dict = {'tss': tss,
+              'ic': splicing,
+              'tes': tes}
+    order = ['tss', 'ic', 'tes']
+    
+    c_dict, order = rm_color_cats(c_dict, order, cats)
+    return c_dict, order
+
 def get_end_colors():
     c_dict, order = get_sector_colors(['tes', 'tss'])
     return c_dict, order

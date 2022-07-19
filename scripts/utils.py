@@ -877,7 +877,9 @@ def get_gene_number(df, col, pref):
 #
 #     return gtf
 
-def add_feat(df, col, kind, as_index=False):
+def add_feat(df, col, kind, as_index=False, as_number=False,
+             drop_gid=True,
+             drop_triplet=True):
     """
     Add ic, tss, tes info to a df from the transcript id
     
@@ -887,6 +889,8 @@ def add_feat(df, col, kind, as_index=False):
         kind (str): {'tss', 'ic', 'tes'}
         as_index (bool): Whether to replace current index with 
             new feat
+        as_number (bool): Just add the number of element, not 
+            geneid_#
     
     Returns:
         df (pandas DataFrame): DF w/ additional "kind" col
@@ -905,8 +909,14 @@ def add_feat(df, col, kind, as_index=False):
     elif kind == 'tes':
         ind = 2
     df[kind] = df.triplet.str.split(',', expand=True)[ind]
-    df[kind] = df.temp_gid+'_'+df[kind]
-    df.drop(['temp_tid', 'temp_gid', 'triplet'], axis=1, inplace=True)
+    if not as_number:
+        df[kind] = df.temp_gid+'_'+df[kind]
+    drop_cols = list(['temp_tid'])
+    if drop_gid:
+        drop_cols += ['temp_gid']
+    if drop_triplet:
+        drop_cols += ['triplet']
+    df.drop(drop_cols, axis=1, inplace=True)
     
     if as_index:
         df.reset_index(inplace=True, drop=True)
