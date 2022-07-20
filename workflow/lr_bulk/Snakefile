@@ -58,14 +58,8 @@ rule all:
         config['cerberus']['update_ab'],
         config['ref']['v40']['cerberus']['t_info'],
         config['ref']['v40']['cerberus']['g_info']
-
-
-
-
-        # expand(config['cerberus']['gtf']['ends'],
-        #         source=['v40', 'v29'],
-        #         mode=['tss', 'tes'])
-
+        config['swan']['sg_unfilt']
+        
 #### refs ####
 rule dl_v40:
     params:
@@ -327,10 +321,22 @@ def filter_lapa(ab):
     df = pd.read_csv(ab, sep='\t')
     novs = ['Known', 'NIC', 'NNC', 'ISM_rescue']
     df = df.loc[df.transcript_novelty.isin(novs)]
+    df = df.loc[df.gene_novelty == 'Known']
     tids = df.annot_transcript_id.tolist()
     return tids
 
+def filter_spikes(df):
+    df = df.loc[~df.Chromosome.str.contains('SIRV')]
+    df = df.loc[~df.Chromosome.str.contains('ERCC')]
+
+    return df
+
+def filter_novel_genes(df):
+    df = df.loc[df.gene_novelty=='Known']
+    return df
+
 # create gtf only with novelty categories we want
+# and remove sirv / ercc
 rule filter_lapa_gtf:
     input:
         nov_gtf = config['lapa']['nov_gtf'],
@@ -341,9 +347,14 @@ rule filter_lapa_gtf:
     output:
         filt_gtf = config['lapa']['filt_gtf']
     run:
+        # remove novelty categories we don't want
         tids = filter_lapa(input.nov_ab)
         gtf = pr.read_gtf(input.nov_gtf).df
         gtf = gtf.loc[(gtf.transcript_id.isin(tids))|(gtf.Feature=='gene')]
+
+        # remove sirvs / erccs
+        gtf = filter_spikes(gtf)
+
         gtf = pr.PyRanges(gtf)
         gtf.to_gtf(output.filt_gtf)
 
@@ -836,63 +847,45 @@ rule cerberus_get_g_info_v40:
 
 
 #### Swan ####
-rule swan:
+
+def make_sg(input, params):
+
+    # initialize
+    sg = swan.SwanGraph()
+    sg.add_annotation(input.annot)
+    sg.add_transcriptome(input.gtf, include_isms=True)
+    sg.add_abundance(input.ab)
+    sg.add_abundance(input.gene_ab, how='gene')
+
+    # add metadata and add colors
+    sg.add_metadata(input.meta)
+    c_dict, order = get_biosample_colors()
+    sg.set_metadata_colors('sample', c_dict)
+    c_dict, order = get_ad_colors()
+    sg.set_metadata('health_status', c_dict)
+
+    # save
+    sg.save_graph(params.prefix)
+
+# unfiltered swan -- all isoforms from cerberus;
+# not filtered for abundance at all
+rule swan_unfilt:
     input:
-        annot = config['ref']['v29']['gtf_no_sirv'],
-        ab = config['talon']['filt_ab'],
-        gtf = config['swan']['gtf']
+        annot = config['ref']['cerberus']['gtf'],
+        ab = config['cerberus']['update_ab'],
+        gene_ab = config['talon']['ab'],
+        gtf = config['cerberus']['update_gtf'],
+        meta = config['swan']['meta']
     params:
-        prefix = config['swan']['sg'].replace('.p', '')
+        prefix = config['swan']['sg_unfilt'].replace('.p', '')
     resources:
         mem_gb = 64,
         threads = 1
     output:
-        meta = config['swan']['meta'],
-        sg = config['swan']['sg']
+        sg = config['swan']['sg_unfilt']
     run:
-        # make SwanGraph
-        sg = swan.SwanGraph()
-        sg.add_annotation(input.annot)
-        sg.add_transcriptome(input.gtf)
-        sg.add_abundance(input.ab)
+        make_sg(input, params)
 
-        # add metadata etc.
-        meta = sg.adata.obs.copy(deep=True)
-        meta.reset_index(inplace=True, drop=True)
-        meta['sample'] = meta.dataset.str.rsplit('_', n=2, expand=True)[0]
-
-        tissue_df = get_tissue_metadata()
-        tissue_df = tissue_df[['tissue', 'biosample']]
-        tissue_df.rename({'biosample': 'sample'}, axis=1, inplace=True)
-
-        meta = meta.merge(tissue_df, how='left', on='sample')
-        meta.head()
-        meta['classification'] = 'tissue'
-        meta.loc[meta.tissue.isnull(), 'classification'] = 'cell_line'
-
-        meta.loc[meta.tissue.isnull(), 'tissue'] = meta.loc[meta.tissue.isnull(), 'sample']
-        meta.drop('sample', axis=1, inplace=True)
-        meta.rename({'tissue': 'sample'}, axis=1, inplace=True)
-
-        ad_df = get_ad_metadata()
-        ad_df = ad_df[['health_status', 'hr']]
-        meta = meta.merge(ad_df, how='left', left_on='dataset', right_on='hr')
-        meta.drop('hr', axis=1, inplace=True)
-
-        print('Found {} total samples'.format(len(meta['sample'].unique().tolist())))
-        meta.to_csv(output.meta, sep='\t', index=False)
-
-        # add colors
-        sg.add_metadata(output.meta)
-
-        # colors
-        c_dict, order = get_biosample_colors()
-        sg.set_metadata_colors('sample', c_dict)
-
-        c_dict, order = get_ad_colors()
-        sg.set_metadata_colors('health_status', c_dict)
-
-        sg.save_graph(params.prefix)
 
 # #### Protein prediction ####
 # rule tama_gtf_to_bed:

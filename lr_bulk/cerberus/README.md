@@ -118,7 +118,6 @@ cerberus replace_gtf_ids \
 ```
 
 
-
 Other cmds
 ```bash
 #Get tsss

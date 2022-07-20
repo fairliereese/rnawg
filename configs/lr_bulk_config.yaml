@@ -47,7 +47,7 @@ swan:
   pass_list: lr_bulk/swan/human_talon_swan_pass_list.csv
   gtf: lr_bulk/swan/human_swan_talon.gtf
   meta: lr_bulk/swan/swan_metadata.tsv
-  sg: lr_bulk/swan/swan.p
+  sg_unfilt: lr_bulk/cerberus/swan/swan.p
 
 pp:
   gtf_to_bed: ~/mortazavi_lab/bin/tama/tama_go/format_converter/tama_format_gtf_to_bed12_ensembl.py
@@ -73,7 +73,8 @@ lapa:
     nov_ab: lr_bulk/lapa/human_talon_abundance_filtered.nov_corrected.tsv
     nov_gtf: lr_bulk/lapa/human_talon.nov_corrected.gtf
 
-    # output filtered for the relevant novelty categories
+    # output filtered for the relevant novelty categories,
+    # removed novel genes and spike ins
     filt_ab: lr_bulk/lapa/human_abundance_filtered.tsv
     filt_gtf: lr_bulk/lapa/human_lapa.gtf
 
