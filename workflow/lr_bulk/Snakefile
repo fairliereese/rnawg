@@ -57,9 +57,9 @@ rule all:
         config['cerberus']['update_gtf'],
         config['cerberus']['update_ab'],
         config['ref']['v40']['cerberus']['t_info'],
-        config['ref']['v40']['cerberus']['g_info']
+        config['ref']['v40']['cerberus']['g_info'],
         config['swan']['sg_unfilt']
-        
+
 #### refs ####
 rule dl_v40:
     params:
