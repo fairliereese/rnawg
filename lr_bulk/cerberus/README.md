@@ -1,4 +1,4 @@
-Get CAGE ends
+<!-- Get CAGE ends
 ```bash
 scp freese@hpc3.rcic.uci.edu:/data/resources/cage/merged.bed cage_tss.bed
 ```
@@ -157,7 +157,7 @@ cerberus agg_ends \
 # 20
 # tes
 
-## aggregate ends w/ lapa tss
+## aggregate ends w/ lapa tss -->
 ```
 # tss config - nothing yet
 # lapa, cage, rampage, ccre tss, ccre pels, ccre dels
@@ -165,18 +165,99 @@ cerberus agg_ends \
 config=test_tss_config.csv
 v40_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v40_tss.bed
 v29_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v29_tss.bed
-lapa_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/lapa/lapa_tss.bed
+lapa_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/lapa_tss.bed
 
 touch ${config}
-printf "${v40_bed},True,v40\n" > $config
-printf "${v29_bed},True,v29\n" >> $config
-printf "${lapa_bed},True,lapa\n" >> $config
+printf "${v40_bed},True,True,v40\n" > $config
+printf "${v29_bed},True,True,v29\n" >> $config
+printf "${lapa_bed},True,False,lapa\n" >> $config
 
 cerberus agg_ends \
   --input $config \
   --mode tss \
   -o test_agg_tss.bed
 ```
+
+```
+config=test_tes_config.csv
+v40_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v40_tes.bed
+v29_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v29_tes.bed
+lapa_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/lapa_tes.bed
+
+touch ${config}
+printf "${v40_bed},True,True,v40\n" > $config
+printf "${v29_bed},True,True,v29\n" >> $config
+printf "${lapa_bed},True,False,lapa\n" >> $config
+
+cerberus agg_ends \
+  --input $config \
+  --mode tes \
+  -o test_agg_tes.bed
+```
+
+```
+config=test_ic_config.csv
+v40=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v40_ics.tsv
+v29=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v29_ics.tsv
+lapa=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/lapa_ics.tsv
+
+touch ${config}
+printf "${v40},True,v40\n" > $config
+printf "${v29},True,v29\n" >> $config
+printf "${lapa},False,lapa\n" >> $config
+
+cerberus agg_ics \
+  --input ${config} \
+  -o test_agg_ic.tsv
+```
+
+```
+ic=test_agg_ic.tsv
+tes=test_agg_tes.bed
+tss=test_agg_tss.bed
+
+cerberus write_reference \
+  --tss ${tss} \
+  --tes ${tes} \
+  --ics ${ic} \
+  -o test.h5
+```
+
+```
+h5=test.h5
+gtf=/Users/fairliereese/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
+
+cerberus annotate_transcriptome \
+  --gtf ${gtf} \
+  --h5 ${h5} \
+  --source lapa \
+  -o test_annot.h5
+```
+
+```
+gtf=/Users/fairliereese/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
+h5=test_annot.h5
+cerberus replace_gtf_ids \
+  --h5 ${h5} \
+  --gtf ${gtf} \
+  --source lapa \
+  --update_ends \
+  --collapse \
+  -o test.gtf
+```
+
+```
+ab=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_abundance_filtered.tsv
+h5=test_annot.h5
+cerberus replace_ab_ids \
+  --h5 ${h5} \
+  --ab ${ab} \
+  --source lapa \
+  --collapse \
+  -o test_ab.tsv
+```
+
+<!--
 
 ```
 tss=agg_tss.bed
@@ -237,4 +318,28 @@ cerberus agg_ends \
   --input $config \
   --mode tes \
   -o test_agg_tes_3.bed
+``` -->
+
+
+```python
+import pandas as pd
+import pyranges as pr
+
+chrs = [1,1,1]
+starts = [1,1,1]
+ends = [2,3,4]
+st = ['+', '+', '+']
+other1 = [1,1,1]
+other2 = [2,2,2]
+
+df = pd.DataFrame()
+df['Chromosome'] = chrs
+df['Start'] = starts
+df['End'] = ends
+df['Strand'] = st
+df['ThickStart'] = other1
+df['ThickEnd'] = other2
+
+df = pr.PyRanges(df)
+df.to_bed('test_example.bed')
 ```

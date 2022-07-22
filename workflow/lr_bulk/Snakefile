@@ -33,9 +33,9 @@ rule all:
         # config['swan']['sg'],
         # config['lapa']['nov_ab'],
         # config['lapa']['filt_gtf'],
-        # expand(config['cerberus']['gtf']['ends'],
-        #         source=['v40', 'v29', 'lapa'],
-        #         mode=['tss', 'tes']),
+        expand(config['cerberus']['gtf']['ends'],
+                source=['v40', 'v29', 'lapa'],
+                mode=['tss', 'tes']),
         config['cerberus']['tss']['lapa'],
         config['cerberus']['tes']['lapa'],
         config['cerberus']['tss']['cfg'],
@@ -533,6 +533,10 @@ rule cerberus_agg_tss_config:
                     False, False,
                     False,
                     False, False, False],
+        refs = [True, True, False, False,
+                False, False,
+                False,
+                False, False, False],
         sources = ['v40', 'v29', 'lapa', 'lapa',
                    'encode_cage', 'fantom_cage',
                    'encode_rampage',
@@ -553,6 +557,7 @@ rule cerberus_agg_tss_config:
         df = pd.DataFrame()
         df['fname'] = files
         df['add_ends'] = params.add_ends
+        df['refs'] = params.refs
         df['sources'] = params.sources
         df.to_csv(output.cfg, sep=',', header=None, index=False)
 
@@ -573,6 +578,8 @@ rule cerberus_agg_tes_config:
     params:
         add_ends = [True, True, True, True,
                     True, False],
+        refs = [True, True, False, False,
+                False, False],
         sources = ['v40', 'v29', 'lapa', 'lapa',
                    'pas', 'polya_atlas']
     output:
@@ -587,6 +594,7 @@ rule cerberus_agg_tes_config:
         df = pd.DataFrame()
         df['fname'] = files
         df['add_ends'] = params.add_ends
+        df['refs'] = params.refs
         df['sources'] = params.sources
         df.to_csv(output.cfg, sep=',', header=None, index=False)
 
@@ -632,7 +640,8 @@ rule cerberus_agg_ics_config:
         v29_ics = expand(config['cerberus']['gtf']['ics'], source=['v29']),
         lapa_ics = expand(config['cerberus']['gtf']['ics'], source=['lapa'])
     params:
-        sources = ['v40', 'v29', 'lapa']
+        sources = ['v40', 'v29', 'lapa'],
+        refs = [True, True, False]
     resources:
         mem_gb = 1,
         threads = 1
@@ -640,9 +649,11 @@ rule cerberus_agg_ics_config:
         cfg = config['cerberus']['ics']['cfg']
     run:
         files = [input.v40_ics, input.v29_ics, input.lapa_ics]
+        refs = params.refs
         sources = params.sources
         df = pd.DataFrame()
         df['fname'] = files
+        df['refs'] = refs
         df['source'] = sources
         df.to_csv(output.cfg, header=None, index=False, sep=',')
 
@@ -862,7 +873,7 @@ def make_sg(input, params):
     c_dict, order = get_biosample_colors()
     sg.set_metadata_colors('sample', c_dict)
     c_dict, order = get_ad_colors()
-    sg.set_metadata('health_status', c_dict)
+    sg.set_metadata_colors('health_status', c_dict)
 
     # save
     sg.save_graph(params.prefix)
