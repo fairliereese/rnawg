@@ -47,18 +47,18 @@ rule all:
         expand(config['cerberus']['gtf']['ics'],
                source=['v40', 'v29', 'lapa']),
         config['cerberus']['ics']['agg'],
-        # config['cerberus']['ref'],
-        # config['cerberus']['annot'],
-        # config['cerberus']['update_gtf'],
-        # config['ref']['v29']['cerberus']['annot'],
-        # config['ref']['v40']['cerberus']['annot'],
-        # config['ref']['v29']['cerberus']['gtf'],
-        # config['ref']['v40']['cerberus']['gtf'],
-        # config['cerberus']['update_gtf'],
-        # config['cerberus']['update_ab'],
-        # config['ref']['v40']['cerberus']['t_info'],
-        # config['ref']['v40']['cerberus']['g_info'],
-        # config['swan']['sg_unfilt']
+        config['cerberus']['ref'],
+        config['cerberus']['annot'],
+        config['cerberus']['update_gtf'],
+        config['ref']['v29']['cerberus']['annot'],
+        config['ref']['v40']['cerberus']['annot'],
+        config['ref']['v29']['cerberus']['gtf'],
+        config['ref']['v40']['cerberus']['gtf'],
+        config['cerberus']['update_gtf'],
+        config['cerberus']['update_ab'],
+        config['ref']['v40']['cerberus']['t_info'],
+        config['ref']['v40']['cerberus']['g_info'],
+        config['swan']['sg_unfilt']
 
 #### refs ####
 rule dl_v40:

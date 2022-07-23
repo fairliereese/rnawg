@@ -176,9 +176,7 @@ cerberus agg_ends \
   --input $config \
   --mode tss \
   -o test_agg_tss.bed
-```
 
-```
 config=test_tes_config.csv
 v40_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v40_tes.bed
 v29_bed=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v29_tes.bed
@@ -193,9 +191,7 @@ cerberus agg_ends \
   --input $config \
   --mode tes \
   -o test_agg_tes.bed
-```
 
-```
 config=test_ic_config.csv
 v40=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v40_ics.tsv
 v29=/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/lr_bulk/cerberus/v29_ics.tsv
@@ -209,9 +205,7 @@ printf "${lapa},False,lapa\n" >> $config
 cerberus agg_ics \
   --input ${config} \
   -o test_agg_ic.tsv
-```
 
-```
 ic=test_agg_ic.tsv
 tes=test_agg_tes.bed
 tss=test_agg_tss.bed
