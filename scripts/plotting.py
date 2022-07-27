@@ -98,6 +98,20 @@ def get_talon_nov_colors(cats=None):
     c_dict, order = rm_color_cats(c_dict, order, cats)            
     return c_dict, order
 
+def get_ic_nov_colors(cats=None):
+    c_dict = {'Known': '#009E73',
+              'ISM': '#0072B2',
+              'NIC': '#D55E00',
+              'NNC': '#E69F00',
+              'Antisense': '#000000',
+              'Intergenic': '#CC79A7',
+              'Monoexonic': '#F0E442'}
+    order = ['Known', 'ISM', 'NIC', 'NNC', 'Antisense', 'Intergenic', 'Monoexonic']
+    
+    c_dict, order = rm_color_cats(c_dict, order, cats)            
+    return c_dict, order
+
+
 def get_ad_colors():
     c_dict = {'healthy': '#bb8f8f',
               'AD': '#b5bd61',
@@ -2011,6 +2025,82 @@ def plot_transcript_novelty(df, oprefix,
 
     plt.show()
     plt.clf()
+    
+def plot_ic_novelty(fname,
+                    source,
+                    oprefix,
+                    ylim=None,
+                    pass_list=None,
+                    novs=None,
+                    save_type='pdf'):
+    """
+    Plot number of intron chains per novelty category.
+    
+    Parameters: 
+        fname (str): Cerberus annotation file name
+        source (str): Source in cerberus annotation
+        oprefix (str): Place to save
+        ylim (int): y limit of resultant plot
+        pass_list (list of str): List of ic IDs to retain
+        novs (list of str): Novelty types to include
+        save_type (str): Choose from 'pdf' or 'png'
+    """
+    
+    sns.set_context('paper', font_scale=1.6)
+    
+    ca = cerberus.read(fname)  
+    
+    c_dict, order = get_ic_nov_colors(cats=novs)  
+    
+    temp = ca.t_map.loc[ca.t_map.source==source].copy(deep=True)
+    temp = temp[['ic_id']]
+    nov = ca.ic[['Name', 'novelty']]
+    temp = temp.merge(nov, how='left', left_on='ic_id', right_on='Name')
+    temp.drop_duplicates(inplace=True)
+    
+    if pass_list:
+        temp = temp.loc[temp.ic_id.isin(pass_list)]
+        
+    temp = temp[['ic_id', 'novelty']]
+    temp = temp.groupby('novelty').count()
+    
+    temp.reset_index(inplace=True)
+    temp.rename({'ic_id': 'counts'}, axis=1, inplace=True)
+    print(temp)
+    temp = temp.loc[temp.novelty.isin(novs)].copy(deep=True)
+    complete = temp[['counts']].sum(axis=0)
+    print('Number of complete intron chains: {}'.format(complete))
+    
+    # actual plotting
+    sns.set_context('paper', font_scale=1.8)
+    plt.figure(figsize=(4,6))
+    g = sns.catplot(data=temp, x='novelty',
+                y='counts', kind='bar',
+                saturation=1,
+                palette=c_dict, order=order)
+    [plt.setp(ax.get_xticklabels(), rotation=90) for ax in g.axes.flat]
+    g.set_ylabels('# intron chains')
+    g.set_xlabels('Novelty')
+
+    # add percentage labels
+    ax = g.axes[0,0]
+    add_perc(ax, temp, 'counts')
+
+    if ylim:
+        g.set(ylim=(0,ylim))
+
+    # save figure
+    fname = '{}_ic_novelty'.format(oprefix)
+    if save_type == 'png':
+        g.savefig(fname+'.png', dpi=300, bbox_inches='tight')
+    elif save_type == 'pdf':
+        g.savefig(fname+'.pdf', dpi=300, bbox_inches='tight')
+
+    plt.show()
+    plt.clf()
+    
+    
+   
     
 
 def plot_transcript_novelty_per(df, 
