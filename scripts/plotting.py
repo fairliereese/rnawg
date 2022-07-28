@@ -46,6 +46,37 @@ def get_sector_colors(cats=None):
     c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
 
+def get_support_sector_colors(sector=None):
+    c_dict, order = get_sector_colors()
+
+    # get different color for each age / tissue
+    new_c_dict = {}
+    min_color = '#FFFFFF'
+    ages = [False, True]
+    order = []
+    for tissue, max_color in c_dict.items():
+        cmap = mpl.colors.LinearSegmentedColormap.from_list(tissue, [min_color, max_color], N=len(ages)+1)
+        for i, age in enumerate(ages):
+            key = '{}_{}'.format(tissue, age)
+            new_c_dict[key] = mpl.colors.to_hex(cmap(i+1))
+            order.append(key)
+            
+    if sector: 
+        cats = [key for key in new_c_dict.keys() if sector in key]
+        new_c_dict, order = rm_color_cats(new_c_dict, order, cats)
+        new_c_dict['{}_False'.format(sector)]
+        
+        c = dict()
+        o = []
+        for b in [True, False]:
+            o.append(b)
+            key = '{}_{}'.format(sector, b)
+            c[b] = new_c_dict[key]
+        new_c_dict = c
+        order = o
+    
+    return new_c_dict, order
+
 def get_feat_colors(cats=None):
     tss = '#56B4E9'
     tes = '#E69F00'
@@ -2772,14 +2803,31 @@ def plot_sector_gene_counts(counts):
     a = ax.axes[0,0]
     add_perc_2(a)
     
-    return temp          
+    return temp      
+
 
 def plot_sankey(df,
                 source,
                 sink,
+                counts,
+                color,
                 title):
+    """
+    Plot sankey diagram.
     
-    c_dict, order = get_sector_colors()
+    Parameters:
+        df (pandas DataFrame): DF w/ source, sink, and counts columns
+        source (str): Column name for source from df
+        sink (str): Column name for sink from df
+        color (str): {'sector', 'nov'}
+        title (str): Title for plot
+    """
+    
+    if color == 'sector':
+        c_dict, order = get_sector_colors()
+    elif color == 'nov':
+        c_dict, order = get_ic_nov_colors()
+        
     order.reverse()
     order_2 = order+order
 
@@ -2795,7 +2843,7 @@ def plot_sankey(df,
     links = dict(
         source=df.source.tolist(),
         target=df.sink.tolist(),
-        value=df.n_genes.tolist(),
+        value=df[counts].tolist(),
         color=[c_dict[n] for n in df[source].tolist()]) # color links by source
 
     data = go.Sankey(node=nodes, link=links)
