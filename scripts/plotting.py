@@ -1964,6 +1964,87 @@ def plot_read_novelty(df, opref, c_dict, order,
     # save figure
     fname = '{}_read_novelty'.format(opref)
     g.savefig(fname+'.pdf', dpi=300)
+    
+
+def plot_supported_feats(filt_ab,
+                         h5,
+                         feat,
+                         obs_source,
+                         opref,
+                         **kwargs):
+    """
+    Plot a bar plot showing which observed features are supported
+    from external data sources in the cerberus annotation
+    
+    Parameters:
+        filt_ab (str): Path fo filtered abundance file
+        h5 (str): Path to cerberus annotation h5 object
+        feat (str): {'tss', 'tes', 'ic'}
+        obs_source (str): Source in cerberus annotation to 
+            consider the "observed" data
+    """
+    # get detected features
+    df = pd.read_csv(filt_ab, sep='\t')
+    df, ids = get_tpm_table(df, **kwargs)
+    
+    # get these features from cerberus
+    ca = cerberus.read(h5)
+    if feat == 'tss':
+        ca_df = ca.tss
+    elif feat == 'tes':
+        ca_df = ca.tes
+    elif feat == 'ic':
+        ca_df = ca.ic
+    print(len(ca_df.index))
+    df = ca_df.loc[ca_df.Name.isin(ids)]
+    print(len(df.index))
+    
+    
+    # get T/F detection of each feat by each source
+    df = upsetplot.from_memberships(df.source.str.split(','), data=df)    
+    df.reset_index(inplace=True)
+    
+    # which sources are observed and which are supporting data
+    sources = ca.get_sources(df)
+    support_sources = [s for s in sources if s != obs_source]
+    
+    # which feats have support externally
+    df = df[support_sources].any(axis=1).to_frame()    
+    df['temp'] = df.index.tolist()
+    df = df.groupby(0).count().reset_index()
+    df.rename({0: 'supported', 
+               'temp': 'counts'}, axis=1, inplace=True)
+    
+    print(df)
+    
+    # colors
+    if feat == 'ic':
+        c_feat = 'splicing'
+    else:
+        c_feat = feat
+    c_dict, order = get_support_sector_colors(sector=c_feat)    
+    
+    # plotting
+    sns.set_context('paper', font_scale=1.6)
+    plt.figure(figsize=(3,4))
+
+
+    ax = sns.barplot(data=df, y='counts', x='supported',
+                     palette=c_dict, order=order,
+                     saturation=1)
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    xlabel = 'Support'
+    ylabel = '# observed {}s'.format(feat.upper())
+
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+    ax.tick_params(axis="x", rotation=90)
+
+
+    fname = '{}_{}_support.png'.format(opref, feat)
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
 
 
 def plot_transcript_novelty(df, oprefix,
