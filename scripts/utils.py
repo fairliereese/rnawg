@@ -1290,7 +1290,8 @@ def get_tpm_table(df,
                     nov=None,
                     min_tpm=None,
                     gene_subset=None,
-                    save=False):
+                    save=False,
+                    **kwargs):
     """
     Parameters:
         df (pandas DataFrame): TALON abundance table
@@ -1315,15 +1316,16 @@ def get_tpm_table(df,
 
     dataset_cols = get_sample_datasets(sample)
     df = rm_sirv_ercc(df)
+    df['gid_stable'] = cerberus.get_stable_gid(df, 'annot_gene_id')
 
     # merge with information about the gene
-    gene_df, _, _ = get_gtf_info(how='gene')
-    gene_df = gene_df[['gid', 'biotype_category', 'tf']]
-    df = df.merge(gene_df, how='left', left_on='annot_gene_id', right_on='gid')
+    gene_df, _, _ = get_gtf_info(how='gene', add_stable_gid=True, ver='v40_cerberus')
+    gene_df = gene_df[['gid_stable', 'biotype_category', 'tf']]
+    df = df.merge(gene_df, how='left', on='gid_stable')
 
     # get indices that we'll need to subset on
     if how == 'gene':
-        id_col = 'annot_gene_id'
+        id_col = 'gid_stable'
         nov_col = 'gene_novelty'
         nov = ['Known']
     elif how == 'iso':
