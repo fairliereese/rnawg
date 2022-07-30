@@ -2149,7 +2149,6 @@ def plot_ic_novelty(fname,
     
     ca = cerberus.read(fname)  
     
-    c_dict, order = get_ic_nov_colors(cats=novs)  
     
     temp = ca.t_map.loc[ca.t_map.source==source].copy(deep=True)
     temp = temp[['ic_id']]
@@ -2166,6 +2165,10 @@ def plot_ic_novelty(fname,
     temp.reset_index(inplace=True)
     temp.rename({'ic_id': 'counts'}, axis=1, inplace=True)
     print(temp)
+    if not novs:
+        novs = temp.novelty.unique().tolist()
+    c_dict, order = get_ic_nov_colors(cats=novs)  
+    
     temp = temp.loc[temp.novelty.isin(novs)].copy(deep=True)
     complete = temp[['counts']].sum(axis=0)
     print('Number of complete intron chains: {}'.format(complete))
