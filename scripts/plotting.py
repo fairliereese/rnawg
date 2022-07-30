@@ -1175,7 +1175,7 @@ def plot_biosamp_det(df,
                      gene_subset='polya',
                      sample='cell_line',
                      groupby='cell_line',
-                     nov='Known',
+                     nov=None,
                      opref='figures/'):
     
     """
@@ -2932,3 +2932,53 @@ def plot_sankey(df,
     fig.update_layout(title_text=title)
     fig.show()
     return fig
+
+def plot_n_feat_per_gene(h5, 
+                         source,
+                         feat, 
+                         max_ends=10,
+                         subset=None):
+    """
+    Plot number of features per gene in a given source, 
+    in a given subset
+    """
+    
+    # get these features from cerberus
+    df = get_ca_table(h5, feat)
+    
+    # get subset features
+    if subset:
+        df = df.loc[df.Name.isin(subset)]
+    
+    # count # feats / gene
+    df = df[['gene_id', 'Name']]
+    df = df.groupby('gene_id').count().reset_index()
+    df.rename({'Name': 'n_{}'.format(feat)}, axis=1, inplace=True)
+              
+    # create counts df
+    df = df.groupby('n_{}'.format(feat)).count().reset_index()
+    df.rename({'gene_id': 'n_genes'}, axis=1, inplace=True)
+    n = df.loc[df['n_{}'.format(feat)] >= max_ends, 'n_genes'].sum()
+    df = df.loc[df['n_{}'.format(feat)] < max_ends]
+    temp = pd.DataFrame()
+    temp['n_{}'.format(feat)] = ['{}+'.format(max_ends)]
+    temp['n_genes'] = [n]
+    df = pd.concat([df, temp])
+    
+    # plot
+    plt.figure(figsize=(4.5, 3), dpi=300)
+    c_dict, order = get_sector_colors()
+    if feat == 'ic':
+        c = c_dict['splicing']
+    else:
+        c = c_dict[feat]
+
+    ax = sns.barplot(data=df, 
+                x='n_{}'.format(feat), y='n_genes',
+                color=c, saturation=1)
+
+    plt.xlabel('# {}s'.format(feat.upper()))
+    plt.ylabel('# genes')
+    sns.despine()
+    
+    return df

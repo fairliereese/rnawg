@@ -927,7 +927,7 @@ def add_feat(df, col, kind, as_index=False, as_number=False,
 def get_gtf_info(how='gene',
                  subset=None,
                  add_stable_gid=False,
-                 ver='v29'):
+                 ver='v40_cerberus'):
     """
     Gets the info from the annotation about genes / transcripts
 
@@ -1012,39 +1012,32 @@ def get_gtf_info(how='gene',
     return df, biotype_counts, biotype_cat_counts
 
 def get_det_table(df,
-                  how='gene',
-                  min_tpm=1,
-                  gene_subset='polya',
-                  sample='all',
                   groupby='library',
-                  nov='Known'):
+                  min_tpm=0,
+                  **kwargs):
     """
     Get a dataframe of True / False whether or not a gene / isoform
     was detected in a specific library or sample
 
     Parameters:
         df (pandas DataFrame): TALON abundance
-        how (str): Either "gene" or "iso"
-        min_tpm (float): Minimum TPM to call a gene / iso as detected
-        gene_subset (str): Subset of genes to use, 'polya' or None
-        sample (str): 'tissue', 'cell_line' or 'mouse_match'
+        min_tpm (float): Min. TPM to be considered detected
         groupby (str): Either 'sample', 'library', or 'all'
             used to groupby datasets displayed
-        nov (list of str): Only used with how='iso', novelty categories of
-            isoforms to consider
 
     Returns:
         df (pandas DataFrame): DataFrame with True / False entries
             for each isoform / gene per library / sample
     """
+    if 'nov' not in kwargs:
+        nov = df.transcript_novelty.unique().tolist()
+    
+    # add min_tpm to kwargs as it's needed for both 
+    # functions
+    kwargs['min_tpm'] = min_tpm
 
     # calc TPM per library on desired samples
-    df, tids = get_tpm_table(df,
-                   sample=sample,
-                   how=how,
-                   nov=nov,
-                   min_tpm=min_tpm,
-                   gene_subset=gene_subset)
+    df, tids = get_tpm_table(df, **kwargs)
 
     df = df.transpose()
     df.index.name = 'dataset'
@@ -1283,14 +1276,73 @@ def get_gene_iso_det_table(df, filt_df,
 
     return df
 
+def get_ca_table(h5,
+                 feat):
+    ca = cerberus.read(h5)
+    if feat == 'tss':
+        df = ca.tss
+    elif feat == 'tes':
+        df = ca.tes
+    elif feat == 'ic':
+        df = ca.ic
+    return df
+
+def get_source_feats(h5,
+                     feat, 
+                     sources,
+                     gene_subset):
+    df = get_ca_table(h5, feat)
+    df = filter_cerberus_sources(df, sources)
+
+    if gene_subset: 
+        gene_df, _, _ = get_gtf_info(how='gene', add_stable_gid=True, subset=gene_subset, ver='v40_cerberus')    
+        df = df.loc[df.gene_id.isin(gene_df.gid_stable.tolist())]
+
+    ids = df.Name.tolist()
+    return ids
+    
+def get_det_feats(h5, 
+                  filt_ab,
+                  feat,
+                  source,
+                  **kwargs):
+    
+    """
+    Get a list of ids corresponding to the queried 
+    cerberus feature that are expressed
+    
+    Parameters:
+        h5 (str): Path to cerberus annotation
+        filt_ab (str): Path to filtered abundance file
+        feat (str): {'tss', 'ic', 'tes'}
+        source (str): Source to consider in cerberus obj
+        
+    Returns:
+        ids (list of str): List of feature ids
+    """
+    
+    # get these features from cerberus
+    ca_df = get_ca_table(h5, feat)
+    
+    # get detected features
+    df = pd.read_csv(filt_ab, sep='\t')
+    df, ids = get_tpm_table(df, **kwargs)
+    df = ca_df.loc[ca_df.Name.isin(ids)]
+    
+    return df.Name.tolist()
+
 def get_tpm_table(df,
                     sample='all',
                     how='gene',
                     groupby='library',
                     nov=None,
-                    min_tpm=None,
+                    min_tpm=0,
                     gene_subset=None,
                     save=False,
+                    h5=None,
+                    ic_nov=None,
+                    tss_nov=None,
+                    tes_nov=None,
                     **kwargs):
     """
     Parameters:
@@ -1351,6 +1403,31 @@ def get_tpm_table(df,
         nov_inds = df.loc[df[nov_col].isin(nov), id_col].tolist()
     else:
         nov_inds = df[id_col].tolist()
+    
+    # filter on ca feature novelties
+    ca_inds = []
+    for ca_feat, ca_novs in zip(['tss', 'ic', 'tes'], [tss_nov, ic_nov, tes_nov]):
+        if h5 and ca_novs:
+            if how != ca_feat:
+                df = add_feat(df, col='annot_transcript_id', kind=ca_feat)
+            ca_df = get_ca_table(h5, ca_feat)
+            ca_df = ca_df.loc[ca_df.novelty.isin(ca_novs)]
+            inds = df.loc[df[ca_feat].isin(ca_df.Name.tolist()), id_col].tolist()
+            ca_inds.append(inds)
+        else:
+            ca_inds.append(df[id_col].tolist())
+    feat_inds = list(set(ca_inds[0])&set(ca_inds[1])&set(ca_inds[2]))
+            
+    #     tss = get_ca_table(h5, 'tss')
+    #     tss = tss.loc[tss.novelty.isin(tss_nov)]
+    #     if how != 'tss':
+    #         df = add_feat(df
+    # elif h5 and tes_nov:
+    #     tes = get_ca_table(h5, 'tes')
+    #     tes = tes.loc[tes.novelty.isin(tes_nov)]
+    # elif h5 and ic_nov:
+    #     ic = get_ca_table(h5, 'ic')
+    #     ic = ic.loc[ic.novelty.isin(ic_nov)]
 
     # filter on gene subset
     if gene_subset:
@@ -1364,7 +1441,7 @@ def get_tpm_table(df,
         gene_inds = df[id_col].tolist()
 
     # get intersection of both
-    subset_inds = list(set(nov_inds)&set(gene_inds))
+    subset_inds = list(set(nov_inds)&set(gene_inds)&set(feat_inds))
 
     # sum up counts across the same gene, ic, tss, or tes
     sum_hows = ['gene', 'ic', 'tss', 'tes']
