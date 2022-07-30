@@ -1408,6 +1408,7 @@ def get_tpm_table(df,
     ca_inds = []
     for ca_feat, ca_novs in zip(['tss', 'ic', 'tes'], [tss_nov, ic_nov, tes_nov]):
         if h5 and ca_novs:
+            print('Getting {} {}s'.format(ca_novs, ca_feat))
             if how != ca_feat:
                 df = add_feat(df, col='annot_transcript_id', kind=ca_feat)
             ca_df = get_ca_table(h5, ca_feat)

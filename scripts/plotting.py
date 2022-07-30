@@ -46,6 +46,8 @@ def get_sector_colors(cats=None):
     c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
 
+
+
 def get_support_sector_colors(sector=None):
     c_dict, order = get_sector_colors()
 
@@ -1170,13 +1172,8 @@ def plot_avg_isos_per_gene(df,
     plt.savefig(fname, dpi=300, bbox_inches='tight')
     
 def plot_biosamp_det(df,
-                     how='gene',
-                     min_tpm=1, 
-                     gene_subset='polya',
-                     sample='cell_line',
-                     groupby='cell_line',
-                     nov=None,
-                     opref='figures/'):
+                     opref='figures/',
+                     **kwargs):
     
     """
     Plot a hist of the number of tissues, cell lines, or datasets each gene or 
@@ -1184,29 +1181,22 @@ def plot_biosamp_det(df,
     
     Parameters:
         df (pandas DataFrame): TALON abundance
-        how (str): Either "gene" or "iso"
-        min_tpm (float): Minimum TPM to call a gene / iso as detected
-        gene_subset (str): Subset of genes to use, 'polya' or None
-        sample (str): Either "tissue", "cell_line", or None
-        groupby (str): Either "sample", or "library", 
-            used to groupby datasets displayed
-        nov (str): Only used with how='iso', novelty category of 
-            isoforms to consider
         opref (str): Output prefix to save figure
         
     Returns: 
         df (pandas DataFrame): DataFrame detailing how many samples
             each gene or isoform was seen in
     """
-    if nov:
-        nov_list = [nov]
-    df = get_det_table(df,
-                     how=how,
-                     min_tpm=min_tpm,
-                     gene_subset=gene_subset,
-                     sample=sample,
-                     groupby=groupby,
-                     nov=nov_list)
+    if 'ic_nov' in kwargs:
+        nov = kwargs['ic_nov'][0]
+    if 'how' in kwargs:
+        how = kwargs['how']
+    if 'groupby' in kwargs:
+        groupby = kwargs['groupby']
+    if 'sample' in kwargs:
+        sample = kwargs['sample']
+        
+    df = get_det_table(df, **kwargs)
     
     # finally, calculate the number of biosamples / libraries these 
     # genes or transcripts are expressed >= min TPM
@@ -1216,7 +1206,7 @@ def plot_biosamp_det(df,
     # and make a beautiful plot
     sns.set_context('paper', font_scale=2)
     
-    c_dict, order = get_talon_nov_colors()
+    c_dict, order = get_ic_nov_colors()
     if nov:
         color = c_dict[nov]
     else:
@@ -1229,11 +1219,8 @@ def plot_biosamp_det(df,
         ylabel = 'Known genes'
     elif how == 'iso':
         if nov == 'Known':
-            ylabel = 'Known transcripts'
-        elif nov == 'NIC':
-            ylabel = 'NIC transcripts'
-        elif nov == 'NNC':
-            ylabel = 'NNC transcripts'
+            nov = nov.lower()
+        ylabel = 'Transcripts w/ {} intron chains'.format(nov)
 
     if groupby == 'sample':
         xlabel = 'Number of cell lines and tissues'
