@@ -19,6 +19,32 @@ import math
 
 from .utils import *
 
+def get_lr_bulk_sample_colors():
+    c_dict, order = get_tissue_age_colors()
+
+    # c2c12
+    c_dict['c2c12_myoblast'] = '#ca79a7'
+    c_dict['c2c12_myotube'] = '#009c73'
+
+    # forelimb
+    c_dict['forelimb_e11'] = '#99ebec'
+    c_dict['forelimb_e13'] = '#01ced0'
+
+    # adrenal, hc, ctx
+    for t in ['adrenal', 'hippocampus', 'cortex']:
+        c_dict[t] = get_tissue_colors()[0][t]
+
+    return c_dict, None
+
+def get_shade_colors(color, order):
+    c_dict = {}
+    min_color = '#FFFFFF'
+    cmap = mpl.colors.LinearSegmentedColormap.from_list('temp', [color, min_color], N=len(order)+1)
+    for i, cat in enumerate(order):
+        c_dict[cat] = mpl.colors.to_hex(cmap(i))
+
+    return c_dict, order
+
 def rm_color_cats(c_dict, order, cats):
     if cats:
         keys = c_dict.keys()
@@ -28,7 +54,7 @@ def rm_color_cats(c_dict, order, cats):
                 pop_list.append(key)
         for p in pop_list:
             del c_dict[p]
-        order = [o for o in order if o in cats] 
+        order = [o for o in order if o in cats]
     return c_dict, order
 
 def get_sector_colors(cats=None):
@@ -39,14 +65,21 @@ def get_sector_colors(cats=None):
     c_dict = {'tss': tss,
               'splicing': splicing,
               'tes': tes,
-              'simple': simple, 
+              'simple': simple,
               'mixed': '#b7b7b7'}
     order = ['tss', 'splicing', 'tes', 'mixed', 'simple']
-    
+
     c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
 
-
+def get_tissue_cell_line_colors(cats=None):
+    tissue = '#d4a95b'
+    cell_line = '#d67471'
+    c_dict = {'cell_line': cell_line,
+              'tissue': tissue}
+    order = ['cell_line', 'tissue']
+    c_dict, order = rm_color_cats(c_dict, order, cats)
+    return c_dict, order
 
 def get_support_sector_colors(sector=None):
     c_dict, order = get_sector_colors()
@@ -62,12 +95,12 @@ def get_support_sector_colors(sector=None):
             key = '{}_{}'.format(tissue, age)
             new_c_dict[key] = mpl.colors.to_hex(cmap(i+1))
             order.append(key)
-            
-    if sector: 
+
+    if sector:
         cats = [key for key in new_c_dict.keys() if sector in key]
         new_c_dict, order = rm_color_cats(new_c_dict, order, cats)
         new_c_dict['{}_False'.format(sector)]
-        
+
         c = dict()
         o = []
         for b in [True, False]:
@@ -76,7 +109,7 @@ def get_support_sector_colors(sector=None):
             c[b] = new_c_dict[key]
         new_c_dict = c
         order = o
-    
+
     return new_c_dict, order
 
 def get_feat_colors(cats=None):
@@ -87,7 +120,7 @@ def get_feat_colors(cats=None):
               'ic': splicing,
               'tes': tes}
     order = ['tss', 'ic', 'tes']
-    
+
     c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
 
@@ -109,14 +142,14 @@ def get_biosample_colors():
     d = os.path.dirname(__file__)
     fname = '{}/../refs/biosample_colors.tsv'.format(d)
     df = pd.read_csv(fname, sep='\t')
-    
+
     c_dict = {}
     for ind, entry in df.iterrows():
         c_dict[entry.biosample] = entry.color
     order = df.biosample.tolist()
-    
+
     return c_dict, order
-    
+
 def get_talon_nov_colors(cats=None):
     c_dict = {'Known': '#009E73',
               'ISM': '#0072B2',
@@ -127,8 +160,8 @@ def get_talon_nov_colors(cats=None):
               'Intergenic': '#CC79A7',
               'Genomic': '#F0E442'}
     order = ['Known', 'ISM', 'ISM_rescue', 'NIC', 'NNC', 'Antisense', 'Intergenic', 'Genomic']
-    
-    c_dict, order = rm_color_cats(c_dict, order, cats)            
+
+    c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
 
 def get_ic_nov_colors(cats=None):
@@ -140,8 +173,8 @@ def get_ic_nov_colors(cats=None):
               'Intergenic': '#CC79A7',
               'Monoexonic': '#F0E442'}
     order = ['Known', 'ISM', 'NIC', 'NNC', 'Antisense', 'Intergenic', 'Monoexonic']
-    
-    c_dict, order = rm_color_cats(c_dict, order, cats)            
+
+    c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
 
 
@@ -155,13 +188,13 @@ def get_ad_colors():
 def plot_det_gene_len(df, opref='figures/'):
     pass
 
-def plot_cell_line_tissue_det_venn(df, how='gene', 
-                                   nov='Known', 
+def plot_cell_line_tissue_det_venn(df, how='gene',
+                                   nov='Known',
                                    opref='figures/'):
     """
     Plot a venn diagram showing how many genes / transcripts
     are detected between the cell line and tissue datasets
-        
+
     Parameters:
         df (pandas DataFrame): TALON abundance, unfiltered
             or filtered (for gene)
@@ -170,33 +203,33 @@ def plot_cell_line_tissue_det_venn(df, how='gene',
         opref (str): Where to save output figures
     """
     sns.set_context('paper', font_scale=1.8)
-    
+
     if how == 'gene':
         df = df.loc[df.gene_novelty == 'Known']
         dataset_cols = get_dataset_cols()
         df = df[['annot_gene_id']+dataset_cols]
         df = df.groupby('annot_gene_id').sum().reset_index()
-        
+
     tissues = get_sample_datasets('tissue')
     cell_lines = get_sample_datasets('cell_line')
 
     df['tissue'] = df[tissues].sum(1).astype(bool)
     df['cell_line'] = df[cell_lines].sum(1).astype(bool)
-    
+
     if how == 'iso':
         df = df[['transcript_novelty', 'tissue', 'cell_line']]
         df = df.loc[df.transcript_novelty == nov]
     else:
         print(df.head())
         df = df[['annot_gene_id', 'tissue', 'cell_line']]
-    
+
     known_out_green = '#90D6C3'
     known_int_green = '#009E73'
     nnc_out_gold = '#F5DFAE'
     nnc_int_gold = '#E69F00'
     nic_out_orange = '#DEA67A'
     nic_int_orange = '#D55E00'
-    
+
     if nov == 'Known':
         out_color = known_out_green
         int_color = known_int_green
@@ -206,7 +239,7 @@ def plot_cell_line_tissue_det_venn(df, how='gene',
     elif nov == 'NIC':
         out_color = nic_out_orange
         int_color = nic_int_orange
-        
+
     df = df.groupby(['tissue', 'cell_line']).count().reset_index()
     if how == 'iso':
         df.rename({'transcript_novelty': 'counts'}, axis=1, inplace=True)
@@ -216,11 +249,11 @@ def plot_cell_line_tissue_det_venn(df, how='gene',
     intersection = df.loc[(df.cell_line)&(df.tissue), 'counts'].values[0]
     tissue = df.loc[(~df.cell_line)&(df.tissue), 'counts'].values[0]
     cell_line = df.loc[(df.cell_line)&(~df.tissue), 'counts'].values[0]
-    
+
     counts = [cell_line, tissue, intersection]
     log_counts = [np.log2(n) for n in counts]
     log_counts = tuple(counts)
-    
+
     v = venn2(subsets=log_counts, set_labels=('',''))
     v.get_patch_by_id('10').set_color(out_color)
     v.get_patch_by_id('01').set_color(out_color)
@@ -237,21 +270,21 @@ def plot_cell_line_tissue_det_venn(df, how='gene',
     v.get_label_by_id('10').set_text(counts[0])
     v.get_label_by_id('01').set_text(counts[1])
     v.get_label_by_id('11').set_text(counts[2])
-    
+
     fname = '{}{}_{}_venn.png'.format(opref, how, nov)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
 def plot_region_widths(regions,
                        kind='annot',
                        opref='figures/human'):
     """
     Parameters:
-        regions (dict of pandas DataFrame): Output from 
+        regions (dict of pandas DataFrame): Output from
             get_ic_tss_tes
         kind (str): Choose 'annot', 'obs', or 'all'
         opref (str): Output file prefix
     """
-    
+
     # plot histogram of tss / tes region sizes
     sns.set_context('paper', font_scale=1.8)
     for c, temp in regions.items():
@@ -260,7 +293,7 @@ def plot_region_widths(regions,
         fname = '{}_{}_{}_region_widths.png'.format(opref, kind, c)
         plt.savefig(fname, dpi=300, bbox_inches='tight')
 
-def plot_genes_n_ic_ends(counts, 
+def plot_genes_n_ic_ends(counts,
                          kind='annot',
                          opref='figures/human'):
     """
@@ -269,7 +302,7 @@ def plot_genes_n_ic_ends(counts,
         kind (str): Choose from 'annot', 'all', 'obs'
         opref (str): Where to save
     """
-    # plot # tss / tes vs ic, color by # genes 
+    # plot # tss / tes vs ic, color by # genes
     counts['tss_tes'] = counts.tss+counts.tes
     counts.head()
 
@@ -296,7 +329,7 @@ def plot_genes_n_ic_ends(counts,
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    
+
     xlabel = '# TSSs + # TESs'
     ylabel = '# intron chains'
 
@@ -312,28 +345,28 @@ def plot_genes_n_ic_ends(counts,
     ax.set_aspect('equal')
     ax.set_xlim(lims)
     ax.set_ylim(lims)
-    
+
     fname = '{}_{}_n_genes_ic_tss_tes.png'.format(opref, kind)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
-def plot_ic_upset(h5, 
+
+def plot_ic_upset(h5,
                    subset=None,
                    sources=None,
                    gids=None,
                    max_n_subsets=None,
                    opref='figures/cerberus',
                    **kwargs):
-    df, _, _, _, _, _ = read_h5(h5, as_pyranges=False) 
+    df, _, _, _, _, _ = read_h5(h5, as_pyranges=False)
     # filter ends for gene subset
     if subset:
         df = filter_cerberus_genes(df, subset=subset)
 
     if gids:
         df = df.loc[df.gene_id.isin(gids)]
-        
+
     # get melted version of regions
     ic_upset = upsetplot.from_memberships(df.source.str.split(','), data=df)
-    
+
     # filter for given sources
     if sources:
         temp = ic_upset.copy(deep=True)
@@ -344,7 +377,7 @@ def plot_ic_upset(h5,
         temp.drop(drop_sources, axis=1, inplace=True)
         temp.set_index(sources, inplace=True)
         ic_upset = temp.copy(deep=True)
-        
+
     # make the plot
     c_dict = get_edge_colors()
     mode = 'intron'
@@ -352,13 +385,13 @@ def plot_ic_upset(h5,
     fig = plt.figure(figsize=(11,6))
     sns.set_context('paper', font_scale=1.5)
     upsetplot.plot(ic_upset, subset_size='auto',
-                    show_counts='%d', sort_by='cardinality', 
+                    show_counts='%d', sort_by='cardinality',
                     facecolor=c, fig=fig, shading_color='white', element_size=None,
                     **kwargs)
 
     fname = '{}_{}_source_upset.png'.format(opref, mode)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
     return ic_upset
 
 def plot_end_upset(h5, mode,
@@ -373,24 +406,24 @@ def plot_end_upset(h5, mode,
         df = tss
     elif mode == 'tes':
         df = tes
-    
+
     # filter ends for gene subset
     if subset:
         df = filter_cerberus_genes(df, subset=subset)
-    
+
     if gids:
         df = df.loc[df.gene_id.isin(gids)]
-    
+
     # get melted version of regions
     end_upset = upsetplot.from_memberships(df.source.str.split(','), data=df)
-    
-    # limit just to n subsets 
+
+    # limit just to n subsets
 #     if max_n_subsets:
 #         content = from_contents(data)
 #         uniques, counts = np.unique(content.index, return_counts=True)
 
 #         sorted_uniques = [x for _, x in sorted(zip(counts, uniques), reverse=True)]
-    
+
     # filter for given sources
     if sources:
         temp = end_upset.copy(deep=True)
@@ -402,22 +435,22 @@ def plot_end_upset(h5, mode,
         temp.set_index(sources, inplace=True)
         end_upset = temp.copy(deep=True)
 
-    
+
     # make the plot
     c_dict, _ = get_end_colors()
     c = c_dict[mode]
     fig = plt.figure(figsize=(11,6))
     sns.set_context('paper', font_scale=1.5)
     upsetplot.plot(end_upset, subset_size='auto',
-                    show_counts='%d', sort_by='cardinality', 
+                    show_counts='%d', sort_by='cardinality',
                     facecolor=c, fig=fig, shading_color='white', element_size=None,
                    **kwargs)
 
     fname = '{}_{}_source_upset.png'.format(opref, mode)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
     return end_upset
-        
+
 def plot_n_ic_tss_tes(counts,
                       label_genes=None,
                       kind='annot',
@@ -429,13 +462,13 @@ def plot_n_ic_tss_tes(counts,
         kind (str): Choose from 'annot', 'all', 'obs'
         opref (str): Where to save thing
     """
-    
+
     xs = ['tss', 'tss', 'tes']
     ys = ['intron_chain', 'tes', 'intron_chain']
     hues = ['tes', 'intron_chain', 'tss']
-    
+
     for x, y, hue in zip(xs, ys, hues):
-        
+
         # plot the figure
         sns.set_context('paper', font_scale=1.6)
         plt.figure(figsize=(6,8))
@@ -476,7 +509,7 @@ def plot_n_ic_tss_tes(counts,
                     y_txt = counts.loc[counts.gname == g, y].values[0]-(1/80)*ylim
                     plt.annotate(g, (x_txt,y_txt), fontsize='small', fontstyle='italic')
         _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-        
+
         fname = '{}_{}_{}_{}_{}_scatter.png'.format(opref, x,y,hue, kind)
         plt.savefig(fname, dpi=300, bbox_inches='tight')
 
@@ -485,14 +518,14 @@ def plot_n_reps_per_biosamp(df,
                             opref='figures/'):
     """
     Plot a bar plot showing the number of libraries
-        that went into each sample 
-        
+        that went into each sample
+
     Parameters:
         df (pandas DataFrame): TALON abundance, unfiltered
         sample (str): Either "tissue", "cell_line"
         opref (str): Output prefix to save figure
     """
-    
+
     dataset_cols = get_sample_datasets(sample)
     df = df[dataset_cols]
     df = df.transpose()
@@ -513,7 +546,7 @@ def plot_n_reps_per_biosamp(df,
         df.rename({'tissue': 'celltype'}, axis=1, inplace=True)
         print('Found {} distinct tissues'.format(len(df.celltype.unique())))
     elif sample == 'cell_line':
-        print('Found {} distinct cell lines'.format(len(df.celltype.unique()))) 
+        print('Found {} distinct cell lines'.format(len(df.celltype.unique())))
 
     df = df[['dataset', 'celltype']]
 
@@ -521,7 +554,7 @@ def plot_n_reps_per_biosamp(df,
     ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    
+
     if sample == 'tissue':
         ylabel = '# libraries'
         xlabel = 'Tissue'
@@ -530,16 +563,16 @@ def plot_n_reps_per_biosamp(df,
         xlabel = 'Cell line'
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-    
+
     fname = '{}{}_libs_per_biosamp.png'.format(opref, sample)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
-def plot_major_iso_pis(sg, groupby, 
+
+def plot_major_iso_pis(sg, groupby,
                        opref='figures/human'):
     """
-    Plots a histogram of pi values for the 1st-4th highest-expressed isoform 
+    Plots a histogram of pi values for the 1st-4th highest-expressed isoform
     per gene per sample.
-    
+
     Parameters:
         sg (swan_vis SwanGraph): SwanGraph with abundance information
         groupby (str): Column in sg.adata.obs on which to calculat pi
@@ -583,7 +616,7 @@ def plot_major_iso_pis(sg, groupby,
         sns.set_context('paper', font_scale=2)
         ax = sns.displot(data=temp, x='pi', linewidth=0)
 
-        if i == 1: 
+        if i == 1:
             xlabel = 'Highest pi per gene per {}'.format(obs_col)
         elif i == 2:
             xlabel = '2nd highest pi per gene per {}'.format(obs_col)
@@ -594,32 +627,32 @@ def plot_major_iso_pis(sg, groupby,
         ylabel = 'Number of isoforms'
         ax.set(ylabel=ylabel, xlabel=xlabel, xlim=(0,100))
 
-    
+
 
 def plot_ranked_exon_counts(sg,
-                          df, 
-                          gene, 
+                          df,
+                          gene,
                           min_tpm=1,
                           gene_subset='polya',
                           sample='all',
                           groupby='library',
-                          nov=['Known', 'NIC', 'NNC'], 
+                          nov=['Known', 'NIC', 'NNC'],
                           opref='figures/human'):
-    
+
     """
     Plot the ranked counts per exon for a given gene subset according
     to the input expression threshold and novelty categories
-    
+
     Parameters:
         sg (swan_vis SwanGraph): SwanGraph with data from corresponding
     """
-    
+
     # determine which isoforms are actually detected
-    df = get_det_table(df, 
+    df = get_det_table(df,
                        how='iso',
                        min_tpm=min_tpm,
                        gene_subset=gene_subset,
-                       sample=sample, 
+                       sample=sample,
                        groupby=groupby,
                        nov=nov)
     tids = df.columns.tolist()
@@ -649,7 +682,7 @@ def plot_ranked_exon_counts(sg,
     # rank according to exp
     df = df.sort_values(by='total_counts', ascending=True)
     df.reset_index(inplace=True)
-    
+
     sns.set_context('paper', font_scale=1.8)
     c_dict = get_edge_colors()
 
@@ -668,7 +701,7 @@ def plot_ranked_exon_counts(sg,
         fname = '{}_{}_counts_per_{}.png'.format(opref, gene, e)
         plt.savefig(fname, dpi=300, bbox_inches='tight')
 
-    return df 
+    return df
 
 def plot_exon_hist(sg,
                    df,
@@ -677,26 +710,26 @@ def plot_exon_hist(sg,
                    gene_subset='polya',
                    sample='all',
                    groupby='library',
-                   nov=['Known', 'NIC', 'NNC'], 
+                   nov=['Known', 'NIC', 'NNC'],
                    opref='figures/human'):
     """
     Plot a histogram of introns and exons and how many isoforms
     they're used in in a particular gene.
-    
+
     Parameters:
         sg (swan_vis SwanGraph): SwanGraph of data
         df (pandas DataFrame): TALON abundance
     """
     # determine which isoforms are actually detected
-    df = get_det_table(df, 
+    df = get_det_table(df,
                        how='iso',
                        min_tpm=min_tpm,
                        gene_subset=gene_subset,
-                       sample=sample, 
+                       sample=sample,
                        groupby=groupby,
                        nov=nov)
     tids = df.columns.tolist()
-    
+
     # get isoforms from target gene
     df = sg.t_df.loc[sg.t_df.gname == gene]
     df = swan.pivot_path_list(df, 'path')
@@ -706,20 +739,20 @@ def plot_exon_hist(sg,
     df = df[['edge_id', 'edge_type']]
     df.reset_index(inplace=True)
     tids = list(set(tids)&set(df.tid.tolist()))
-    
+
     # limit to only detected isoforms
     df = df.loc[df.tid.isin(tids)]
-    
+
     print('Found {} isoforms for {}'.format(len(tids), gene))
-    
+
     c_dict = get_edge_colors()
-    
+
     # groupby and count the number of isoforms that use each edge
     df = df.groupby(['edge_id', 'edge_type']).count().reset_index()
     df.rename({'tid':'n_isos'}, axis=1, inplace=True)
-    
+
     sns.set_context('paper', font_scale=1.8)
-    
+
     for e_type in df.edge_type.unique():
         temp = df.loc[df.edge_type == e_type]
         ax = sns.displot(data=temp, x='n_isos',
@@ -732,8 +765,8 @@ def plot_exon_hist(sg,
 
         _ = ax.set(xlabel=xlabel, ylabel=ylabel)
         fname = '{}_{}_isos_per_{}.png'.format(opref, gene, e_type)
-        plt.savefig(fname, dpi=300, bbox_inches='tight')   
-    
+        plt.savefig(fname, dpi=300, bbox_inches='tight')
+
 def plot_exons_per_iso(df,
                        nov=['Known'],
                        min_tpm=1,
@@ -741,7 +774,7 @@ def plot_exons_per_iso(df,
                        opref='figures/'):
     """
     Plots a boxplot showing # exons per isoform.
-    
+
     Parameters:
         df (pandas DataFrame): TALON abundance file
         nov (list of str): Novelty categories to include
@@ -749,9 +782,9 @@ def plot_exons_per_iso(df,
         gene_subset (str): Choose from 'polya' or None
         opref (str): Output file prefix
     """
-    
+
     t_df = df.copy(deep=True)
-    
+
     # filter based on TPM, novelty, gene subset
     df, tids = get_tpm_table(df,
                              how='iso',
@@ -759,10 +792,10 @@ def plot_exons_per_iso(df,
                              min_tpm=min_tpm,
                              gene_subset=gene_subset)
 
-    # add back in novelty and n exon info 
+    # add back in novelty and n exon info
     t_df = t_df[['annot_transcript_id', 'n_exons', 'transcript_novelty']]
-    df = df.merge(t_df, how='left', left_index=True, right_on='annot_transcript_id')   
-    
+    df = df.merge(t_df, how='left', left_index=True, right_on='annot_transcript_id')
+
     # plot the plot
     sns.set_context('paper', font_scale=1.6)
     plt.figure(figsize=(4,6))
@@ -784,7 +817,7 @@ def plot_exons_per_iso(df,
     plt.savefig(fname, dpi=300, bbox_inches='tight')
 
 def plot_gene_v_iso_sample_det(df,
-                               sample='cell_line', 
+                               sample='cell_line',
                                opref='figures/'):
     """
     Plot a hexbin density plot of the number of samples each gene and transcript is detected per librarygenes detected per library, by novelty type
@@ -824,7 +857,7 @@ def plot_gene_v_iso_sample_det(df,
 
     for nov in ['Known', 'NIC', 'NNC']:
         temp = t_df.loc[t_df.transcript_novelty == nov].copy(deep=True)
-        ax = sns.jointplot(data=temp, x='n_samples_transcript', 
+        ax = sns.jointplot(data=temp, x='n_samples_transcript',
                          y='n_samples_gene',
                          kind='hex',
                          color=c_dict[nov],
@@ -846,18 +879,18 @@ def plot_gene_v_iso_sample_det(df,
 
         fname = '{}{}_gene_v_{}_iso_n_samp_det.png'.format(opref, sample, nov)
         plt.savefig(fname, dpi=300, bbox_inches='tight')
-        
+
 def plot_n_libs_v_avg_isos(df,
                            color='blue',
                            min_tpm=1,
                            gene_subset='polya',
-                           sample='all', 
+                           sample='all',
                            nov=['Known', 'NIC', 'NNC'],
                            opref='figures/'):
     """
     Plot a scatterplot with a regression line for the average
         number of isos / gene vs. # libraries / sample
-        
+
     Parameters:
         df (pandas DataFrame): TALON abundance, unfiltered
         filt_df (pandas DataFrame): TALON abundance, filtered
@@ -865,30 +898,30 @@ def plot_n_libs_v_avg_isos(df,
         min_tpm (float): Minimum TPM to call a gene / iso as detected
         gene_subset (str): Subset of genes to use, 'polya' or None
         sample (str): Either "tissue", "cell_line", or None
-        groupby (str): Either "sample", or "library", 
+        groupby (str): Either "sample", or "library",
             used to groupby datasets displayed
-        nov (str): Novelty category of 
+        nov (str): Novelty category of
             isoforms to consider
         opref (str): Output prefix to save figure
     """
-    
+
     # get number of libraries per sample
-    n_libs = get_n_libs_per_sample()    
-    
+    n_libs = get_n_libs_per_sample()
+
     # get avg isos
     df = get_isos_per_gene(df,
                        min_tpm=min_tpm,
                        gene_subset=gene_subset,
                        sample=sample,
-                       groupby='sample', 
+                       groupby='sample',
                        nov=nov)
     df = df.mean().to_frame().rename({0: 'avg_isos'}, axis=1)
     df.reset_index(inplace=True)
     df.rename({'index': 'biosample'}, axis=1, inplace=True)
-    
+
     # merge with number of libraries
     df = df.merge(n_libs, how='left', on='biosample')
-    
+
     sns.set_context('paper', font_scale=1.6)
     ax = sns.scatterplot(data=df, x='n_libraries', y='avg_isos', color='b')
 
@@ -912,7 +945,7 @@ def plot_n_libs_v_avg_isos(df,
     print('R2 of correlation: {}'.format(r2))
 
     sns.regplot(data=df, x=c1, y=c2,
-                scatter=False, ax=ax, 
+                scatter=False, ax=ax,
                 color='b')
     sns.regplot(data=df, x=c1, y=c2,
         scatter=False, ax=ax, ci=0, color='b',
@@ -920,28 +953,28 @@ def plot_n_libs_v_avg_isos(df,
                   'label':"m={0:.1f}".format(slope)})
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-    
+
     fname = '{}_libs_v_avg_isos.png'.format(opref)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
 def plot_n_isos_gene_sample_dist():
     """
     Plot the distribution of # isoforms detected / gene / sample
     """
-        
+
 def plot_n_reads_v_avg_isos(df,
                             filt_df,
                             color='blue',
                             min_tpm=1,
                             gene_subset='polya',
-                            sample='all', 
+                            sample='all',
                             groupby='sample',
                             nov=['Known', 'NIC', 'NNC'],
                             opref='figures/'):
     """
     Plot a scatterplot with a regression line for the average
         number of isos / gene vs. # reads / sample
-        
+
     Parameters:
         df (pandas DataFrame): TALON abundance, unfiltered
         filt_df (pandas DataFrame): TALON abundance, filtered
@@ -949,31 +982,31 @@ def plot_n_reads_v_avg_isos(df,
         min_tpm (float): Minimum TPM to call a gene / iso as detected
         gene_subset (str): Subset of genes to use, 'polya' or None
         sample (str): Either "tissue", "cell_line", or None
-        groupby (str): Either "sample", or "library", 
+        groupby (str): Either "sample", or "library",
             used to groupby datasets displayed
-        nov (str): Novelty category of 
+        nov (str): Novelty category of
             isoforms to consider
         opref (str): Output prefix to save figure
     """
-    
+
     # get number of reads from unfiltered data
     reads = get_reads_per_sample(df, groupby='sample')
-    
+
     # get avg isos
     df = get_isos_per_gene(filt_df,
                        min_tpm=min_tpm,
                        gene_subset=gene_subset,
                        sample=sample,
-                       groupby=groupby, 
+                       groupby=groupby,
                        nov=nov)
     df = df.mean().to_frame().rename({0: 'avg_isos'}, axis=1)
     df.reset_index(inplace=True)
     df.rename({'index': 'biosample'}, axis=1, inplace=True)
-    
+
     # merge with read depth
     df = df.merge(reads, how='left', on='biosample')
     df.head()
-    
+
     sns.set_context('paper', font_scale=1.6)
     ax = sns.scatterplot(data=df, x='n_reads', y='avg_isos', color='b')
 
@@ -989,7 +1022,7 @@ def plot_n_reads_v_avg_isos(df,
     slope, intercept, r_value, p_value, std_err = stats.linregress(df[c1],df[c2])
     lines = mpl.lines.Line2D([0], [0])
     label = 'm={0:.1f}'.format(slope)
-    
+
     r2, pval_spear = stats.spearmanr(df[c1],df[c2])
 
     print('Slope of correlation: {}'.format(slope))
@@ -997,7 +1030,7 @@ def plot_n_reads_v_avg_isos(df,
     print('R2 of correlation: {}'.format(r2))
 
     sns.regplot(data=df, x=c1, y=c2,
-                scatter=False, ax=ax, 
+                scatter=False, ax=ax,
                 color='b')
     sns.regplot(data=df, x=c1, y=c2,
         scatter=False, ax=ax, ci=0, color='b',
@@ -1005,9 +1038,9 @@ def plot_n_reads_v_avg_isos(df,
                   'label':"m={0:.1f}".format(slope)})
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-    
+
     fname = '{}_reads_v_avg_isos.png'.format(opref)
-    plt.savefig(fname, dpi=300, bbox_inches='tight')     
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
 
 def plot_gene_v_iso_det(df, filt_df,
                         sample='cell_line',
@@ -1022,7 +1055,7 @@ def plot_gene_v_iso_det(df, filt_df,
         sample (str): Either "tissue", "cell_line"
         opref (str): Output prefix to save figure
     """
-        
+
     df = rm_sirv_ercc(df)
     filt_df = rm_sirv_ercc(filt_df)
     dataset_cols = get_sample_datasets(sample)
@@ -1071,18 +1104,18 @@ def plot_gene_v_iso_det(df, filt_df,
 
     gene_df = gene_df.merge(t_df, left_index=True, right_index=True)
     gene_df.reset_index(inplace=True)
-    
+
     df = gene_df.melt(id_vars=['index', 'n_genes'],
                   value_vars=['Known','NIC','NNC'])
     df.rename({'value': 'transcript_counts'}, axis=1, inplace=True)
     df.rename({'variable': 'novelty'}, axis=1, inplace=True)
-    
+
     c_dict, order = get_talon_nov_colors(['Known', 'NIC', 'NNC'])
     sns.set_context('paper', font_scale=1.6)
 
     ax = sns.jointplot(data=df, x='transcript_counts', y='n_genes',
                      hue='novelty', palette=c_dict,
-    #                  xlim=(0,xlim), ylim=(0,ylim), 
+    #                  xlim=(0,xlim), ylim=(0,ylim),
                      joint_kws={'data':df, 's':40, 'alpha':1})
     ax = ax.ax_joint
 
@@ -1099,62 +1132,62 @@ def plot_gene_v_iso_det(df, filt_df,
         xlabel = 'Transcripts per cell line library'
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-    
+
     fname = '{}{}_gene_v_iso_det.png'.format(opref, sample)
-    plt.savefig(fname, dpi=300, bbox_inches='tight') 
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
 
 def plot_avg_isos_per_gene(df,
                            min_tpm=1,
                            gene_subset='polya',
-                           sample='all', 
+                           sample='all',
                            groupby='sample',
                            nov=['Known', 'NIC', 'NNC'],
                            opref='figures/'):
     """
     Plot the average number of isoforms per gene that are seen in each
     sample or library.
-    
+
     Parameters:
         df (pandas DataFrame): TALON abundance
         min_tpm (float): Minimum TPM to call a gene / iso as detected
         gene_subset (str): Subset of genes to use, 'polya' or None
         sample (str): Either "tissue", "cell_line", or None
-        groupby (str): Either "sample", or "library", 
+        groupby (str): Either "sample", or "library",
             used to groupby datasets displayed
-        nov (str): Novelty category of 
+        nov (str): Novelty category of
             isoforms to consider
         opref (str): Output prefix to save figure
-        
-    Returns: 
+
+    Returns:
         df (pandas DataFrame): DataFrame detailing how many samples
             each gene or isoform was seen in
     """
-    
+
     sns.set_context('paper', font_scale=1.6)
-    
+
     # get # isos / gene / sample or library
     df = get_isos_per_gene(df,
                            min_tpm=min_tpm,
                            gene_subset=gene_subset,
                            sample=sample,
-                           groupby=groupby, 
+                           groupby=groupby,
                            nov=nov)
-    
+
     # fill 0s (which represent unexpresed genes) with NaNs before
     # calculating the avg. # isos / sample
     df = df.replace(0, np.nan)
 
     # calculate the average to order the barplots
-    avgs = df.mean().to_frame()    
+    avgs = df.mean().to_frame()
     avgs = avgs.sort_values(by=[0], ascending=False)
     order = avgs.index.tolist()
-    
+
     # melt the df to get an entry for each sample and gene
-    df = df.melt()    
+    df = df.melt()
     df.rename({'variable': 'tissue',
-               'value': 'n_isos'}, axis=1, inplace=True) 
-    df = df.loc[~df.n_isos.isnull()]   
-    
+               'value': 'n_isos'}, axis=1, inplace=True)
+    df = df.loc[~df.n_isos.isnull()]
+
     # actually make the plot
     ax = sns.barplot(data=df, x='tissue', y='n_isos', order=order)
 
@@ -1170,20 +1203,20 @@ def plot_avg_isos_per_gene(df,
 
     fname = '{}_isos_per_gene_per_{}.png'.format(opref, sample)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
 def plot_biosamp_det(df,
                      opref='figures/',
                      **kwargs):
-    
+
     """
-    Plot a hist of the number of tissues, cell lines, or datasets each gene or 
+    Plot a hist of the number of tissues, cell lines, or datasets each gene or
     isoform occurs in.
-    
+
     Parameters:
         df (pandas DataFrame): TALON abundance
         opref (str): Output prefix to save figure
-        
-    Returns: 
+
+    Returns:
         df (pandas DataFrame): DataFrame detailing how many samples
             each gene or isoform was seen in
     """
@@ -1195,17 +1228,22 @@ def plot_biosamp_det(df,
         groupby = kwargs['groupby']
     if 'sample' in kwargs:
         sample = kwargs['sample']
-        
+    if 'nov' in kwargs:
+        nov = kwargs['nov'][0]
+
     df = get_det_table(df, **kwargs)
-    
-    # finally, calculate the number of biosamples / libraries these 
+
+    # finally, calculate the number of biosamples / libraries these
     # genes or transcripts are expressed >= min TPM
     df = df.transpose()
     df['n_samples'] = df.astype(int).sum(axis=1)
-    
+
     # and make a beautiful plot
+    plt.figure(figsize=(6,4))
     sns.set_context('paper', font_scale=2)
-    
+    mpl.rcParams['font.family'] = 'Arial'
+    mpl.rcParams['pdf.fonttype'] = 42
+
     c_dict, order = get_ic_nov_colors()
     if nov:
         color = c_dict[nov]
@@ -1233,7 +1271,7 @@ def plot_biosamp_det(df,
             xlabel = 'Number of cell line libraries'
         elif sample == 'tissue':
             xlabel = 'Number of tissue libraries'
-        else: 
+        else:
             xlabel = 'Number of libraries'
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
@@ -1243,14 +1281,21 @@ def plot_biosamp_det(df,
     else:
         fname = '{}{}_{}_{}_library_detection.png'.format(opref, sample, nov, how)
 
-    plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
+
+    if groupby == sample:
+        fname = '{}{}_{}_{}_detection.pdf'.format(opref, sample, nov, how)
+    else:
+        fname = '{}{}_{}_{}_library_detection.pdf'.format(opref, sample, nov, how)
+
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
+
     return df
 
 def plot_corr(df, sample='cell_line',
-              how='gene', nov='Known', 
+              how='gene', nov='Known',
               opref='figures/', cluster=False):
-    
+
     corrs = compute_corr(df, how=how, sample=sample)
     if cluster == False:
         g = sns.clustermap(corrs, cmap='viridis',
@@ -1259,7 +1304,7 @@ def plot_corr(df, sample='cell_line',
     else:
         g = sns.clustermap(corrs, cmap='viridis',
                 xticklabels=True, yticklabels=True)
-    
+
     if how == 'iso':
         if nov == 'Known':
             title_txt = 'Known transcript'
@@ -1268,18 +1313,18 @@ def plot_corr(df, sample='cell_line',
     elif how == 'gene':
         title_txt = 'Known gene'
     title = '{} expression correlations'.format(title_txt)
-             
-    g.fig.suptitle(title) 
-    
+
+    g.fig.suptitle(title)
+
     fname = '{}{}_{}_correlation.pdf'.format(opref, nov, how)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
     fname = '{}{}_{}_correlation.png'.format(opref, nov, how)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
     fname = '{}{}_{}_correlation.tsv'.format(opref, nov, how)
     corrs.to_csv(fname, sep='\t')
-    
+
 
 def plot_ranked_biosamp(df, sample='cell_line', how='iso', nov='known',
                     ylim=None, opref='figures/'):
@@ -1423,43 +1468,43 @@ def plot_reads_per_bc(df, title, oprefix):
 
     fname = '{}_{}_umis_v_barcodes.png'.format(oprefix, title)
     plt.savefig(fname)
-    
-    
+
+
 def plot_gene_tpm_v_n_isos(df, filt_df,
                            min_tpm=1,
-                           groupby='sample', 
-                           gene_subset='polya', 
+                           groupby='sample',
+                           gene_subset='polya',
                            nov=['Known', 'NIC', 'NNC'],
                            opref='figures/human'):
     """
     Plot a scatterplot of gene tpm / library or sample vs.
     number of isoforms per gene / library or sample
-    
+
     Parameters:
         df (pandas DataFrame): TALON abundance file
         filt_df (pandas DataFrame): filtered talon abundance file
     """
-    
-    tpm_df, _ = get_tpm_table(df, 
-                       how='gene', 
+
+    tpm_df, _ = get_tpm_table(df,
+                       how='gene',
                        min_tpm=min_tpm,
                        groupby=groupby,
                        gene_subset=gene_subset)
-    
-    iso_df = get_isos_per_gene(filt_df, 
+
+    iso_df = get_isos_per_gene(filt_df,
                                min_tpm=min_tpm,
-                               gene_subset=gene_subset, 
-                               groupby=groupby, 
+                               gene_subset=gene_subset,
+                               groupby=groupby,
                                nov=nov)
     tpm_df = tpm_df.melt(ignore_index=False, value_name='tpm')
     iso_df = iso_df.melt(ignore_index=False, value_name='n_iso', var_name='biosample').fillna(0)
-    
+
     tpm_df.index.name = 'annot_gene_id'
     tpm_df.reset_index(inplace=True)
     iso_df.reset_index(inplace=True)
 
     df = tpm_df.merge(iso_df, how='outer', on=['annot_gene_id', 'biosample'])
-    
+
     sns.set_context('paper', font_scale=1.6)
     ax = sns.scatterplot(data=df, x='n_iso', y='tpm')
 
@@ -1475,14 +1520,14 @@ def plot_gene_tpm_v_n_isos(df, filt_df,
 
     fname = '{}_isos_v_tpm.png'.format(opref)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
     # add gname
     gene_df, _, _ = get_gtf_info(how='gene')
     gene_df = gene_df[['gid', 'gname']]
     df = df.merge(gene_df, how='left', left_on='annot_gene_id', right_on='gid')
-    
+
     return df
-    
+
 def plot_det_vs_gencode_isos(df,
                          min_tpm=1,
                          gene_subset='polya',
@@ -1490,60 +1535,60 @@ def plot_det_vs_gencode_isos(df,
                          label_genes=None,
                          opref='figures/',
                          ver='v29',
-                         ylim=None, 
+                         ylim=None,
                          xlim=None):
     """
     Plot a scatterplot of the the total number of isoforms detected
     vs the number of isoforms in gencode
     """
-    
+
     # detected isoforms
     det_df = get_isos_per_gene(df,
                        min_tpm=min_tpm,
                        gene_subset=gene_subset,
-                       groupby='all', 
+                       groupby='all',
                        nov=nov)
     det_df.rename({'all': 'n_isos_det'}, axis=1, inplace=True)
     det_df.reset_index(inplace=True)
     det_df['gid'] = cerberus.get_stable_gid(det_df, 'annot_gene_id')
-    
+
     # annotated isoforms
     gc_df = get_n_gencode_isos(subset='polya', ver=ver)
     gc_df.drop('gid', axis=1, inplace=True)
     gc_df.rename({'gid_stable': 'gid'}, axis=1, inplace=True)
     gc_df = gc_df[['gid', 'n_isos_gencode']]
     # pdb.set_trace()
-    
-    
-    df = det_df.merge(gc_df, how='left', on='gid')    
-    
-    # add gene name 
+
+
+    df = det_df.merge(gc_df, how='left', on='gid')
+
+    # add gene name
     gene_df, _, _ = get_gtf_info(how='gene', subset='polya', ver=ver, add_stable_gid=True)
     gene_df.drop('gid', axis=1, inplace=True)
     gene_df.rename({'gid_stable': 'gid'}, axis=1, inplace=True)
     gene_df = gene_df[['gid', 'gname']]
     df = df.merge(gene_df, how='left', on='gid')
-    
+
     # add a pseudocount of 1 to each metric
     df.n_isos_det = df.n_isos_det+1
     df.n_isos_gencode = df.n_isos_gencode+1
-    
+
     # plot the figure
     sns.set_context('paper', font_scale=1.6)
     plt.figure(figsize=(6,6))
     ax = sns.scatterplot(data=df, x='n_isos_det', y='n_isos_gencode')
-    
+
     fig = plt.gcf()
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    
+
     xlabel = 'Total # isoforms / gene'
     ylabel = '# isoforms / gene in GENCODE'
     _ = ax.set(xlabel=xlabel, ylabel=ylabel, xscale='log', yscale='log')
-    
+
     fig = plt.gcf()
-        
+
     # set x and y lims if provided
     if xlim:
         xlim = (0, xlim)
@@ -1563,7 +1608,7 @@ def plot_det_vs_gencode_isos(df,
     ax.set_aspect('equal')
     ax.set_xlim(lims)
     ax.set_ylim(lims)
-          
+
 #     fig = plt.gcf()
 #     print('3')
 #     print(fig.get_size_inches())
@@ -1582,66 +1627,66 @@ def plot_det_vs_gencode_isos(df,
                     # https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.annotate.html#matplotlib.axes.Axes.annotate
                     plt.annotate(g, (x,y), fontsize='small', fontstyle='italic', xytext=(4,-5), textcoords='offset pixels')
 
-          
+
 #     fig = plt.gcf()
 #     print('4')
 #     print(fig.get_size_inches())
 
     fname = '{}_total_v_gencode_isos_per_gene.png'.format(opref)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
     # remove pseudocount for analysis
     df['n_isos_det'] = df.n_isos_det-1
     df['n_isos_gencode'] = df.n_isos_gencode-1
-    
+
     return df
-    
+
 def plot_max_vs_all_isos(df,
                          min_tpm=1,
                          gene_subset='polya',
-                         groupby='sample', 
+                         groupby='sample',
                          nov=['Known', 'NIC', 'NNC'],
                          label_genes=None,
                          opref='figures/',
-                         ylim=None, 
+                         ylim=None,
                          xlim=None):
     """
-    Plot a scatterplot of the maximum number of isoforms detected 
+    Plot a scatterplot of the maximum number of isoforms detected
     per sample or library vs. the total number of isoforms detected
     """
     df_copy = df.copy(deep=True)
-    
+
     # get maximum number of detected isoforms per library or sample
     max_isos = get_isos_per_gene(df,
                        min_tpm=min_tpm,
                        gene_subset=gene_subset,
-                       groupby=groupby, 
+                       groupby=groupby,
                        nov=nov)
     max_isos = max_isos.max(axis=1).to_frame()
     max_isos.rename({0: 'max_isos'}, axis=1, inplace=True)
-    
+
     # get total number of detected isoforms overall
     total = get_isos_per_gene(df_copy,
                        min_tpm=min_tpm,
                        gene_subset=gene_subset,
-                       groupby='all', 
+                       groupby='all',
                        nov=nov)
     total.rename({'all': 'total_isos'}, axis=1, inplace=True)
-                 
-    # merge 
+
+    # merge
     df = max_isos.merge(total, left_index=True, right_index=True)
-    
+
     # add gene name
     gene_df, _, _ = get_gtf_info(how='gene')
     df = df.merge(gene_df, how='left', left_index=True, right_on='gid')
-    
+
     # plot the figure
     sns.set_context('paper', font_scale=1.6)
     ax = sns.scatterplot(data=df, x='total_isos', y='max_isos')
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    
+
     # set x and y lims if provided
     if xlim:
         xlim = (0, xlim)
@@ -1677,21 +1722,21 @@ def plot_max_vs_all_isos(df,
 
     fname = '{}_max_v_all_isos_per_gene.png'.format(opref)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
     return df
 
 def plot_isos_per_gene_hist(df,
                             min_tpm=1,
-                            gene_subset='polya', 
+                            gene_subset='polya',
                             sample='all',
-                            groupby='sample', 
+                            groupby='sample',
                             nov=['Known'],
                             rm_1=False,
                             pseudocount=None,
                             opref='figures/'):
     """
     Plots dist. of # isos / gene across the different samples
-    
+
     Parameters:
         df (pandas DataFrame): TALON abundance file
         gene_subset (str): Choose from None or 'polya' or 'tf'
@@ -1701,31 +1746,31 @@ def plot_isos_per_gene_hist(df,
         nov (list of str): Novelty categories to consider
         rm_1 (bool): Whether or not to remove 1-count gene / sample
         pseudocount (int): Add a pseudocount
-        opref (str): Output file prefix 
+        opref (str): Output file prefix
     """
-    
+
     df = get_isos_per_gene(df,
                            min_tpm=min_tpm,
                            gene_subset=gene_subset,
                            groupby=groupby,
                            sample=sample,
                            nov=nov)
-    
+
     # get long form dataframe
-    df = df.melt(ignore_index=False) 
-    
+    df = df.melt(ignore_index=False)
+
     # remove 0-count gene / sample combos (as these
     # are genes that were not detected)
     df = df.loc[df.value != 0]
-    
+
     # remove 1-count gene / sample combos too
     if rm_1:
         df = df.loc[df.value != 1]
-    
+
     # add pseudocount if wanted
     if pseudocount:
         df.value = df.value + pseudocount
-            
+
     sns.set_context('paper', font_scale=2)
 
     ax = sns.displot(data=df, x='value', kind='hist', binwidth=1, linewidth=0)
@@ -1733,13 +1778,13 @@ def plot_isos_per_gene_hist(df,
     ylabel = 'Number of genes'
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel, yscale='log')
-    for a in ax.axes.flat:    
+    for a in ax.axes.flat:
         a.yaxis.set_major_formatter(ScalarFormatter())
 
     plt.savefig('{}_hist_isos_per_gene_per_sample.png'.format(opref), \
                 dpi=300, bbox_inches='tight')
     return df, ax
-    
+
 def plot_det_len_kde(df,
                      how='gene',
                      subset='polya',
@@ -1749,19 +1794,19 @@ def plot_det_len_kde(df,
                      ver='v29',
                      opref='figures/'):
     """
-    Plots dist. of gene or transcript length based on whether 
+    Plots dist. of gene or transcript length based on whether
     gene or transcript was detected at the given TPM value.
-    
+
     Parameters:
         df (pandas DataFrame): TALON abundance file
         how (str): Choose from 'gene' or 'iso'
         subset (str): Choose from None or 'polya'
         min_tpm (float): Min. TPM val for at least one library
         xlim (float): Maximum length to display
-        split_biotypes (bool): Split detected and undetected 
+        split_biotypes (bool): Split detected and undetected
             transcripts by biotype
         opref (str): Output file prefix
-        
+
     Returns:
         df (pandas DataFrame): DataFrame used to plot from
     """
@@ -1770,9 +1815,9 @@ def plot_det_len_kde(df,
                    min_tpm=min_tpm,
                    nov=['Known'],
                    gene_subset=subset)
-    gene_df, _, _ = get_gtf_info(how=how, subset=subset, ver=ver)   
+    gene_df, _, _ = get_gtf_info(how=how, subset=subset, ver=ver)
     df.reset_index(inplace=True)
-    
+
     if how == 'gene':
         col = 'annot_gene_id'
         ref_col = 'gid'
@@ -1785,10 +1830,10 @@ def plot_det_len_kde(df,
 
     df = df.merge(gene_df, how='outer',
                   left_on=col, right_on=ref_col)
-    
+
     df['detected'] = True
     df.loc[df[col].isnull(), 'detected'] = False
-    
+
     sns.set_context('paper', font_scale=2)
 
     ax = sns.displot(data=df, x=x_col, kind='kde',
@@ -1800,12 +1845,12 @@ def plot_det_len_kde(df,
     elif how == 'iso':
         xlabel = 'Transcript length'
         ylabel = 'Detected GENCODE transcripts'
-        
+
     if xlim:
         _ = ax.set(xlabel=xlabel, ylabel=ylabel, xlim=(0,xlim))
     else:
         _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-        
+
     plt.savefig('{}_{}_det_{}_tpm_length.pdf'.format(opref, how, min_tpm), \
                 dpi=300, bbox_inches='tight')
     return df
@@ -1951,29 +1996,31 @@ def plot_read_novelty(df, opref, c_dict, order,
     # save figure
     fname = '{}_read_novelty'.format(opref)
     g.savefig(fname+'.pdf', dpi=300)
-    
+
 
 def plot_supported_feats(filt_ab,
                          h5,
                          feat,
                          obs_source,
+                         ref_sources,
+                         support_sources,
                          opref,
                          **kwargs):
     """
     Plot a bar plot showing which observed features are supported
     from external data sources in the cerberus annotation
-    
+
     Parameters:
         filt_ab (str): Path fo filtered abundance file
         h5 (str): Path to cerberus annotation h5 object
         feat (str): {'tss', 'tes', 'ic'}
-        obs_source (str): Source in cerberus annotation to 
+        obs_source (str): Source in cerberus annotation to
             consider the "observed" data
     """
     # get detected features
     df = pd.read_csv(filt_ab, sep='\t')
     df, ids = get_tpm_table(df, **kwargs)
-    
+
     # get these features from cerberus
     ca = cerberus.read(h5)
     if feat == 'tss':
@@ -1985,52 +2032,66 @@ def plot_supported_feats(filt_ab,
     print(len(ca_df.index))
     df = ca_df.loc[ca_df.Name.isin(ids)]
     print(len(df.index))
-    
-    
+
+
     # get T/F detection of each feat by each source
-    df = upsetplot.from_memberships(df.source.str.split(','), data=df)    
+    df = upsetplot.from_memberships(df.source.str.split(','), data=df)
     df.reset_index(inplace=True)
-    
-    # which sources are observed and which are supporting data
+
+    # which sources are observed, which are supported, and which are known
     sources = ca.get_sources(df)
-    support_sources = [s for s in sources if s != obs_source]
-    
-    # which feats have support externally
-    df = df[support_sources].any(axis=1).to_frame()    
-    df['temp'] = df.index.tolist()
-    df = df.groupby(0).count().reset_index()
-    df.rename({0: 'supported', 
-               'temp': 'counts'}, axis=1, inplace=True)
-    
+
+    df['support'] = 'Novel'
+    if support_sources:
+        df.loc[df[support_sources].any(axis=1), 'support'] = 'Supported'
+    df.loc[df[ref_sources].any(axis=1), 'support'] = 'Known'
+    df = df[['Name', 'support']]
+    df = df.groupby('support').count().reset_index()
+    df.rename({'Name': 'counts'}, axis=1, inplace=True)
     print(df)
-    
+
     # colors
     if feat == 'ic':
-        c_feat = 'splicing'
+        c_key = 'splicing'
     else:
-        c_feat = feat
-    c_dict, order = get_support_sector_colors(sector=c_feat)    
-    
+        c_key = feat
+    temp_c_dict, order = get_sector_colors()
+    c = temp_c_dict[c_key]
+    if support_sources:
+        order = ['Known', 'Supported', 'Novel']
+    else:
+        order = ['Known', 'Novel']
+    c_dict, order = get_shade_colors(c, order)
+
     # plotting
-    sns.set_context('paper', font_scale=1.6)
+    sns.set_context('paper', font_scale=2)
+    mpl.rcParams['font.family'] = 'Arial'
+    mpl.rcParams['pdf.fonttype'] = 42
     plt.figure(figsize=(3,4))
 
-
-    ax = sns.barplot(data=df, y='counts', x='supported',
+    ax = sns.barplot(data=df, y='counts', x='support',
                      palette=c_dict, order=order,
                      saturation=1)
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
-    xlabel = 'Support'
+    xlabel = ''
     ylabel = '# observed {}s'.format(feat.upper())
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
     ax.tick_params(axis="x", rotation=90)
 
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+    # labels[0] = 'Known'
+    # labels[1] = 'Novel'
+    ax.set_xticklabels(labels)
+
 
     fname = '{}_{}_support.png'.format(opref, feat)
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
+
+    fname = '{}_{}_support.pdf'.format(opref, feat)
     plt.savefig(fname, dpi=500, bbox_inches='tight')
 
 
@@ -2043,9 +2104,9 @@ def plot_transcript_novelty(df, oprefix,
                             save_type='pdf'):
     """
     Plot number of transcripts per novelty category.
-    
-    Parameters: 
-        df (pandas DataFrame): TALON read annot file or 
+
+    Parameters:
+        df (pandas DataFrame): TALON read annot file or
         oprefix (str): Place to save
         ylim (int): y limit of resultant plot
         title (str): Title of resultant plot
@@ -2056,7 +2117,7 @@ def plot_transcript_novelty(df, oprefix,
     sns.set_context('paper', font_scale=1.6)
 
     temp = df.copy(deep=True)
-    
+
     c_dict, order = get_talon_nov_colors(cats=novs)
 
     # remove transcripts that are not on whitelist
@@ -2065,7 +2126,7 @@ def plot_transcript_novelty(df, oprefix,
         if len(beep) == 0:
             beep = temp.loc[temp.annot_transcript_id.isin(whitelist)].index.tolist()
         temp = temp.loc[beep]
-        
+
     # filter on datasets
     if sample:
         datasets = get_sample_datasets(sample)
@@ -2073,7 +2134,7 @@ def plot_transcript_novelty(df, oprefix,
         datasets = get_dataset_cols()
     cols = ['transcript_ID', 'transcript_novelty']
     temp = temp[cols+datasets]
-    
+
     temp['total_counts'] = temp[datasets].sum(1)
     temp = temp.loc[temp.total_counts > 0]
 
@@ -2089,7 +2150,7 @@ def plot_transcript_novelty(df, oprefix,
     novs = ['NIC', 'Known', 'ISM_rescue', 'NNC']
     complete = temp.loc[temp.transcript_novelty.isin(novs), 'counts'].sum(axis=0)
     print('Number of complete isoforms: {}'.format(complete))
-    
+
 
     # actual plotting
     sns.set_context('paper', font_scale=1.8)
@@ -2124,7 +2185,7 @@ def plot_transcript_novelty(df, oprefix,
 
     plt.show()
     plt.clf()
-    
+
 def plot_ic_novelty(fname,
                     source,
                     oprefix,
@@ -2134,8 +2195,8 @@ def plot_ic_novelty(fname,
                     save_type='pdf'):
     """
     Plot number of intron chains per novelty category.
-    
-    Parameters: 
+
+    Parameters:
         fname (str): Cerberus annotation file name
         source (str): Source in cerberus annotation
         oprefix (str): Place to save
@@ -2144,43 +2205,47 @@ def plot_ic_novelty(fname,
         novs (list of str): Novelty types to include
         save_type (str): Choose from 'pdf' or 'png'
     """
-    
-    sns.set_context('paper', font_scale=1.6)
-    
-    ca = cerberus.read(fname)  
-    
-    
+
+    # sns.set_context('paper', font_scale=1.6)
+
+    ca = cerberus.read(fname)
+
+
     temp = ca.t_map.loc[ca.t_map.source==source].copy(deep=True)
     temp = temp[['ic_id']]
     nov = ca.ic[['Name', 'novelty']]
     temp = temp.merge(nov, how='left', left_on='ic_id', right_on='Name')
     temp.drop_duplicates(inplace=True)
-    
+
     if pass_list:
         temp = temp.loc[temp.ic_id.isin(pass_list)]
-        
+
     temp = temp[['ic_id', 'novelty']]
     temp = temp.groupby('novelty').count()
-    
+
     temp.reset_index(inplace=True)
     temp.rename({'ic_id': 'counts'}, axis=1, inplace=True)
     print(temp)
     if not novs:
         novs = temp.novelty.unique().tolist()
-    c_dict, order = get_ic_nov_colors(cats=novs)  
-    
+    c_dict, order = get_ic_nov_colors(cats=novs)
+
     temp = temp.loc[temp.novelty.isin(novs)].copy(deep=True)
     complete = temp[['counts']].sum(axis=0)
     print('Number of complete intron chains: {}'.format(complete))
-    
+
     # actual plotting
-    sns.set_context('paper', font_scale=1.8)
-    plt.figure(figsize=(4,6))
+    sns.set_context('paper', font_scale=2)
+    mpl.rcParams['font.family'] = 'Arial'
+    mpl.rcParams['pdf.fonttype'] = 42
+    # plt.figure(figsize=(4,6))
+    plt.figure(figsize=(3,4))
+
     g = sns.catplot(data=temp, x='novelty',
                 y='counts', kind='bar',
                 saturation=1,
                 palette=c_dict, order=order)
-    [plt.setp(ax.get_xticklabels(), rotation=90) for ax in g.axes.flat]
+    [plt.setp(ax.get_xticklabels(), rotation=45) for ax in g.axes.flat]
     g.set_ylabels('# intron chains')
     g.set_xlabels('Novelty')
 
@@ -2193,63 +2258,61 @@ def plot_ic_novelty(fname,
 
     # save figure
     fname = '{}_ic_novelty'.format(oprefix)
-    if save_type == 'png':
-        g.savefig(fname+'.png', dpi=300, bbox_inches='tight')
-    elif save_type == 'pdf':
-        g.savefig(fname+'.pdf', dpi=300, bbox_inches='tight')
+    g.savefig(fname+'.png', dpi=500, bbox_inches='tight')
+    g.savefig(fname+'.pdf', dpi=500, bbox_inches='tight')
 
     plt.show()
     plt.clf()
-    
-    
-   
-    
 
-def plot_transcript_novelty_per(df, 
+
+
+
+
+def plot_transcript_novelty_per(df,
                                 gene='ELN',
                                 min_tpm=1,
                                 gene_subset='polya',
                                 groupby='sample',
-                                nov=['Known', 'NIC', 'NNC'], 
+                                nov=['Known', 'NIC', 'NNC'],
                                 opref='figures/'):
-    
+
     """
     Plot the # of detected isoforms / novelty category for a particular
     gene across samples or libraries
     """
-    
+
     # get metadata about the transcripts that we need
     t_df = df.copy(deep=True)
     t_df = t_df[['annot_transcript_id', 'annot_gene_name',
-                 'annot_gene_id', 'transcript_novelty']]  
-    
+                 'annot_gene_id', 'transcript_novelty']]
+
     df = get_det_table(df,
               how='iso',
-              min_tpm=min_tpm, 
+              min_tpm=min_tpm,
               gene_subset=gene_subset,
               groupby=groupby,
               nov=nov)
     df = df.transpose()
-    
+
     # isolate isoforms that belong to gene of interest
     df = df.merge(t_df, how='left', left_index=True, right_on='annot_transcript_id')
     df = df.loc[df.annot_gene_name == gene]
-    
+
     # calc # isos detected per nov
     df.drop(['annot_gene_id', 'annot_gene_name'], axis=1, inplace=True)
     df = df.melt(id_vars=['annot_transcript_id', 'transcript_novelty'])
-    df.rename({'variable': groupby, 
+    df.rename({'variable': groupby,
                'value': 'detected'}, axis=1, inplace=True)
     df = df.groupby([groupby, 'transcript_novelty', 'detected']).count().reset_index()
     df.rename({'annot_transcript_id':'counts'}, axis=1, inplace=True)
     df = df.loc[df.detected == True]
-    
+
     c_dict, order = get_talon_nov_colors(nov)
 
     # actual plotting
     sns.set_context('paper', font_scale=1.6)
     plt.figure(figsize=(4,6))
-    g = sns.catplot(data=df, 
+    g = sns.catplot(data=df,
                 x=groupby,
                 hue='transcript_novelty',
                 y='counts', kind='bar',
@@ -2259,43 +2322,43 @@ def plot_transcript_novelty_per(df,
 
     g.set_ylabels('$\it{}$ isoforms'.format(gene))
     g.set_xlabels('Transcript novelty')
-    
+
     fname = '{}_{}_novelty_per_{}.png'.format(opref, gene, groupby)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
-def plot_transcript_novelty_per_1(df, 
+
+def plot_transcript_novelty_per_1(df,
                                   gene='ELN',
-                                  dataset='h9_chondro', 
+                                  dataset='h9_chondro',
                                   min_tpm=1,
-                                  gene_subset='polya', 
+                                  gene_subset='polya',
                                   groupby='sample',
                                   nov=['Known', 'NIC', 'NNC'],
                                   opref='figures/'):
-    
+
     # get metadata about the transcripts that we need
     t_df = df.copy(deep=True)
     t_df = t_df[['annot_transcript_id', 'annot_gene_name',
-                 'annot_gene_id', 'transcript_novelty']]  
-    
+                 'annot_gene_id', 'transcript_novelty']]
+
     df = get_det_table(df,
               how='iso',
-              min_tpm=min_tpm, 
+              min_tpm=min_tpm,
               gene_subset=gene_subset,
               groupby=groupby,
               nov=nov)
-    
+
     # limit to only those detected in sample / library of interest
     df = df.loc[dataset].to_frame()
     df = df.loc[df[dataset] == True]
-        
+
     # isolate isoforms that belong to gene of interest
     df = df.merge(t_df, how='left', left_index=True, right_on='annot_transcript_id')
     df = df.loc[df.annot_gene_name == gene]
-    
+
     df = df[['annot_transcript_id', 'transcript_novelty']].groupby('transcript_novelty').count().reset_index()
     df.rename({'annot_transcript_id': 'counts'}, axis=1, inplace=True)
     c_dict, order = get_talon_nov_colors(nov)
-    
+
     # actual plotting
     sns.set_context('paper', font_scale=1.8)
     plt.figure(figsize=(4,6))
@@ -2310,10 +2373,10 @@ def plot_transcript_novelty_per_1(df,
     # add percentage labels
     ax = g.axes[0,0]
     add_perc(ax, df, 'counts')
-    
+
     fname = '{}_{}_{}_novelty.png'.format(opref, gene, dataset)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
 def zip_pts(df, c):
     return zip(df[c['a']], df[c['b']], df[c['c']])
 
@@ -2330,14 +2393,14 @@ def density_dorito(counts,
     """
     Plot the density of a dataset on a ternary plot
     From here: https://github.com/marcharper/python-ternary/issues/81
-    
+
     Parameters:
-        counts 
+        counts
         c
-        scale 
-        cmap 
-        
-    Returns: 
+        scale
+        cmap
+
+    Returns:
         fig
         tax
         counts (pandas DataFrame): Counts, scaled by factor used
@@ -2368,12 +2431,12 @@ def density_dorito(counts,
                     n = len(temp.index)
                     # print(n)
                     hm_dict[i,j] += n
-            
+
     # log values if necessary
     if log:
         for key, item in hm_dict.items():
             hm_dict[key] = np.log2(item+1)
-    
+
     # double checking stuff
     df = pd.DataFrame.from_dict(hm_dict, orient='index')
     df['i'] = [b[0] for b in df.index.tolist()]
@@ -2381,45 +2444,45 @@ def density_dorito(counts,
     # df['k'] = [b[2] for b in df.index.tolist()]
     df.rename({0:'val'}, axis=1, inplace=True)
     # print(df.loc[df.val >= 14])
-    
-    
-        
+
+
+
     figure, tax = ternary.figure(scale=scale, permutation='210')
     # tax.heatmap(hm_dict, colorbar=False, style='t', vmax=vmax)
     tax.heatmap(hm_dict, colorbar=False, style='t', adj_vlims=True, cmap=cmap)
     # tax.heatmap(interp_dict, colorbar=False)
-    
+
     # scale according to chosen resolution
     for key in c.keys():
         counts[c[key]] = counts[c[key]]*scale
-        
-    # colorbar - hacked together by broken ternary code 
+
+    # colorbar - hacked together by broken ternary code
     ax = tax.get_axes()
     flat = []
     for key, item in hm_dict.items():
         flat.append(item)
     min_val = min(flat)
     max_val = max(flat)
-    
-    if vmax: 
+
+    if vmax:
         max_val = vmax
-        
+
     # print(min_val)
     # print(max_val)
     norm = plt.Normalize(vmin=min_val, vmax=max_val)
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm._A = []
-    
+
     def exp_format(x,pos):
             x = int(x)
             return r'$2^{{{}}}$'.format(x)
-    
+
     if not log:
         cb = plt.colorbar(sm, ax=ax, pad=pad)
     else:
-        cb = plt.colorbar(sm, ax=ax, pad=pad, 
+        cb = plt.colorbar(sm, ax=ax, pad=pad,
                           format=tck.FuncFormatter(exp_format))
-    
+
     for t in cb.ax.get_yticklabels():
         t.set_fontsize(16)
     if not log:
@@ -2427,49 +2490,49 @@ def density_dorito(counts,
         cb.ax.set_yticks([])
 
     cb.set_label('Density', size=16)
-    
+
     return figure, tax, counts
 
 def jitter_dorito(counts, c, scale):
     """
     Parameters:
-        counts 
+        counts
         c
         scale
-    
+
     Returns
         counts
         c
     """
-    
-    # figure out how much to jitter by 
+
+    # figure out how much to jitter by
     sigma = (1/250)*scale
     for d in c.keys():
         d_jitter = '{}_jitter'.format(d)
         counts[d_jitter] = counts[c[d]].apply(lambda x: np.random.normal(x, sigma))
         c[d] = d_jitter
-    
+
     return counts, c
-    
+
 def scatter_dorito(counts,
-                   c, 
+                   c,
                    hue,
                    size,
                    log_size,
-                   cmap, 
+                   cmap,
                    mmap,
                    alpha,
                    density,
                    legend,
-                   figure, 
+                   figure,
                    tax):
     """
-    Parameters 
+    Parameters
         counts (pandas DataFrame): subset the thing
-        c (dict of str): Dictionary of column names to plot as a, b, c 
+        c (dict of str): Dictionary of column names to plot as a, b, c
             indexed by 'a', 'b', 'c'
     """
-    
+
     def scale_col(points, counts, col, log=False, how='color'):
             if log:
                 log_col = '{}_log'.format(col)
@@ -2482,12 +2545,12 @@ def scatter_dorito(counts,
             vals = min_max_scaler.fit_transform(vals)
             max_scaled = max(vals)
             min_scaled = min(vals)
-            
+
             # replace nans w/ 100
             vals = [100 if np.isnan(v) else v for v in vals]
-            
+
             return vals, min_val, max_val, min_scaled, max_scaled
-        
+
     # defaults
     points = [(x[0], x[1], x[2]) for x in zip_pts(counts, c)]
     labels = ['' for i in range(len(points))]
@@ -2502,10 +2565,10 @@ def scatter_dorito(counts,
     vmin = 0
     vmax = 1
     plotted = False
-        
+
     # get color
     if hue:
-            
+
         # categorical
         if counts[hue].dtype.name == 'object':
             hue_type = 'cat'
@@ -2516,16 +2579,16 @@ def scatter_dorito(counts,
         else:
             hue_type = 'cont'
             colors, abs_min, abs_max, vmin, vmax = scale_col(points, counts, hue)
-    
+
     # get sizes
     if size:
         sizes,_,_,_,_ = scale_col(points, counts, size, log_size)
         print(sizes[:5])
-        
+
     # marker style
     if mmap:
         markers = [mmap[val] if val in mmap.keys() else 'o' for val in counts[hue].unique()]
-        
+
     # figure size handling
     if hue_type == 'cat' and density: figsize = (13,10)
     elif hue_type == 'cat' and not density: figsize = (10,10)
@@ -2533,7 +2596,7 @@ def scatter_dorito(counts,
     elif hue_type == 'cont' and not density: figsize = (13,10)
     elif density: figsize = (13,10)
     figure.set_size_inches(figsize[0], figsize[1])
-    
+
     # actual scatter call
     if hue_type == 'cat':
         for point, color, size, label, marker in zip(points, colors, sizes, labels, markers):
@@ -2541,24 +2604,24 @@ def scatter_dorito(counts,
                     s=size, c=color, cmap=cmap,
                     marker=marker,label=label,
                     alpha=alpha, zorder=3)
-    else:   
+    else:
         tax.scatter(points, vmin=vmin, vmax=vmax,
                     s=sizes, c=colors, cmap=cmap, marker=markers,
                     alpha=alpha, zorder=3)
-    
+
     # legend handling
     if hue_type == 'cat' and legend:
         if density: x = 1.6
         else: x = 1.4
         tax.legend(bbox_to_anchor=(x, 1.05),
                    loc='upper right', prop={'size': 14})
-        
+
         # fix marker size
         ax = tax.get_axes()
         lgnd = ax.get_legend()
         for handle in lgnd.legendHandles:
             handle._sizes = [100]
-    
+
     # colorbar handling
     if hue_type == 'cont':
         ax = tax.get_axes()
@@ -2572,30 +2635,30 @@ def scatter_dorito(counts,
             cb.set_label('# {}s'.format(hue.upper()), size=16)
         elif hue == 'intron_chain':
             cb.set_label('# {}s'.format(hue), size=16)
-        
-    return figure, tax  
+
+    return figure, tax
 
 def line_dorito(alpha, beta, gamma,
                 scale, tax, figure):
     c_dict, _ = get_sector_colors()
-    
+
     # scale
     alpha = alpha*scale
     beta = beta*scale
     gamma = gamma*scale
-    
+
     linewidth = 3
-    
+
     # splicing line
     tax.horizontal_line(beta, linewidth=linewidth,
                         color=c_dict['splicing'],
                         linestyle='--')
-    
+
     # tss
     tax.right_parallel_line(alpha, linewidth=linewidth,
                            color=c_dict['tss'],
                            linestyle='--')
-    
+
     # tes
     tax.left_parallel_line(gamma, linewidth=linewidth,
                            color=c_dict['tes'],
@@ -2627,11 +2690,11 @@ def plot_dorito(counts,
                 title=None,
                 opref='figures/'):
     """
-    Plot a dorito from counts with the given subset in a given 
+    Plot a dorito from counts with the given subset in a given
     color
-    
+
     Parameters:
-        counts (pandas DataFrame): DF of the counts per gene 
+        counts (pandas DataFrame): DF of the counts per gene
             of ic, tss, tes from get_ic_tss_tes or
             compute_triplets (or both!!!)
         top (str): Column name to plot as apex of dorito.
@@ -2640,16 +2703,16 @@ def plot_dorito(counts,
             to values in said columns to include in the data
         hue (str): Column from counts to color by
         cmap (str or dict of str): Either a dictionary mapping
-            categorical column values from hue or a valid 
+            categorical column values from hue or a valid
             matplotlib continuous named color palette
         mmap (str or dict of str): Dictionary mapping categorical
             column values from hue to marker styles
-        scale (bool): Whether to scale values b/w 1 and 0. 
+        scale (bool): Whether to scale values b/w 1 and 0.
         alpha (float): Alpha value of points
         title (str): Title to give plot
         opref (str): Output file prefix to save fig
     """
-    
+
     #### subset dataset and transform numbers as needed ####
     temp = counts.copy(deep=True)
 
@@ -2663,8 +2726,8 @@ def plot_dorito(counts,
             if type(val) != list:
                 val = [val]
             temp = temp.loc[temp[col].isin(val)]
-            
-    # scale and assign which columns to use 
+
+    # scale and assign which columns to use
     c = dict()
     if scale:
         if top == 'splicing_ratio':
@@ -2682,13 +2745,13 @@ def plot_dorito(counts,
         c['a'] = 'tss'
         c['b'] = top
         c['c'] = 'tes'
-    
+
     if scale == True:
         scale = 1
         mult = 0.2
-    else: 
+    else:
         scale = max_pts(temp, c)
-        
+
     # density
     if density:
         if hue:
@@ -2698,18 +2761,18 @@ def plot_dorito(counts,
                 pad = 0.0
         else:
             pad = 0.1
-        figure, tax, temp = density_dorito(temp, c, 
-                                 density_scale, 
-                                 density_cmap, 
+        figure, tax, temp = density_dorito(temp, c,
+                                 density_scale,
+                                 density_cmap,
                                  density_vmax,
                                  log_density,
                                  pad=pad)
         scale = density_scale
         figure.set_size_inches(13,10)
-        
+
     # if we're jittering, adjust the points for each thing
     if jitter:
-        temp, c = jitter_dorito(temp, c, density_scale) 
+        temp, c = jitter_dorito(temp, c, density_scale)
 
     # figure layout parameters
     fontsize = 18
@@ -2725,7 +2788,7 @@ def plot_dorito(counts,
     # plot gridlines below the scatterplot
     tax.gridlines(linewidth=3, multiple=mult,
                   color='white', zorder=1, linestyle=None)
-    
+
     # scatter
     if scatter:
         figure, tax = scatter_dorito(temp, c, hue,
@@ -2733,10 +2796,10 @@ def plot_dorito(counts,
                                     cmap, mmap, alpha,
                                     density, legend,
                                     figure, tax)
-        
+
     # sectors
     if sectors:
-        line_dorito(sect_alpha, sect_beta, sect_gamma, 
+        line_dorito(sect_alpha, sect_beta, sect_gamma,
                     scale, tax, figure)
 
     # title handler
@@ -2761,7 +2824,7 @@ def plot_dorito(counts,
     # tax.ticks(axis='lbr', linewidth=1, multiple=mult,
     #           tick_formats="%.1f", offset=0.014,
     #           fontsize=14)
-    
+
     tax.clear_matplotlib_ticks()
     tax.get_axes().axis('off')
     tax.set_background_color('#e5ecf6')
@@ -2776,11 +2839,11 @@ def plot_dorito(counts,
     tax.left_axis_label('TSS $\\alpha$', fontsize=fontsize, offset=0.12)
     tax.right_axis_label(top_label, fontsize=fontsize, offset=0.12)
     tax.bottom_axis_label('TES $\\gamma$', fontsize=fontsize, offset=0.00)
-    
+
     figure.set_facecolor('white')
-        
+
     # tax.show()
-    
+
     # save figure
     fname = opref
     if gene:
@@ -2792,8 +2855,8 @@ def plot_dorito(counts,
     if hue:
         fname += '_{}'.format(hue)
     fname += '.png'
-    plt.savefig(fname, dpi=300, bbox_inches='tight')               
-    
+    plt.savefig(fname, dpi=300, bbox_inches='tight')
+
     return temp
 
 def plot_species_sector_gene_counts(m_counts, h_counts):
@@ -2808,7 +2871,7 @@ def plot_species_sector_gene_counts(m_counts, h_counts):
             df['species'] = species
             temp = pd.concat([temp, df])
     temp['perc'] = (temp.n_genes/temp.total_genes)*100
-    
+
     y = '% annotated / observed genes'
     temp.rename({'perc': y}, axis=1, inplace=True)
     c_dict, order = get_sector_colors(['tss', 'splicing', 'tes'])
@@ -2836,8 +2899,8 @@ def plot_species_sector_gene_counts(m_counts, h_counts):
     add_perc_2(a)
     a = ax.axes[0,1]
     add_perc_2(a)
-    
-    return temp            
+
+    return temp
 
 def plot_sector_gene_counts(counts):
     temp = pd.DataFrame()
@@ -2849,11 +2912,11 @@ def plot_sector_gene_counts(counts):
         df['total_genes'] = df.n_genes.sum()
         temp = pd.concat([temp, df])
     temp['perc'] = (temp.n_genes/temp.total_genes)*100
-    temp = temp.loc[temp.sector != 'simple'] 
-    
+    temp = temp.loc[temp.sector != 'simple']
+
     y = '% of total genes'
     temp.rename({'perc': y}, axis=1, inplace=True)
-    c_dict, order = get_sector_colors(['tss', 'splicing', 'tes', 'mixed'])
+    c_dict, order = get_sector_colors(['tss', 'splicing', 'tes', 'mixed', 'simple'])
     # plot both together
     sns.set_context('paper', font_scale=1.8)
     ax = sns.catplot(data=temp, x='source',
@@ -2873,8 +2936,8 @@ def plot_sector_gene_counts(counts):
 
     a = ax.axes[0,0]
     add_perc_2(a)
-    
-    return temp      
+
+    return temp
 
 
 def plot_sankey(df,
@@ -2885,7 +2948,7 @@ def plot_sankey(df,
                 title):
     """
     Plot sankey diagram.
-    
+
     Parameters:
         df (pandas DataFrame): DF w/ source, sink, and counts columns
         source (str): Column name for source from df
@@ -2893,12 +2956,12 @@ def plot_sankey(df,
         color (str): {'sector', 'nov'}
         title (str): Title for plot
     """
-    
+
     if color == 'sector':
         c_dict, order = get_sector_colors()
     elif color == 'nov':
         c_dict, order = get_ic_nov_colors()
-        
+
     order.reverse()
     order_2 = order+order
 
@@ -2923,28 +2986,28 @@ def plot_sankey(df,
     fig.show()
     return fig
 
-def plot_n_feat_per_gene(h5, 
+def plot_n_feat_per_gene(h5,
                          source,
-                         feat, 
+                         feat,
                          max_ends=10,
                          subset=None):
     """
-    Plot number of features per gene in a given source, 
+    Plot number of features per gene in a given source,
     in a given subset
     """
-    
+
     # get these features from cerberus
     df = get_ca_table(h5, feat)
-    
+
     # get subset features
     if subset:
         df = df.loc[df.Name.isin(subset)]
-    
+
     # count # feats / gene
     df = df[['gene_id', 'Name']]
     df = df.groupby('gene_id').count().reset_index()
     df.rename({'Name': 'n_{}'.format(feat)}, axis=1, inplace=True)
-              
+
     # create counts df
     df = df.groupby('n_{}'.format(feat)).count().reset_index()
     df.rename({'gene_id': 'n_genes'}, axis=1, inplace=True)
@@ -2954,21 +3017,32 @@ def plot_n_feat_per_gene(h5,
     temp['n_{}'.format(feat)] = ['{}+'.format(max_ends)]
     temp['n_genes'] = [n]
     df = pd.concat([df, temp])
-    
+
     # plot
-    plt.figure(figsize=(4.5, 3), dpi=300)
+    # plt.figure(figsize=(4.5, 3), dpi=300)
+    sns.set_context('paper', font_scale=2)
+    mpl.rcParams['font.family'] = 'Arial'
+    mpl.rcParams['pdf.fonttype'] = 42
+    plt.figure(figsize=(3,4))
+
     c_dict, order = get_sector_colors()
     if feat == 'ic':
         c = c_dict['splicing']
     else:
         c = c_dict[feat]
 
-    ax = sns.barplot(data=df, 
+    ax = sns.barplot(data=df,
                 x='n_{}'.format(feat), y='n_genes',
                 color=c, saturation=1)
 
     plt.xlabel('# {}s'.format(feat.upper()))
     plt.ylabel('# genes')
     sns.despine()
-    
+
+    fname = 'figures/{}_per_gene_support.png'.format(feat)
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
+
+    fname = 'figures/{}_per_gene_support.pdf'.format(feat)
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
+
     return df

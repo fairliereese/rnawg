@@ -192,7 +192,7 @@ def get_sample_datasets(sample=None):
 
     Parameters:
         sample (str): 'cell_line', 'tissue', 'mouse_match',
-            'ljungman'
+            'ljungman', 'mouse'
 
     Returns:
         datasets (list of str): List of datasets belonging to that specific sample type
@@ -223,6 +223,10 @@ def get_sample_datasets(sample=None):
         sample_df = pd.read_csv(fname, sep='\t', header=None, names=['dataset'])
         df = df.merge(sample_df, how='inner', left_on='hr', right_on='dataset')
         datasets = df.hr.tolist()
+    elif sample == 'mouse':
+        fname = '/Users/fairliereese/Documents/programming/mortazavi_lab/data/mousewg/lr_bulk/file_to_hr.tsv'
+        df = pd.read_csv(fname, sep='\t', header=None)
+        datasets = df[1].tolist()
     else:
         datasets = df.hr.tolist()
 
@@ -365,7 +369,7 @@ def get_n_gencode_isos(subset=None, ver='v29'):
     """
 
     df, _, _ = get_gtf_info(how='iso',
-                            subset=subset, 
+                            subset=subset,
                             ver=ver,
                             add_stable_gid=True)
     df = df[['gid', 'tid']]
@@ -882,16 +886,16 @@ def add_feat(df, col, kind, as_index=False, as_number=False,
              drop_triplet=True):
     """
     Add ic, tss, tes info to a df from the transcript id
-    
+
     Parameters:
         df (pandas DataFrame): Df w/ tid in there
         col (str): Which column to use
         kind (str): {'tss', 'ic', 'tes'}
-        as_index (bool): Whether to replace current index with 
+        as_index (bool): Whether to replace current index with
             new feat
-        as_number (bool): Just add the number of element, not 
+        as_number (bool): Just add the number of element, not
             geneid_#
-    
+
     Returns:
         df (pandas DataFrame): DF w/ additional "kind" col
     """
@@ -917,13 +921,13 @@ def add_feat(df, col, kind, as_index=False, as_number=False,
     if drop_triplet:
         drop_cols += ['triplet']
     df.drop(drop_cols, axis=1, inplace=True)
-    
+
     if as_index:
         df.reset_index(inplace=True, drop=True)
         df.index = df[kind]
         df.drop(kind, axis=1, inplace=True)
     return df
-        
+
 def get_gtf_info(how='gene',
                  subset=None,
                  add_stable_gid=False,
@@ -955,8 +959,14 @@ def get_gtf_info(how='gene',
     elif how in iso_hows and ver == 'v40_cerberus':
         fname = '{}/../refs/cerberus/v40_transcript_metadata.tsv'.format(d)
 
+    elif how == 'gene' and ver == 'vM25_cerberus':
+        fname = '/Users/fairliereese/Documents/programming/mortazavi_lab/data/mousewg/refs/cerberus/vM25_gene_metadata.tsv'
+    elif how in iso_hows and ver == 'vM25_cerberus':
+        fname = '/Users/fairliereese/Documents/programming/mortazavi_lab/data/mousewg/refs/cerberus/vM25_transcript_metadata.tsv'
+
+
     df = pd.read_csv(fname, sep='\t')
-    
+
     # pdb.set_trace()
 
     if how == 'gene':
@@ -972,14 +982,14 @@ def get_gtf_info(how='gene',
     elif how == 'tes':
         iso_col = 'tid'
         id_col = 'tes'
-    
+
     # if using cerberus features, drop duplicate  entries that come
     # from the different transcripts using the same features
     # also ignore the transcript length column
     if how in ['ic', 'tss', 'tes']:
         df = add_feat(df, kind=id_col, col=iso_col)
         df.drop([iso_col, 't_len'], axis=1, inplace=True)
-        
+
         # double check
         n_feats = len(df[id_col].unique().tolist())
         n_drop_dupes = len(df.drop_duplicates().index)
@@ -1031,8 +1041,8 @@ def get_det_table(df,
     """
     if 'nov' not in kwargs:
         nov = df.transcript_novelty.unique().tolist()
-    
-    # add min_tpm to kwargs as it's needed for both 
+
+    # add min_tpm to kwargs as it's needed for both
     # functions
     kwargs['min_tpm'] = min_tpm
 
@@ -1288,47 +1298,47 @@ def get_ca_table(h5,
     return df
 
 def get_source_feats(h5,
-                     feat, 
+                     feat,
                      sources,
                      gene_subset):
     df = get_ca_table(h5, feat)
     df = filter_cerberus_sources(df, sources)
 
-    if gene_subset: 
-        gene_df, _, _ = get_gtf_info(how='gene', add_stable_gid=True, subset=gene_subset, ver='v40_cerberus')    
+    if gene_subset:
+        gene_df, _, _ = get_gtf_info(how='gene', add_stable_gid=True, subset=gene_subset, ver='v40_cerberus')
         df = df.loc[df.gene_id.isin(gene_df.gid_stable.tolist())]
 
     ids = df.Name.tolist()
     return ids
-    
-def get_det_feats(h5, 
+
+def get_det_feats(h5,
                   filt_ab,
                   feat,
                   source,
                   **kwargs):
-    
+
     """
-    Get a list of ids corresponding to the queried 
+    Get a list of ids corresponding to the queried
     cerberus feature that are expressed
-    
+
     Parameters:
         h5 (str): Path to cerberus annotation
         filt_ab (str): Path to filtered abundance file
         feat (str): {'tss', 'ic', 'tes'}
         source (str): Source to consider in cerberus obj
-        
+
     Returns:
         ids (list of str): List of feature ids
     """
-    
+
     # get these features from cerberus
     ca_df = get_ca_table(h5, feat)
-    
+
     # get detected features
     df = pd.read_csv(filt_ab, sep='\t')
     df, ids = get_tpm_table(df, **kwargs)
     df = ca_df.loc[ca_df.Name.isin(ids)]
-    
+
     return df.Name.tolist()
 
 def get_tpm_table(df,
@@ -1343,6 +1353,7 @@ def get_tpm_table(df,
                     ic_nov=None,
                     tss_nov=None,
                     tes_nov=None,
+                    species='human',
                     **kwargs):
     """
     Parameters:
@@ -1371,7 +1382,11 @@ def get_tpm_table(df,
     df['gid_stable'] = cerberus.get_stable_gid(df, 'annot_gene_id')
 
     # merge with information about the gene
-    gene_df, _, _ = get_gtf_info(how='gene', add_stable_gid=True, ver='v40_cerberus')
+    if species == 'human':
+        annot_ver = 'v40_cerberus'
+    elif species == 'mouse':
+        annot_ver = 'vM25_cerberus'
+    gene_df, _, _ = get_gtf_info(how='gene', add_stable_gid=True, ver=annot_ver)
     gene_df = gene_df[['gid_stable', 'biotype_category', 'tf']]
     df = df.merge(gene_df, how='left', on='gid_stable')
 
@@ -1392,7 +1407,7 @@ def get_tpm_table(df,
     elif how == 'tes':
         id_col = 'tes'
         nov_col = 'transcript_novelty'
-        
+
     # if we're looking at a cerberus feature, add that feature
     if how in ['tss', 'tes', 'ic']:
         df = add_feat(df, kind=how, col='annot_transcript_id')
@@ -1403,7 +1418,7 @@ def get_tpm_table(df,
         nov_inds = df.loc[df[nov_col].isin(nov), id_col].tolist()
     else:
         nov_inds = df[id_col].tolist()
-    
+
     # filter on ca feature novelties
     ca_inds = []
     for ca_feat, ca_novs in zip(['tss', 'ic', 'tes'], [tss_nov, ic_nov, tes_nov]):
@@ -1418,7 +1433,7 @@ def get_tpm_table(df,
         else:
             ca_inds.append(df[id_col].tolist())
     feat_inds = list(set(ca_inds[0])&set(ca_inds[1])&set(ca_inds[2]))
-            
+
     #     tss = get_ca_table(h5, 'tss')
     #     tss = tss.loc[tss.novelty.isin(tss_nov)]
     #     if how != 'tss':
@@ -1448,7 +1463,7 @@ def get_tpm_table(df,
     sum_hows = ['gene', 'ic', 'tss', 'tes']
     if how in sum_hows:
         df = df[dataset_cols+[id_col]]
-        df = df.groupby(id_col).sum().reset_index() 
+        df = df.groupby(id_col).sum().reset_index()
 
     # set index so that all values in df reflect
     # counts per transcript or gene
@@ -2141,10 +2156,10 @@ def assign_gisx_sector(df):
     df.loc[df.tss_ratio > 0.5, 'sector'] = 'tss'
     df.loc[df.tes_ratio > 0.5, 'sector'] = 'tes'
     df.loc[df.spl_ratio > 0.5, 'sector'] = 'splicing'
-    
+
     # mixed genes
     df.loc[(df.sector=='simple')&(df.n_iso>1), 'sector'] = 'mixed'
-    
+
     return df
 
 def compare_species(h_counts, m_counts, source='obs'):
