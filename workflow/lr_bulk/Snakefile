@@ -34,7 +34,7 @@ rule all:
         # config['lapa']['nov_ab'],
         # config['lapa']['filt_gtf'],
         expand(config['cerberus']['gtf']['ends'],
-                source=['v40', 'v29', 'lapa'],
+                source=['v40', 'v29', 'lapa', 'gtex'],
                 mode=['tss', 'tes']),
         config['cerberus']['tss']['lapa'],
         config['cerberus']['tes']['lapa'],
@@ -45,7 +45,7 @@ rule all:
         config['cerberus']['tss']['agg'],
         config['cerberus']['tes']['agg'],
         expand(config['cerberus']['gtf']['ics'],
-               source=['v40', 'v29', 'lapa']),
+               source=['v40', 'v29', 'lapa', 'gtex']),
         config['cerberus']['ics']['agg'],
         config['cerberus']['ref'],
         config['cerberus']['annot'],
@@ -80,6 +80,28 @@ rule gunzip_v40:
         threads = 1
     output:
         gtf = config['ref']['v40']['gtf']
+    shell:
+        "gunzip {input.gz}"
+
+rule dl_gtex:
+    params:
+        link = config['gtex']['link']
+    resources:
+        mem_gb = 4,
+        threads = 1
+    output:
+        gz = config['gtex']['gz']
+    shell:
+        "wget -O {output.gz} {params.link}"
+
+rule gunzip_v40:
+    input:
+        gz = config['gtex']['gz']
+    resources:
+        mem_gb = 4,
+        threads = 1
+    output:
+        gtf = config['gtex']['gtf']
     shell:
         "gunzip {input.gz}"
 
@@ -335,6 +357,12 @@ def filter_novel_genes(df):
     df = df.loc[df.gene_novelty=='Known']
     return df
 
+def filter_gtex_gtf(gtf, oname):
+    df = pr.read_gtf(gtf, as_df=True)
+    df = df.loc[df.gene_id.str.contains('ENSG')]
+    df = pr.PyRanges(df)
+    df.to_gtf(oname)
+
 # create gtf only with novelty categories we want
 # and remove sirv / ercc
 rule filter_lapa_gtf:
@@ -358,6 +386,18 @@ rule filter_lapa_gtf:
         gtf = pr.PyRanges(gtf)
         gtf.to_gtf(output.filt_gtf)
 
+# create gtex gtf only with known genes
+rule filter_gtex_gtf:
+    input:
+        gtf = config['gtex']['gtf']
+    resources:
+        mem_gb = 8,
+        threads = 1
+    output:
+        filt_gtf = config['gtex']['gtf_filt']
+    run:
+        filter_gtex_gtf(input.gtf, output.filt_gtf)
+
 # create abundance file only with novelty categories we want
 rule filter_lapa_ab:
     input:
@@ -380,6 +420,8 @@ def get_cerberus_gtf_input(wildcards):
         gtf = config['ref']['v29']['gtf_no_sirv']
     elif 'lapa' == wildcards.source:
         gtf = config['lapa']['filt_gtf']
+    elif 'gtex' == wildcards.source:
+        gtf = config['gtex']['filt_gtf']
     return gtf
 
 rule cerberus_gtf_to_ics:
@@ -516,9 +558,10 @@ rule cerberus_agg_tss_config:
             mode=['tss'], source=['v40']),
         v29 = expand(config['cerberus']['gtf']['ends'],
             mode=['tss'], source=['v29']),
-        lapa = config['cerberus']['tss']['lapa'],
         lapa_gtf = expand(config['cerberus']['gtf']['ends'],
             mode=['tss'], source=['lapa']),
+        gtex = expand(config['cerberus']['gtf']['ends'],
+            mode=['tss'], source=['gtex'])
         encode_cage = config['cage']['merged'],
         fantom_cage = config['fantom']['hg38'],
         encode_rampage = config['rampage']['merged'],
@@ -537,7 +580,7 @@ rule cerberus_agg_tss_config:
                 False, False,
                 False,
                 False, False, False],
-        sources = ['v40', 'v29', 'lapa', 'lapa',
+        sources = ['v40', 'v29', 'lapa', 'gtex',
                    'encode_cage', 'fantom_cage',
                    'encode_rampage',
                    'pls', 'pels', 'dels']
@@ -546,8 +589,8 @@ rule cerberus_agg_tss_config:
     run:
         files = [input.v40,
                  input.v29,
-                 input.lapa,
                  input.lapa_gtf,
+                 input.gtex,
                  input.encode_cage,
                  input.fantom_cage,
                  input.encode_rampage,
@@ -567,9 +610,10 @@ rule cerberus_agg_tes_config:
             mode=['tes'], source=['v40']),
         v29 = expand(config['cerberus']['gtf']['ends'],
             mode=['tes'], source=['v29']),
-        lapa = config['cerberus']['tes']['lapa'],
         lapa_gtf = expand(config['cerberus']['gtf']['ends'],
             mode=['tes'], source=['lapa']),
+        gtex = expand(config['cerberus']['gtf']['ends'],
+            mode=['tes'], source=['gtex']),
         pas = config['cerberus']['tes']['pas'],
         atlas = config['polyasite_atlas']['formatted']
     resources:
@@ -580,15 +624,15 @@ rule cerberus_agg_tes_config:
                     True, False],
         refs = [True, True, False, False,
                 False, False],
-        sources = ['v40', 'v29', 'lapa', 'lapa',
+        sources = ['v40', 'v29', 'lapa', 'gtex',
                    'pas', 'polya_atlas']
     output:
         cfg = config['cerberus']['tes']['cfg']
     run:
         files = [input.v40,
                  input.v29,
-                 input.lapa,
                  input.lapa_gtf,
+                 input.gtex,
                  input.pas,
                  input.atlas]
         df = pd.DataFrame()
@@ -638,17 +682,18 @@ rule cerberus_agg_ics_config:
     input:
         v40_ics = expand(config['cerberus']['gtf']['ics'], source=['v40']),
         v29_ics = expand(config['cerberus']['gtf']['ics'], source=['v29']),
-        lapa_ics = expand(config['cerberus']['gtf']['ics'], source=['lapa'])
+        lapa_ics = expand(config['cerberus']['gtf']['ics'], source=['lapa']),
+        gtex_ics = expand(config['cerberus']['gtf']['ics'], source=['gtex'])
     params:
-        sources = ['v40', 'v29', 'lapa'],
-        refs = [True, True, False]
+        sources = ['v40', 'v29', 'lapa', 'gtex'],
+        refs = [True, True, False, False]
     resources:
         mem_gb = 1,
         threads = 1
     output:
         cfg = config['cerberus']['ics']['cfg']
     run:
-        files = [input.v40_ics, input.v29_ics, input.lapa_ics]
+        files = [input.v40_ics, input.v29_ics, input.lapa_ics, input.gtex_ics]
         refs = params.refs
         sources = params.sources
         df = pd.DataFrame()

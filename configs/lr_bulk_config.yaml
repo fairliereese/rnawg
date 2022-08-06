@@ -21,6 +21,12 @@ ref:
   tf:
     gid: refs/biomart_tf_gids.tsv
 
+gtex:
+  link: https://storage.googleapis.com/gtex_analysis_v9/long_read_data/flair_filter_transcripts.gtf.gz
+  gz: gtex/flair_filter_transcripts.gtf.gz
+  gtf: gtex/flair_filter_transcripts.gtf
+  filt_gtf: gtex/flair_filter_transcripts_no_novel_genes.gtf
+
 talon:
   prefix: lr_bulk/talon/human
   db: lr_bulk/talon/human.db
