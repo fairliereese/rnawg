@@ -94,7 +94,7 @@ rule dl_gtex:
     shell:
         "wget -O {output.gz} {params.link}"
 
-rule gunzip_v40:
+rule gunzip_gtex:
     input:
         gz = config['gtex']['gz']
     resources:
@@ -360,6 +360,8 @@ def filter_novel_genes(df):
 def filter_gtex_gtf(gtf, oname):
     df = pr.read_gtf(gtf, as_df=True)
     df = df.loc[df.gene_id.str.contains('ENSG')]
+    inds = df.loc[df.gene_id.str.contains('chr')].index.tolist()
+    df.loc[inds, 'gene_id'] = df.loc[inds, 'gene_id'].str.split('_', n=1, expand=True)[1]
     df = pr.PyRanges(df)
     df.to_gtf(oname)
 
@@ -394,7 +396,7 @@ rule filter_gtex_gtf:
         mem_gb = 8,
         threads = 1
     output:
-        filt_gtf = config['gtex']['gtf_filt']
+        filt_gtf = config['gtex']['filt_gtf']
     run:
         filter_gtex_gtf(input.gtf, output.filt_gtf)
 
@@ -561,7 +563,7 @@ rule cerberus_agg_tss_config:
         lapa_gtf = expand(config['cerberus']['gtf']['ends'],
             mode=['tss'], source=['lapa']),
         gtex = expand(config['cerberus']['gtf']['ends'],
-            mode=['tss'], source=['gtex'])
+            mode=['tss'], source=['gtex']),
         encode_cage = config['cage']['merged'],
         fantom_cage = config['fantom']['hg38'],
         encode_rampage = config['rampage']['merged'],

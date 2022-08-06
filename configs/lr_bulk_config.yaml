@@ -23,9 +23,9 @@ ref:
 
 gtex:
   link: https://storage.googleapis.com/gtex_analysis_v9/long_read_data/flair_filter_transcripts.gtf.gz
-  gz: gtex/flair_filter_transcripts.gtf.gz
-  gtf: gtex/flair_filter_transcripts.gtf
-  filt_gtf: gtex/flair_filter_transcripts_no_novel_genes.gtf
+  gz: lr_bulk/gtex/flair_filter_transcripts.gtf.gz
+  gtf: lr_bulk/gtex/flair_filter_transcripts.gtf
+  filt_gtf: lr_bulk/gtex/flair_filter_transcripts_no_novel_genes.gtf
 
 talon:
   prefix: lr_bulk/talon/human
