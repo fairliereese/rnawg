@@ -929,7 +929,7 @@ def make_sg(input, params):
 # not filtered for abundance at all
 rule swan_unfilt:
     input:
-        annot = config['ref']['v40']['cerberus']['gtf'],
+        annot = config['ref']['v29']['cerberus']['gtf'],
         ab = config['cerberus']['update_ab'],
         gene_ab = config['talon']['ab'],
         gtf = config['cerberus']['update_gtf'],
