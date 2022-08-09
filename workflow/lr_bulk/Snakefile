@@ -785,7 +785,7 @@ rule cerberus_annotate_v29:
 rule cerberus_annotate_transcriptome:
     input:
         gtf = config['lapa']['filt_gtf'],
-        ref = config['ref']['v40']['cerberus']['annot']
+        ref = config['ref']['v29']['cerberus']['annot']
     resources:
         mem_gb = 56,
         threads = 1
