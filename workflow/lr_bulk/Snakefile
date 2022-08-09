@@ -347,6 +347,11 @@ def filter_lapa(ab):
     tids = df.annot_transcript_id.tolist()
     return tids
 
+def filter_no_t_genes(df):
+    gids = df.loc[df.Feature == 'transcript', 'gene_id'].unique().tolist()
+    df = df.loc[df.gene_id.isin(gids)]
+    return df
+
 def filter_spikes(df):
     df = df.loc[~df.Chromosome.str.contains('SIRV')]
     df = df.loc[~df.Chromosome.str.contains('ERCC')]
@@ -359,9 +364,10 @@ def filter_novel_genes(df):
 
 def filter_gtex_gtf(gtf, oname):
     df = pr.read_gtf(gtf, as_df=True)
-    df = df.loc[df.gene_id.str.contains('ENSG')]
-    inds = df.loc[df.gene_id.str.contains('chr')].index.tolist()
-    df.loc[inds, 'gene_id'] = df.loc[inds, 'gene_id'].str.split('_', n=1, expand=True)[1]
+    df = df.loc[~df.gene_id.str.contains('chr')]
+    # df = df.loc[df.gene_id.str.contains('ENSG')]
+    # inds = df.loc[df.gene_id.str.contains('chr')].index.tolist()
+    # df.loc[inds, 'gene_id'] = df.loc[inds, 'gene_id'].str.split('_', n=1, expand=True)[1]
     df = pr.PyRanges(df)
     df.to_gtf(oname)
 
@@ -384,6 +390,9 @@ rule filter_lapa_gtf:
 
         # remove sirvs / erccs
         gtf = filter_spikes(gtf)
+
+        # remove genes with no transcripts
+        gtf = filter_no_t_genes(gtf)
 
         gtf = pr.PyRanges(gtf)
         gtf.to_gtf(output.filt_gtf)
@@ -735,28 +744,10 @@ rule cerberus_write_ref:
             --ics {input.ics} \
             -o {output.ref}"
 
-rule cerberus_annotate_v29:
-    input:
-        gtf = config['ref']['v29']['gtf_no_sirv'],
-        ref = config['cerberus']['ref']
-    resources:
-        mem_gb = 56,
-        threads = 1
-    params:
-        source = 'v29'
-    output:
-        annot = config['ref']['v29']['cerberus']['annot']
-    shell:
-        "cerberus annotate_transcriptome \
-            --gtf {input.gtf} \
-            --h5 {input.ref} \
-            --source {params.source} \
-            -o {output.annot}"
-
 rule cerberus_annotate_v40:
     input:
         gtf = config['ref']['v40']['gtf'],
-        ref = config['ref']['v29']['cerberus']['annot']
+        ref = config['cerberus']['ref']
     resources:
         mem_gb = 56,
         threads = 1
@@ -771,6 +762,26 @@ rule cerberus_annotate_v40:
             --source {params.source} \
             -o {output.annot}"
 
+rule cerberus_annotate_v29:
+    input:
+        gtf = config['ref']['v29']['gtf_no_sirv'],
+        ref = config['ref']['v40']['cerberus']['annot']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    params:
+        source = 'v29',
+        gene_source = 'v40'
+    output:
+        annot = config['ref']['v29']['cerberus']['annot']
+    shell:
+        "cerberus annotate_transcriptome \
+            --gtf {input.gtf} \
+            --h5 {input.ref} \
+            --gene_source {params.gene_source} \
+            --source {params.source} \
+            -o {output.annot}"
+
 rule cerberus_annotate_transcriptome:
     input:
         gtf = config['lapa']['filt_gtf'],
@@ -779,13 +790,15 @@ rule cerberus_annotate_transcriptome:
         mem_gb = 56,
         threads = 1
     params:
-        source = 'lapa'
+        source = 'lapa',
+        gene_source = 'v40'
     output:
         annot = config['cerberus']['annot']
     shell:
         "cerberus annotate_transcriptome \
             --gtf {input.gtf} \
             --h5 {input.ref} \
+            --gene_source {params.gene_source} \
             --source {params.source} \
             -o {output.annot}"
 
@@ -929,7 +942,7 @@ def make_sg(input, params):
 # not filtered for abundance at all
 rule swan_unfilt:
     input:
-        annot = config['ref']['v29']['cerberus']['gtf'],
+        annot = config['ref']['v40']['cerberus']['gtf'],
         ab = config['cerberus']['update_ab'],
         gene_ab = config['talon']['ab'],
         gtf = config['cerberus']['update_gtf'],

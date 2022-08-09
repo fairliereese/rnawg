@@ -52,7 +52,7 @@ cerberus gtf_to_ics \
 ```
 
 # annotate transcriptome
-h5=cerberus_ref.h5
+<!-- h5=cerberus_ref.h5
 # talon_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/talon/human_known_nic_nnc_talon.gtf
 lapa_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
 # o=human_cerberus.h5
@@ -62,7 +62,7 @@ cerberus annotate_transcriptome \
   --gtf ${lapa_gtf} \
   --h5 ${h5} \
   --source ${source} \
-  -o ${o}
+  -o ${o} -->
 
 # annotate transcriptome v29
 # h5=cerberus_ref.h5
@@ -115,7 +115,45 @@ cerberus replace_gtf_ids \
   --collapse \
   -o $o
 
+
+lapa_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
+o=test.h5
+h5=~/mortazavi_lab/data/rnawg/refs/cerberus/v40_cerberus.h5
+source=lapa
+gene_source='v40'
+cerberus annotate_transcriptome \
+  --gtf ${lapa_gtf} \
+  --h5 ${h5} \
+  --source ${source} \
+  --gene_source ${gene_source} \
+  -o ${o}
+
+# annotate lapa gtf
+lapa_gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
+o=test.h5
+h5=~/mortazavi_lab/data/rnawg/refs/cerberus/v40_cerberus.h5
+source=lapa
+gene_source='v40'
+cerberus annotate_transcriptome \
+  --gtf ${lapa_gtf} \
+  --h5 ${h5} \
+  --source ${source} \
+  --gene_source ${gene_source} \
+  -o ${o}
+
+# replace ids in gtf
+h5=~/mortazavi_lab/bin/cerberus/test.h5
+gtf=~/mortazavi_lab/data/rnawg/lr_bulk/lapa/human_lapa.gtf
+o=test_human_cerberus.gtf
+cerberus replace_gtf_ids \
+  --h5 $h5 \
+  --gtf $gtf \
+  --source lapa \
+  --update_ends \
+  --collapse \
+  -o $o
 ```
+
 
 
 Other cmds
