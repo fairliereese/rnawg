@@ -11,8 +11,7 @@ Downloadable links and file descriptions available at each of the links below.
 * [cerberus TSS source map](https://sandbox.zenodo.org/record/1092269)
 * [cerberus TES source map](https://sandbox.zenodo.org/record/1092270)
 * [cerberus annotation](https://sandbox.zenodo.org/record/1092257)
-* [cerberus source triplets](https://sandbox.zenodo.org/record/1078186)
-* [cerberus expressed triplets](https://sandbox.zenodo.org/record/1078188)
+* [cerberus annotation + triplets](https://sandbox.zenodo.org/record/1092286)
 * [TALON read annot](https://sandbox.zenodo.org/record/1055429)
 * [Swan SwanGraph](https://sandbox.zenodo.org/record/1092272)
 
