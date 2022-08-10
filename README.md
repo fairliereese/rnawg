@@ -1,6 +1,6 @@
 Data used for RNAWG paper
 
-### Long-read RNA-seq data for human cell line and tissue data (updated 7/1/22)
+### Long-read RNA-seq data for human cell line and tissue data (updated 8/10/22)
 --------------------------------------------------------------------------------
 Downloadable links and file descriptions available at each of the links below.
 * [TALON unfiltered abundance matrix](https://sandbox.zenodo.org/record/1078180)
