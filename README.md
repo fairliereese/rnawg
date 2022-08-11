@@ -6,6 +6,7 @@ Downloadable links and file descriptions available at each of the links below.
 * [TALON unfiltered abundance matrix](https://sandbox.zenodo.org/record/1078180)
 * [cerberus filtered abundance matrix](https://sandbox.zenodo.org/record/1092240)
 * [cerberus filtered GTF](https://sandbox.zenodo.org/record/1092266)
+* [cerberus triplets](https://sandbox.zenodo.org/record/1093070)
 * [cerberus TSS regions](https://sandbox.zenodo.org/record/1092267)
 * [cerberus TES regions](https://sandbox.zenodo.org/record/1092268)
 * [cerberus TSS source map](https://sandbox.zenodo.org/record/1092269)
