@@ -42,7 +42,7 @@ lapa:
     tes: /dfs7/samlab/mcelik/mousewg/data/results/lapa/tes/polyA_clusters.bed
 
 raw:
-  sam: mouse/lr_bulk/processing/{sample}.sam
+  bam: mouse/lr_bulk/processing/{sample}.bam
 
 meta:
   file_to_hr: mouse/lr_bulk/file_to_hr.tsv
