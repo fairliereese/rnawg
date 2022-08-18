@@ -55,6 +55,7 @@ new_samples = ['f1219-1-1', 'f1219-1-2', 'f1219-1-3']
 rule all:
     input:
         expand(config['talon']['sam'], sample=new_samples),
+        config['talon']['db_update']
         # config['ref']['vM21']['gtf'],
         # config['ref']['vM25']['gtf'],
         # config['cerberus']['update_gtf'],
@@ -81,7 +82,7 @@ rule all:
 ##########################
 rule talon_label:
     input:
-        sam = config['raw']['sam']
+        sam = config['raw']['bam']
     params:
         genome = config['ref']['mm10']['fa'],
         opref = config['talon']['sam'].rsplit('_labeled.sam', maxsplit=1)[0]
@@ -98,6 +99,28 @@ rule talon_label:
         --deleteTmp  \
         --o {params.opref}
         """
+
+rule talon:
+    input:
+        db = config['talon']['db'],
+        config = config['talon']['cfg_6']
+    params:
+        opref = config['talon']['db_update'].split('.db')[0],
+        build = 'mm10'
+    resources:
+    output:
+        db = config['talon']['db_update']
+    shell:"""talon \
+      --f {input.config} \
+      --db {input.db} \
+      --build {params.build} \
+      -t 32 \
+      --o {params.opref}
+    """
+
+##############
+#### swan die ####
+#################
 
 rule swan_die_tests:
     input:

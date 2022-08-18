@@ -74,6 +74,7 @@ temp.biorep = temp.biorep.astype(str)
 df = df.merge(temp, on='Experiment accession')
 df['techrep'] = df.groupby('Experiment accession').cumcount()+1
 df['hr'] = df.new_biosamp_name+'_'+df.biorep+'_'+df.techrep.astype(str)
+df['hr'] = df['hr'].str.replace('_', '-')
 file_hr = pd.concat([file_hr, df[['File accession', 'hr']]])
 
 # save info about whether each dataset is a cell line or tissue
