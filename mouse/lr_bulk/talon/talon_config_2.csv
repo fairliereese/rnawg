@@ -1,0 +1,14 @@
+gastroc_2mo_f_1,gastroc_2mo_f_1,PacBio,processing/gastroc_2mo_f_1_labeled.sam
+gastroc_2mo_m_2,gastroc_2mo_m_2,PacBio,processing/gastroc_2mo_m_2_labeled.sam
+gastroc_2mo_m_1,gastroc_2mo_m_1,PacBio,processing/gastroc_2mo_m_1_labeled.sam
+hippocampus_2mo_m_1,hippocampus_2mo_m_1,PacBio,processing/hippocampus_2mo_m_1_labeled.sam
+hippocampus_2mo_m_2,hippocampus_2mo_m_2,PacBio,processing/hippocampus_2mo_m_2_labeled.sam
+heart_2mo_m_2,heart_2mo_m_2,PacBio,processing/heart_2mo_m_2_labeled.sam
+heart_2mo_m_1,heart_2mo_m_1,PacBio,processing/heart_2mo_m_1_labeled.sam
+cortex_2mo_m_1,cortex_2mo_m_1,PacBio,processing/cortex_2mo_m_1_labeled.sam
+cortex_2mo_m_2,cortex_2mo_m_2,PacBio,processing/cortex_2mo_m_2_labeled.sam
+adrenal_18-20mo_f_1,adrenal_18-20mo_f_1,PacBio,processing/adrenal_18-20mo_f_1_labeled.sam
+adrenal_18-20mo_f_2,adrenal_18-20mo_f_2,PacBio,processing/adrenal_18-20mo_f_2_labeled.sam
+adrenal_25d_m_1,adrenal_25d_m_1,PacBio,processing/adrenal_25d_m_1_labeled.sam
+adrenal_25d_m_2,adrenal_25d_m_2,PacBio,processing/adrenal_25d_m_2_labeled.sam
+gastroc_18-20mo_f_2,gastroc_18-20mo_f_2,PacBio,processing/gastroc_18-20mo_f_2_labeled.sam
