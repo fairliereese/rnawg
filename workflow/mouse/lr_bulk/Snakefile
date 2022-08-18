@@ -108,6 +108,8 @@ rule talon:
         opref = config['talon']['db_update'].split('.db')[0],
         build = 'mm10'
     resources:
+        mem_gb = 128,
+        t = 32
     output:
         db = config['talon']['db_update']
     shell:"""talon \
