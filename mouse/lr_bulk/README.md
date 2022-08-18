@@ -36,12 +36,6 @@ samples=~/mortazavi_lab/data/rnawg/mouse/lr_bulk/samples.txt
 bash ../scripts/talon_label.sh $opref $samples
 ```
 
-```bash
-snakemake -s workflow/mouse/lr_bulk/Snakefile -j 10 --latency-wait 120 --cluster "sbatch -A seyedam_lab --mem={resources.mem_gb}GB -c {resources.threads} --mail-user=freese@uci.edu --mail-type=START,END, --time=72:00:00" -n
-
-snakemake -s workflow/mouse/lr_bulk/Snakefile -j 100 --latency-wait 120 -n
-```
-
 ## Create TALON config file
 ```bash
 python make_config.py
@@ -53,6 +47,13 @@ config=talon/talon_config.csv
 oprefix=talon/mouse
 sbatch ../scripts/sbatch_talon_bulk.sh $config $oprefix
 ```
+
+```bash
+snakemake -s workflow/mouse/lr_bulk/Snakefile -j 10 --latency-wait 120 --cluster "sbatch -A seyedam_lab --partition=highmem --mem={resources.mem_gb}GB -c {resources.threads} --mail-user=freese@uci.edu --mail-type=START,END, --time=72:00:00" -n
+
+snakemake -s workflow/mouse/lr_bulk/Snakefile -j 100 --latency-wait 120 -n
+```
+
 
 <!-- Using more manageable chunks of data for TALON - 14 datasets at a time
 ```bash

@@ -6,10 +6,11 @@ import glob
 import os
 
 df = pd.read_csv('samples.txt', header=None, names=['name'])
+df['fname'] = 'processing/'+df.name+'_labeled.sam'
 df['name'] = df['name'].str.replace('-', '_')
 df['sample'] = df['name']
 df['platform'] = 'PacBio'
-df['fname'] = 'processing/'+df.name+'_labeled.sam'
+df = df[['name', 'sample', 'platform', 'fname']]
 n_samples = len(df.index)
 
 fname = 'talon/talon_config.csv'
