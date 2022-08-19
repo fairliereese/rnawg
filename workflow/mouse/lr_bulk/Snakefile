@@ -148,7 +148,7 @@ rule talon_abundance:
         db = config['talon']['db']
     params:
         prefix = config['talon']['prefix'],
-        annot = 'gencode_VM21',
+        annot = 'gencode_vM21',
         build = 'mm10'
     output:
         ab = config['talon']['ab']
@@ -166,7 +166,7 @@ rule talon_filter:
     input:
         db = config['talon']['db']
     params:
-        annot = 'gencode_VM21',
+        annot = 'gencode_vM21',
         build = 'mm10'
     output:
         pass_list = config['talon']['pass_list']
@@ -188,7 +188,7 @@ rule talon_filtered_abundance:
         pass_list = config['talon']['pass_list']
     params:
         prefix = config['talon']['prefix'],
-        annot = 'gencode_VM21',
+        annot = 'gencode_vM21',
         build = 'mm10'
     output:
         ab = config['talon']['filt_ab']
@@ -209,7 +209,7 @@ rule talon_gtf:
         pass_list = config['talon']['pass_list']
     params:
         prefix = config['talon']['prefix'],
-        annot = 'gencode_VM21',
+        annot = 'gencode_vM21',
         build = 'mm10'
     output:
         filt_gtf = config['talon']['filt_gtf']
@@ -244,7 +244,7 @@ rule talon_known_nic_nnc_gtf:
         known_nic_nnc_pass_list = config['talon']['known_nic_nnc_pass_list']
     params:
         prefix = config['talon']['known_nic_nnc_gtf'].replace('_talon.gtf', ''),
-        annot = 'gencode_VM21',
+        annot = 'gencode_vM21',
         build = 'mm10'
     output:
         known_nic_nnc_gtf = config['talon']['known_nic_nnc_gtf']
