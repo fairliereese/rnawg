@@ -55,8 +55,8 @@ talon:
   db_update: mouse/lr_bulk/talon/talon_update.db
   ab: mouse/lr_bulk/talon/mouse_talon_abundance.tsv
   read_annot: mouse/lr_bulk/talon/mouse_talon_read_annot.tsv
-  pass_list: mouse/lr_bulk/talon/mouse_pass_list.csv
   ab: mouse/lr_bulk/talon/mouse_talon_abundance.tsv
+  pass_list: mouse/lr_bulk/talon/mouse_pass_list.csv
   filt_ab: mouse/lr_bulk/talon/mouse_talon_abundance_filtered.tsv
   filt_gtf: mouse/lr_bulk/talon/mouse_talon.gtf
   known_nic_nnc_pass_list: mouse/lr_bulk/talon/mouse_known_nic_nnc_pass_list.csv
