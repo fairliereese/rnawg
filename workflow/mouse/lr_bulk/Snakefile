@@ -55,7 +55,7 @@ new_samples = ['f1219-1-1', 'f1219-1-2', 'f1219-1-3']
 rule all:
     input:
         expand(config['talon']['sam'], sample=new_samples),
-        config['talon']['db_update'],
+        # config['talon']['db_update'],
         config['talon']['known_nic_nnc_gtf'],
         config['talon']['filt_ab'],
         config['talon']['ab'],
