@@ -232,6 +232,24 @@ def get_sample_datasets(sample=None):
 
     return datasets
 
+def get_known_nic_nnc_pass_list(ab, pass_list, ofile):
+    df = pd.read_csv(ab, sep='\t')
+    print(df.head())
+    df = df[['gene_ID', 'transcript_ID', 'transcript_novelty']]
+
+    pass_df = pd.read_csv(pass_list, header=None,
+        names=['gene_ID', 'transcript_ID'])
+
+    # merge pass list in with df to get novelty of each tid
+    df = df.merge(pass_df, how='inner', on=['gene_ID', 'transcript_ID'])
+
+    # subset on known, nic, and nnc
+    novs = ['NIC', 'NNC']
+    df = df.loc[df.transcript_novelty.isin(novs)]
+
+    # dump to pass list file
+    df.to_csv(ofile, header=None, index=False)
+
 def compute_detection(df, sample='cell_line',
                       how='iso', nov='Known'):
 

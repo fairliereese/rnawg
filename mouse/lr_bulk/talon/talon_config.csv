@@ -82,3 +82,6 @@ f1219_1_3,f1219_1_3,PacBio,processing/f1219-1-3_labeled.sam
 f1219_1_1,f1219_1_1,PacBio,processing/f1219-1-1_labeled.sam
 f1219_1_2,f1219_1_2,PacBio,processing/f1219-1-2_labeled.sam
 f1219_1_3,f1219_1_3,PacBio,processing/f1219-1-3_labeled.sam
+f1219_1_1,f1219_1_1,PacBio,mouse/lr_bulk/processing/f1219-1-1_labeled.sam
+f1219_1_2,f1219_1_2,PacBio,mouse/lr_bulk/processing/f1219-1-2_labeled.sam
+f1219_1_3,f1219_1_3,PacBio,mouse/lr_bulk/processing/f1219-1-3_labeled.sam

@@ -61,7 +61,7 @@ def get_sector_colors(cats=None):
     tss = '#56B4E9'
     tes = '#E69F00'
     splicing = '#CC79A7'
-    simple = '#e5ecf6'
+    simple = '#000000'
     c_dict = {'tss': tss,
               'splicing': splicing,
               'tes': tes,
@@ -171,8 +171,8 @@ def get_ic_nov_colors(cats=None):
               'NNC': '#E69F00',
               'Antisense': '#000000',
               'Intergenic': '#CC79A7',
-              'Monoexonic': '#F0E442'}
-    order = ['Known', 'ISM', 'NIC', 'NNC', 'Antisense', 'Intergenic', 'Monoexonic']
+              'Unspliced': '#F0E442'}
+    order = ['Known', 'ISM', 'NIC', 'NNC', 'Antisense', 'Intergenic', 'Unspliced']
 
     c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
@@ -1254,25 +1254,25 @@ def plot_biosamp_det(df,
 
     # titles
     if how == 'gene':
-        ylabel = 'Known genes'
+        ylabel = '# known genes'
     elif how == 'iso':
         if nov == 'Known':
             nov = nov.lower()
-        ylabel = 'Transcripts w/ {} intron chains'.format(nov)
+        ylabel = '# transcripts w/ {} ICs'.format(nov)
 
     if groupby == 'sample':
-        xlabel = 'Number of cell lines and tissues'
+        xlabel = '# cell lines and tissues'
     elif groupby == 'tissue':
-        xlabel = 'Number of tissues'
+        xlabel = '# tissues'
     elif groupby == 'cell_line':
-        xlabel = 'Number of celltypes'
+        xlabel = '# celltypes'
     elif groupby == 'library':
         if sample == 'cell_line':
-            xlabel = 'Number of cell line libraries'
+            xlabel = '# cell line libraries'
         elif sample == 'tissue':
-            xlabel = 'Number of tissue libraries'
+            xlabel = '# tissue libraries'
         else:
-            xlabel = 'Number of libraries'
+            xlabel = '# libraries'
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
 
@@ -2080,7 +2080,7 @@ def plot_supported_feats(filt_ab,
     ylabel = '# observed {}s'.format(feat.upper())
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-    ax.tick_params(axis="x", rotation=90)
+    ax.tick_params(axis="x", rotation=45)
 
     labels = [item.get_text() for item in ax.get_xticklabels()]
     # labels[0] = 'Known'
@@ -2247,7 +2247,7 @@ def plot_ic_novelty(fname,
                 palette=c_dict, order=order)
     [plt.setp(ax.get_xticklabels(), rotation=45) for ax in g.axes.flat]
     g.set_ylabels('# intron chains')
-    g.set_xlabels('Novelty')
+    g.set_xlabels('')
 
     # add percentage labels
     ax = g.axes[0,0]
@@ -2961,9 +2961,14 @@ def plot_sankey(df,
         c_dict, order = get_sector_colors()
     elif color == 'nov':
         c_dict, order = get_ic_nov_colors()
+    print(c_dict)
 
     order.reverse()
     order_2 = order+order
+    
+    order_l = [o.capitalize() for o in order_2]
+    order_l = [o if o != 'Tss' else 'TSS' for o in order_l]
+    order_l = [o if o != 'Tes' else 'TES' for o in order_l]
 
     source_map = dict([(sect, i) for i, sect in enumerate(order)])
     sink_map = dict([(sect, i+len(order)) for i, sect in enumerate(order)])
@@ -2971,7 +2976,7 @@ def plot_sankey(df,
     df['sink'] = df[sink].map(sink_map)
 
     nodes = dict(
-        label=order_2,
+        label=order_l,
         color=[c_dict[n] for n in order_2])
 
     links = dict(
@@ -2982,7 +2987,12 @@ def plot_sankey(df,
 
     data = go.Sankey(node=nodes, link=links)
     fig = go.Figure(data)
-    fig.update_layout(title_text=title)
+    fig.update_layout(title_text=title,
+                      font_family='Times New Roman')
+    fig.update_traces(textfont_family='Arial',
+                      textfont_size=20,
+                      selector=dict(type='sankey'))
+
     fig.show()
     return fig
 
@@ -3035,7 +3045,7 @@ def plot_n_feat_per_gene(h5,
                 x='n_{}'.format(feat), y='n_genes',
                 color=c, saturation=1)
 
-    plt.xlabel('# {}s'.format(feat.upper()))
+    plt.xlabel('# {}s / gene'.format(feat.upper()))
     plt.ylabel('# genes')
     sns.despine()
 

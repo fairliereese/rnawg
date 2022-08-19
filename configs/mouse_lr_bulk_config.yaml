@@ -48,11 +48,19 @@ meta:
   file_to_hr: mouse/lr_bulk/file_to_hr.tsv
 
 talon:
+  prefix: mouse/lr_bulk/talon/mouse
   sam: mouse/lr_bulk/processing/{sample}_labeled.sam
   cfg_6: mouse/lr_bulk/talon/talon_config_6.csv
   db: mouse/lr_bulk/talon/mouse.db
   db_update: mouse/lr_bulk/talon/talon_update.db
   ab: mouse/lr_bulk/talon/mouse_talon_abundance.tsv
+  read_annot: mouse/lr_bulk/talon/mouse_talon_read_annot.tsv
+  pass_list: mouse/lr_bulk/talon/mouse_pass_list.csv
+  ab: mouse/lr_bulk/talon/mouse_talon_abundance.tsv
+  filt_ab: mouse/lr_bulk/talon/mouse_talon_abundance_filtered.tsv
+  filt_gtf: mouse/lr_bulk/talon/mouse_talon.gtf
+  known_nic_nnc_pass_list: mouse/lr_bulk/talon/mouse_known_nic_nnc_pass_list.csv
+  known_nic_nnc_gtf: mouse/lr_bulk/talon/mouse_known_nic_nnc_talon.gtf
 
 polyasite_atlas:
   original: /dfs7/samlab/mcelik/mousewg/data/resources/polyasite_atlas/atlas.clusters.2.0.GRCm38.96.bed
