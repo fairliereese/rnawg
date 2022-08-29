@@ -1230,8 +1230,10 @@ def plot_biosamp_det(df,
         sample = kwargs['sample']
     if 'nov' in kwargs:
         nov = kwargs['nov'][0]
-
-    df = get_det_table(df, **kwargs)
+    else:
+        nov = 'Known'
+        
+    df = get_det_table(df, **kwargs)    
 
     # finally, calculate the number of biosamples / libraries these
     # genes or transcripts are expressed >= min TPM
@@ -1253,7 +1255,7 @@ def plot_biosamp_det(df,
                  color=color, binwidth=1, linewidth=0)
 
     # titles
-    if how == 'gene':
+    if how == 'gene' or how == 'sr':
         ylabel = '# known genes'
     elif how == 'iso':
         if nov == 'Known':

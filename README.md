@@ -22,6 +22,8 @@ Downloadable links and file descriptions available at each of the links below.
 * [TALON unfiltered abundance matrix](https://sandbox.zenodo.org/record/1095610)
 * [TALON filtered abundance matrix](https://sandbox.zenodo.org/record/1095608)
 * [TALON filtered GTF](https://sandbox.zenodo.org/record/1095599)
+* [TALON read annot](https://sandbox.zenodo.org/record/1095614)
+
 <!-- * [cerberus filtered abundance matrix](https://sandbox.zenodo.org/record/1092240)
 * [cerberus filtered GTF](https://sandbox.zenodo.org/record/1092266)
 * [cerberus triplets](https://sandbox.zenodo.org/record/1093070)
@@ -31,7 +33,6 @@ Downloadable links and file descriptions available at each of the links below.
 * [cerberus TES source map](https://sandbox.zenodo.org/record/1092270)
 * [cerberus annotation](https://sandbox.zenodo.org/record/1092257)
 * [cerberus annotation + triplets](https://sandbox.zenodo.org/record/1092286) -->
-* [TALON read annot](https://sandbox.zenodo.org/record/1095614)
 <!-- * [Swan SwanGraph](https://sandbox.zenodo.org/record/1092272) -->
 
 <!-- ### Long-read RNA-seq data for human cell line and tissue data (updated 4/27/22)

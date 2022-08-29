@@ -1058,7 +1058,10 @@ def get_det_table(df,
             for each isoform / gene per library / sample
     """
     if 'nov' not in kwargs:
-        nov = df.transcript_novelty.unique().tolist()
+        try:
+            nov = df.transcript_novelty.unique().tolist()
+        except:
+            nov = ['Known']
 
     # add min_tpm to kwargs as it's needed for both
     # functions
@@ -1066,7 +1069,7 @@ def get_det_table(df,
 
     # calc TPM per library on desired samples
     df, tids = get_tpm_table(df, **kwargs)
-
+    
     df = df.transpose()
     df.index.name = 'dataset'
     df.reset_index(inplace=True)
@@ -1359,109 +1362,36 @@ def get_det_feats(h5,
 
     return df.Name.tolist()
 
-def get_tpm_table(df,
-                    sample='all',
-                    how='gene',
-                    groupby='library',
-                    nov=None,
-                    min_tpm=0,
-                    gene_subset=None,
-                    save=False,
-                    h5=None,
-                    ic_nov=None,
-                    tss_nov=None,
-                    tes_nov=None,
-                    species='human',
-                    **kwargs):
-    """
-    Parameters:
-        df (pandas DataFrame): TALON abundance table
-        sample (str): Choose from 'cell_line', 'tissue', or None
-        how (str): Choose from 'gene' or 'iso'
-        groupby (str): Choose from 'library' or 'sample'. Sample will avg.
-        nov (list of str): List of accepted novelty types (w/ how='iso')
-        min_tpm (float): Keep only genes / isos that have at least one
-            TPM >= the value across the libraries
-        gene_subset (str): Choose from 'polya' or None
-        save (bool): Whether or not to save the output matrix
+def get_sr_tpm_table(df,
+                     groupby='library',
+                     min_tpm=0,
+                     gene_subset=None,
+                     save=False,
+                     **kwargs):
+    
+    print('Calculating short-read gene TPM values')
 
-    Returns:
-        df (pandas DataFrame): TPMs for gene or isoforms in the requested
-            samples above the input detection threshold.
-        ids (list of str): List of str indexing the table
-    """
-    print('Calculating {} TPM values'.format(how))
+    df.drop('biotype_category', axis=1, inplace=True)
 
-    if sample == 'cell_line' or sample == 'tissue':
-        print('Subsetting for {} datasets'.format(sample))
+    meta = pd.read_csv('metadata_polyA_corrected.tsv', sep='\t')
 
-    dataset_cols = get_sample_datasets(sample)
-    df = rm_sirv_ercc(df)
-    df['gid_stable'] = cerberus.get_stable_gid(df, 'annot_gene_id')
+    id_col = 'gid_stable'
+
+    # replace column names with the metadata human readable versions
+    meta.set_index('File accession', inplace=True)
+    dataset_cols = meta.hr.tolist()
+    meta = meta.to_dict(orient='index')
+    for key, item in meta.items():
+        meta[key] = item['hr']
+    df.rename(meta, axis=1, inplace=True)
+
+    df['gid_stable'] = cerberus.get_stable_gid(df, 'gene_id')
 
     # merge with information about the gene
-    if species == 'human':
-        annot_ver = 'v40_cerberus'
-    elif species == 'mouse':
-        annot_ver = 'vM25_cerberus'
+    annot_ver = 'v40_cerberus'
     gene_df, _, _ = get_gtf_info(how='gene', add_stable_gid=True, ver=annot_ver)
     gene_df = gene_df[['gid_stable', 'biotype_category', 'tf']]
     df = df.merge(gene_df, how='left', on='gid_stable')
-
-    # get indices that we'll need to subset on
-    if how == 'gene':
-        id_col = 'gid_stable'
-        nov_col = 'gene_novelty'
-        nov = ['Known']
-    elif how == 'iso':
-        id_col = 'annot_transcript_id'
-        nov_col = 'transcript_novelty'
-    elif how == 'ic':
-        id_col = 'ic'
-        nov_col = 'transcript_novelty'
-    elif how == 'tss':
-        id_col = 'tss'
-        nov_col = 'transcript_novelty'
-    elif how == 'tes':
-        id_col = 'tes'
-        nov_col = 'transcript_novelty'
-
-    # if we're looking at a cerberus feature, add that feature
-    if how in ['tss', 'tes', 'ic']:
-        df = add_feat(df, kind=how, col='annot_transcript_id')
-
-    # filter on novelty
-    if nov:
-        print('Subsetting for novelty categories {}'.format(nov))
-        nov_inds = df.loc[df[nov_col].isin(nov), id_col].tolist()
-    else:
-        nov_inds = df[id_col].tolist()
-
-    # filter on ca feature novelties
-    ca_inds = []
-    for ca_feat, ca_novs in zip(['tss', 'ic', 'tes'], [tss_nov, ic_nov, tes_nov]):
-        if h5 and ca_novs:
-            print('Getting {} {}s'.format(ca_novs, ca_feat))
-            if how != ca_feat:
-                df = add_feat(df, col='annot_transcript_id', kind=ca_feat)
-            ca_df = get_ca_table(h5, ca_feat)
-            ca_df = ca_df.loc[ca_df.novelty.isin(ca_novs)]
-            inds = df.loc[df[ca_feat].isin(ca_df.Name.tolist()), id_col].tolist()
-            ca_inds.append(inds)
-        else:
-            ca_inds.append(df[id_col].tolist())
-    feat_inds = list(set(ca_inds[0])&set(ca_inds[1])&set(ca_inds[2]))
-
-    #     tss = get_ca_table(h5, 'tss')
-    #     tss = tss.loc[tss.novelty.isin(tss_nov)]
-    #     if how != 'tss':
-    #         df = add_feat(df
-    # elif h5 and tes_nov:
-    #     tes = get_ca_table(h5, 'tes')
-    #     tes = tes.loc[tes.novelty.isin(tes_nov)]
-    # elif h5 and ic_nov:
-    #     ic = get_ca_table(h5, 'ic')
-    #     ic = ic.loc[ic.novelty.isin(ic_nov)]
 
     # filter on gene subset
     if gene_subset:
@@ -1473,43 +1403,23 @@ def get_tpm_table(df,
             gene_inds = df.loc[df.tf == True, id_col].tolist()
     else:
         gene_inds = df[id_col].tolist()
+    subset_inds = gene_inds
 
-    # get intersection of both
-    subset_inds = list(set(nov_inds)&set(gene_inds)&set(feat_inds))
-
-    # sum up counts across the same gene, ic, tss, or tes
-    sum_hows = ['gene', 'ic', 'tss', 'tes']
-    if how in sum_hows:
-        df = df[dataset_cols+[id_col]]
-        df = df.groupby(id_col).sum().reset_index()
-
-    # set index so that all values in df reflect
+    # set index and subset so that all values in df reflect
     # counts per transcript or gene
     df.set_index(id_col, inplace=True)
-
-    # compute TPM
-    tpm_cols = []
-    for d in dataset_cols:
-        tpm_col = '{}_tpm'.format(d)
-        total_col = '{}_total'.format(d)
-        df[total_col] = df[d].sum()
-        df[tpm_col] = (df[d]*1000000)/df[total_col]
-        tpm_cols.append(tpm_col)
-    df = df[tpm_cols]
-
-    # reformat column names
-    df.columns = [c.rsplit('_', maxsplit=1)[0] for c in df.columns]
+    df = df[dataset_cols]
 
     # enforce tpm threshold
     if min_tpm:
         print('Enforcing minimum TPM')
-        print('Total # {}s detected: {}'.format(how, len(df.index)))
+        print('Total # genes detected: {}'.format(len(df.index)))
         df = df.loc[(df >= min_tpm).any(axis=1)]
-        print('# {}s >= {} tpm: {}'.format(how, min_tpm, len(df.index)))
+        print('# genes >= {} tpm: {}'.format(min_tpm, len(df.index)))
 
     # subset if necessary
-    if gene_subset or nov:
-        print('Applying gene type and novelty subset')
+    if gene_subset:
+        print('Applying gene type subset')
         df = df.loc[df.index.isin(subset_inds)]
 
     # average over biosample
@@ -1536,13 +1446,206 @@ def get_tpm_table(df,
         df = df.groupby('biosample').mean()
         df = df.transpose()
 
-    print('Number of {}s reported: {}'.format(how, len(df.index)))
-
+    print('Number of genes reported: {}'.format(len(df.index)))
+    df.index.name = 'gene_id'
+    df.columns.name = ''
+    
     if save:
-        fname = '{}_{}_tpm.tsv'.format(sample, how)
+        fname = '{}_tpm.tsv'.format(how)
         df.to_csv(fname, sep='\t')
 
     ids = df.index.tolist()
+
+    return df, ids
+
+def get_tpm_table(df,
+                sample='all',
+                how='gene',
+                groupby='library',
+                nov=None,
+                min_tpm=0,
+                gene_subset=None,
+                save=False,
+                h5=None,
+                ic_nov=None,
+                tss_nov=None,
+                tes_nov=None,
+                species='human',
+                **kwargs):
+    """
+    Parameters:
+        df (pandas DataFrame): TALON abundance table
+        sample (str): Choose from 'cell_line', 'tissue', or None
+        how (str): Choose from 'gene' or 'iso'
+        groupby (str): Choose from 'library' or 'sample'. Sample will avg.
+        nov (list of str): List of accepted novelty types (w/ how='iso')
+        min_tpm (float): Keep only genes / isos that have at least one
+            TPM >= the value across the libraries
+        gene_subset (str): Choose from 'polya' or None
+        save (bool): Whether or not to save the output matrix
+
+    Returns:
+        df (pandas DataFrame): TPMs for gene or isoforms in the requested
+            samples above the input detection threshold.
+        ids (list of str): List of str indexing the table
+    """
+    
+    if how == 'sr':
+        df, ids = get_sr_tpm_table(df, groupby, min_tpm, gene_subset, save, **kwargs)
+    else:
+        print('Calculating {} TPM values'.format(how))
+
+        if sample == 'cell_line' or sample == 'tissue':
+            print('Subsetting for {} datasets'.format(sample))
+
+        dataset_cols = get_sample_datasets(sample)
+        df = rm_sirv_ercc(df)
+        df['gid_stable'] = cerberus.get_stable_gid(df, 'annot_gene_id')
+
+        # merge with information about the gene
+        if species == 'human':
+            annot_ver = 'v40_cerberus'
+        elif species == 'mouse':
+            annot_ver = 'vM25_cerberus'
+        gene_df, _, _ = get_gtf_info(how='gene', add_stable_gid=True, ver=annot_ver)
+        gene_df = gene_df[['gid_stable', 'biotype_category', 'tf']]
+        df = df.merge(gene_df, how='left', on='gid_stable')
+
+        # get indices that we'll need to subset on
+        if how == 'gene':
+            id_col = 'gid_stable'
+            nov_col = 'gene_novelty'
+            nov = ['Known']
+        elif how == 'iso':
+            id_col = 'annot_transcript_id'
+            nov_col = 'transcript_novelty'
+        elif how == 'ic':
+            id_col = 'ic'
+            nov_col = 'transcript_novelty'
+        elif how == 'tss':
+            id_col = 'tss'
+            nov_col = 'transcript_novelty'
+        elif how == 'tes':
+            id_col = 'tes'
+            nov_col = 'transcript_novelty'
+
+        # if we're looking at a cerberus feature, add that feature
+        if how in ['tss', 'tes', 'ic']:
+            df = add_feat(df, kind=how, col='annot_transcript_id')
+
+        # filter on novelty
+        if nov:
+            print('Subsetting for novelty categories {}'.format(nov))
+            nov_inds = df.loc[df[nov_col].isin(nov), id_col].tolist()
+        else:
+            nov_inds = df[id_col].tolist()
+
+        # filter on ca feature novelties
+        ca_inds = []
+        for ca_feat, ca_novs in zip(['tss', 'ic', 'tes'], [tss_nov, ic_nov, tes_nov]):
+            if h5 and ca_novs:
+                print('Getting {} {}s'.format(ca_novs, ca_feat))
+                if how != ca_feat:
+                    df = add_feat(df, col='annot_transcript_id', kind=ca_feat)
+                ca_df = get_ca_table(h5, ca_feat)
+                ca_df = ca_df.loc[ca_df.novelty.isin(ca_novs)]
+                inds = df.loc[df[ca_feat].isin(ca_df.Name.tolist()), id_col].tolist()
+                ca_inds.append(inds)
+            else:
+                ca_inds.append(df[id_col].tolist())
+        feat_inds = list(set(ca_inds[0])&set(ca_inds[1])&set(ca_inds[2]))
+
+        #     tss = get_ca_table(h5, 'tss')
+        #     tss = tss.loc[tss.novelty.isin(tss_nov)]
+        #     if how != 'tss':
+        #         df = add_feat(df
+        # elif h5 and tes_nov:
+        #     tes = get_ca_table(h5, 'tes')
+        #     tes = tes.loc[tes.novelty.isin(tes_nov)]
+        # elif h5 and ic_nov:
+        #     ic = get_ca_table(h5, 'ic')
+        #     ic = ic.loc[ic.novelty.isin(ic_nov)]
+
+        # filter on gene subset
+        if gene_subset:
+            print('Subsetting for {} genes'.format(gene_subset))
+            if gene_subset == 'polya':
+                polya_cats = ['protein_coding', 'pseudogene', 'lncRNA']
+                gene_inds = df.loc[df.biotype_category.isin(polya_cats), id_col].tolist()
+            elif gene_subset == 'tf':
+                gene_inds = df.loc[df.tf == True, id_col].tolist()
+        else:
+            gene_inds = df[id_col].tolist()
+
+        # get intersection of both
+        subset_inds = list(set(nov_inds)&set(gene_inds)&set(feat_inds))
+
+        # sum up counts across the same gene, ic, tss, or tes
+        sum_hows = ['gene', 'ic', 'tss', 'tes']
+        if how in sum_hows:
+            df = df[dataset_cols+[id_col]]
+            df = df.groupby(id_col).sum().reset_index()
+
+        # set index so that all values in df reflect
+        # counts per transcript or gene
+        df.set_index(id_col, inplace=True)
+
+        # compute TPM
+        tpm_cols = []
+        for d in dataset_cols:
+            tpm_col = '{}_tpm'.format(d)
+            total_col = '{}_total'.format(d)
+            df[total_col] = df[d].sum()
+            df[tpm_col] = (df[d]*1000000)/df[total_col]
+            tpm_cols.append(tpm_col)
+        df = df[tpm_cols]
+
+        # reformat column names
+        df.columns = [c.rsplit('_', maxsplit=1)[0] for c in df.columns]
+
+        # enforce tpm threshold
+        if min_tpm:
+            print('Enforcing minimum TPM')
+            print('Total # {}s detected: {}'.format(how, len(df.index)))
+            df = df.loc[(df >= min_tpm).any(axis=1)]
+            print('# {}s >= {} tpm: {}'.format(how, min_tpm, len(df.index)))
+
+        # subset if necessary
+        if gene_subset or nov:
+            print('Applying gene type and novelty subset')
+            df = df.loc[df.index.isin(subset_inds)]
+
+        # average over biosample
+        if groupby == 'sample':
+            print('Averaging over biosample')
+            df = df.transpose()
+            df.reset_index(inplace=True)
+
+            # add biosample name (ie without rep information)
+            df['biosample'] = df['index'].str.rsplit('_', n=2, expand=True)[0]
+            df.drop(['index'], axis=1, inplace=True)
+
+            # record the avg TPM value per biosample
+            tissue_df = get_tissue_metadata()
+            tissue_df = tissue_df[['tissue', 'biosample']]
+
+            df = df.merge(tissue_df, how='left', on='biosample')
+            df.loc[df.tissue.isnull(), 'tissue'] = df.loc[df.tissue.isnull(), 'biosample']
+            df.drop('biosample', axis=1, inplace=True)
+            df.rename({'tissue': 'biosample'}, axis=1, inplace=True)
+
+            print('Found {} total samples'.format(len(df.biosample.unique().tolist())))
+
+            df = df.groupby('biosample').mean()
+            df = df.transpose()
+
+        print('Number of {}s reported: {}'.format(how, len(df.index)))
+
+        if save:
+            fname = '{}_{}_tpm.tsv'.format(sample, how)
+            df.to_csv(fname, sep='\t')
+
+        ids = df.index.tolist()
 
     return df, ids
 

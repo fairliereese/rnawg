@@ -12,11 +12,11 @@ spleen,spleen,spleen
 upper lobe of left lung,lung,upper_lobe_of_left_lung
 gastrocnemius medialis,muscle,gastrocnemius_medialis
 breast epithelium,breast,breast_epithelium
-Peyer's patch,Intestine,peyer's_patch
+Peyer's patch,intestine,peyers_patch
 gastroesophageal sphincter,esophagus,gastroesophageal_sphincter
 adrenal gland,adrenal gland,adrenal_gland
 stomach,stomach,stomach
-prostate gland,prostate gland,prostate_gland
+prostate gland,prostate_gland,prostate_gland
 psoas muscle,muscle,psoas_muscle
 aorta,vessels,aorta
 lower lobe of left lung,lung,lower_lobe_of_left_lung
@@ -52,10 +52,10 @@ sciatic nerve,nerve,sciatic_nerve
 thoracic aorta,vessels,thoracic_aorta
 left colon,colon,left_colon
 uterus,uterus,uterus
-thyroid gland,thyroid gland,thyroid_gland
+thyroid gland,thyroid_gland,thyroid_gland
 upper lobe of right lung,lung,upper_lobe_of_right_lung
 adipose tissue,adipose,adipose_tissue
-camera-type eye,Eye,camera-type_eye
+camera-type eye,eye,camera-type_eye
 small intestine,intestine,small_intestine
 heart,heart,heart
 skin of body,skin,skin_of_body
@@ -64,7 +64,7 @@ skeletal muscle tissue,muscle,skeletal_muscle_tissue
 spinal cord,brain,spinal_cord
 occipital lobe,brain,occipital_lobe
 temporal lobe,brain,temporal_lobe
-umbilical cord,umbilical cord,umbilical_cord
+umbilical cord,umbilical_cord,umbilical_cord
 cerebellum,brain,cerebellum
 metanephros,kidney,metanephros
 vagina,vagina,vagina
