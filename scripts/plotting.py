@@ -1203,6 +1203,8 @@ def plot_avg_isos_per_gene(df,
 
     fname = '{}_isos_per_gene_per_{}.png'.format(opref, sample)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
+    
+
 
 def plot_biosamp_det(df,
                      opref='figures/',
@@ -1252,7 +1254,8 @@ def plot_biosamp_det(df,
     else:
         color = c_dict['Known']
     ax = sns.displot(data=df, x='n_samples', kind='hist',
-                 color=color, binwidth=1, linewidth=0)
+                 color=color, binwidth=1, linewidth=0,
+                 alpha=1)
 
     # titles
     if how == 'gene' or how == 'sr':

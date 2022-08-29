@@ -1,0 +1,349 @@
+"| activated CD4-positive, alpha-beta T cell | ENCSR925GFP |"
+"| CD4-positive, alpha-beta T cell | ENCSR033XWU |"
+"| activated CD8-positive, alpha-beta memory T cell | ENCSR538FRP |"
+"| CD8-positive, alpha-beta memory T cell | ENCSR446LDS |"
+"| naive thymus-derived CD4-positive, alpha-beta T cell | ENCSR956ZVR |"
+"| activated CD4-positive, alpha-beta memory T cell | ENCSR856VAD |"
+"| naive thymus-derived CD8-positive, alpha-beta T cell | ENCSR692DIM |"
+"| activated CD8-positive, alpha-beta memory T cell | ENCSR415SXI |"
+"| CD4-positive, alpha-beta memory T cell | ENCSR297AZN |"
+"| stimulated activated CD4-positive, alpha-beta T cell | ENCSR899IVV |"
+"| CD8-positive, alpha-beta memory T cell | ENCSR989IFF |"
+"| stimulated activated CD8-positive, alpha-beta T cell | ENCSR552RFJ |"
+"| activated CD4-positive, alpha-beta memory T cell | ENCSR777TBF |"
+"| CD4-positive, alpha-beta memory T cell | ENCSR177XCG |"
+"| activated CD4-positive, alpha-beta memory T cell | ENCSR694AWV |"
+"| stimulated activated CD4-positive, alpha-beta T cell | ENCSR593MZL |"
+"| activated naive CD8-positive, alpha-beta T cell | ENCSR957WSE |"
+| liver | ENCSR000AFB |
+| lung | ENCSR000AFC |
+| heart | ENCSR000AEZ |
+| metanephros | ENCSR000AFA |
+| smooth muscle cell of the pulmonary artery | ENCSR000AAN |
+| bronchial epithelial cell | ENCSR000AAD |
+| K562 | ENCSR000AEP |
+| heart | ENCSR000AHH |
+| pulmonary artery endothelial cell | ENCSR000AAM |
+| urinary bladder | ENCSR000AEV |
+| lung microvascular endothelial cell | ENCSR000AAP |
+| GM12878 | ENCSR889TRN |
+| uterus | ENCSR000AFN |
+| K562 | ENCSR000AEL |
+"| activated CD8-positive, alpha-beta memory T cell | ENCSR240JQW |"
+"| CD8-positive, alpha-beta T cell | ENCSR501DTN |"
+"| activated naive CD4-positive, alpha-beta T cell | ENCSR996OED |"
+| lung | ENCSR045GTF |
+| WTC11 | ENCSR673UKZ |
+| Panc1 | ENCSR128CYL |
+"| naive thymus-derived CD4-positive, alpha-beta T cell | ENCSR911XSA |"
+| endodermal cell | ENCSR291TRJ |
+| HCT116 | ENCSR698RPL |
+| psoas muscle | ENCSR574PFY |
+| H1 | ENCSR712GOC |
+| camera-type eye | ENCSR000AFO |
+| lower lobe of left lung | ENCSR448BTT |
+| GM12878 | ENCSR000AEC |
+| umbilical cord | ENCSR000AFM |
+| placenta | ENCSR899OKE |
+| pancreas | ENCSR432EBE |
+| mesenteric fat pad | ENCSR838XNO |
+| aorta | ENCSR377FPC |
+| smooth muscle cell of the umbilical artery | ENCSR000AAU |
+| spleen | ENCSR258ELN |
+| epithelial cell of umbilical artery | ENCSR000AAT |
+| activated T-cell | ENCSR111PSY |
+| PC-3 | ENCSR648KDM |
+| K562 | ENCSR615EEK |
+| HFFc6 | ENCSR146ZSP |
+| WTC11 | ENCSR450EXF |
+"| activated naive CD4-positive, alpha-beta T cell | ENCSR152FDX |"
+"| activated naive CD4-positive, alpha-beta T cell | ENCSR458FZP |"
+| A673 | ENCSR558SEE |
+| spleen | ENCSR900SGE |
+| Peyer's patch | ENCSR257NIR |
+| vagina | ENCSR146LBD |
+| thoracic aorta | ENCSR837ZLY |
+| thyroid gland | ENCSR532LJV |
+| spleen | ENCSR096LTX |
+| left ventricle myocardium superior | ENCSR876TAN |
+| lower lobe of left lung | ENCSR718RTN |
+| spleen | ENCSR074FTH |
+| endothelial cell of umbilical vein | ENCSR993JMV |
+"| activated CD4-positive, alpha-beta T cell | ENCSR385KVQ |"
+"| CD4-positive, alpha-beta T cell | ENCSR411MUF |"
+"| activated naive CD8-positive, alpha-beta T cell | ENCSR437HKI |"
+"| activated CD4-positive, alpha-beta memory T cell | ENCSR401DHH |"
+| tracheal epithelial cell | ENCSR000AAR |
+| spinal cord | ENCSR000AFH |
+| myocyte | ENCSR894WMQ |
+"| activated naive CD8-positive, alpha-beta T cell | ENCSR820IIL |"
+"| activated CD8-positive, alpha-beta T cell | ENCSR264VJN |"
+"| CD8-positive, alpha-beta T cell | ENCSR151FXS |"
+| mammary epithelial cell | ENCSR020YQE |
+| PC-9 | ENCSR743GKS |
+| aortic smooth muscle cell | ENCSR000AAA |
+| tongue | ENCSR000AFL |
+"| activated naive CD4-positive, alpha-beta T cell | ENCSR944OIX |"
+"| activated CD8-positive, alpha-beta memory T cell | ENCSR817WHQ |"
+| subcutaneous adipose tissue | ENCSR150QJY |
+| stomach | ENCSR000AFI |
+| hepatocyte | ENCSR908ZAS |
+| bronchus fibroblast of lung | ENCSR620NSN |
+| neural cell | ENCSR292TAP |
+| HT1080 | ENCSR535VTR |
+| mesangial cell | ENCSR198TKA |
+"| stimulated activated CD8-positive, alpha-beta T cell | ENCSR282GZU |"
+"| activated CD8-positive, alpha-beta T cell | ENCSR533TOW |"
+"| naive thymus-derived CD8-positive, alpha-beta T cell | ENCSR473XAP |"
+"| activated naive CD8-positive, alpha-beta T cell | ENCSR409UYW |"
+| pericardium fibroblast | ENCSR362HMX |
+| astrocyte | ENCSR233IJT |
+| dermis lymphatic vessel endothelial cell | ENCSR000AAJ |
+| GM12878 | ENCSR000AEG |
+| dermis microvascular lymphatic vessel endothelial cell | ENCSR000AAK |
+| epithelial cell of alveolus of lung | ENCSR897KTO |
+| kidney epithelial cell | ENCSR373BDG |
+| liver | ENCSR000AEU |
+| occipital lobe | ENCSR000AFD |
+| cardiac atrium fibroblast | ENCSR110BDY |
+| subcutaneous adipose tissue | ENCSR671WMH |
+| bronchial smooth muscle cell | ENCSR000AAE |
+| gastroesophageal sphincter | ENCSR485WBR |
+| mucosa of descending colon | ENCSR184LTL |
+| smooth muscle cell of the coronary artery | ENCSR000AAG |
+| regular cardiac myocyte | ENCSR000AAH |
+| upper lobe of right lung | ENCSR816IZA |
+| progenitor cell of endocrine pancreas | ENCSR733JBX |
+| right lobe of liver | ENCSR504QMK |
+| cardiac muscle cell | ENCSR294NDO |
+| thyroid gland | ENCSR238ZZD |
+| uterus | ENCSR071ZLM |
+| pancreas | ENCSR579BDN |
+| osteocyte | ENCSR413QAL |
+| HFFc6 | ENCSR636LEU |
+| mesothelial cell of epicardium | ENCSR168PXI |
+| placenta | ENCSR308XAR |
+| spleen | ENCSR106SZN |
+| GM12878 | ENCSR820PHH |
+| Peyer's patch | ENCSR802HPM |
+| myometrial cell | ENCSR371VGV |
+| GM23338 | ENCSR938LSP |
+| GM23248 | ENCSR797BPP |
+| skeletal muscle tissue | ENCSR000AFF |
+| skin of body | ENCSR000AFG |
+| parietal lobe | ENCSR000AFE |
+| glomerular endothelial cell | ENCSR878EUT |
+| GM23248 | ENCSR510QZW |
+| GM12878 | ENCSR000AED |
+| esophagus squamous epithelium | ENCSR351OTL |
+| K562 | ENCSR000AEM |
+| hair follicular keratinocyte | ENCSR680USE |
+| fibroblast of lung | ENCSR000AAO |
+| lower leg skin | ENCSR321PGV |
+| cerebellum | ENCSR000AEW |
+| endothelial cell of coronary artery | ENCSR000AAF |
+| lower leg skin | ENCSR460YCS |
+| Peyer's patch | ENCSR544SAU |
+| frontal cortex | ENCSR000AEY |
+| stomach | ENCSR296PMS |
+| esophagus squamous epithelium | ENCSR510MIA |
+| nasal cavity respiratory epithelium epithelial cell of viscerocranial mucosa | ENCSR000AAL |
+| stomach | ENCSR752UNJ |
+| PC-3 | ENCSR420NLC |
+| renal cortical epithelial cell | ENCSR000AAQ |
+| esophagus squamous epithelium | ENCSR354QPN |
+| dermis blood vessel endothelial cell | ENCSR000AAI |
+| sigmoid colon | ENCSR094GVZ |
+| neural progenitor cell | ENCSR244ISQ |
+| bladder microvascular endothelial cell | ENCSR000AAB |
+| smooth muscle cell of bladder | ENCSR000AAC |
+| esophagus muscularis mucosa | ENCSR750ETS |
+| diencephalon | ENCSR000AEX |
+| upper lobe of left lung | ENCSR425RGZ |
+| esophagus muscularis mucosa | ENCSR182CBU |
+| right atrium auricular region | ENCSR457ENP |
+| omental fat pad | ENCSR729CAZ |
+| tibial nerve | ENCSR272UNO |
+| suprapubic skin | ENCSR450ENK |
+| suprapubic skin | ENCSR862RGX |
+| Daoy | ENCSR254JJM |
+| H7 | ENCSR490SQH |
+| M059J | ENCSR696SMK |
+| NCI-H460 | ENCSR164OCT |
+| stomach | ENCSR471RUK |
+| skeletal muscle myoblast | ENCSR444WHQ |
+| RPMI7951 | ENCSR320BRR |
+| gastrocnemius medialis | ENCSR853BNH |
+| thyroid gland | ENCSR023ZXN |
+| SK-MEL-5 | ENCSR669KQU |
+| Purkinje cell | ENCSR900JSG |
+| smooth muscle cell | ENCSR052FJA |
+| liver | ENCSR388ZNJ |
+| G401 | ENCSR653DFZ |
+| cardiac muscle cell | ENCSR379YAE |
+| A172 | ENCSR580GSX |
+| airway epithelial cell | ENCSR822SUG |
+| mammary microvascular endothelial cell | ENCSR815UVL |
+| cardiac ventricle fibroblast | ENCSR369RVN |
+| epithelial cell of proximal tubule | ENCSR118TVR |
+| LHCN-M2 | ENCSR332DBS |
+| Caki2 | ENCSR584JXD |
+| adrenal gland | ENCSR754WLW |
+| thyroid gland | ENCSR000AFK |
+| uterine smooth muscle cell | ENCSR000AAV |
+| SJSA1 | ENCSR880EGO |
+| adrenal gland | ENCSR276MMH |
+| temporal lobe | ENCSR000AFJ |
+| K562 | ENCSR000AEQ |
+| body of pancreas | ENCSR671IYC |
+| myotube | ENCSR828TEI |
+| H4 | ENCSR919QJT |
+| GM12878 | ENCSR000AEH |
+| MG63 | ENCSR971KNW |
+| smooth muscle cell of trachea | ENCSR000AAS |
+| OCI-LY7 | ENCSR001HHK |
+| Karpas-422 | ENCSR314LXG |
+| left colon | ENCSR773COB |
+| heart right ventricle | ENCSR915EBZ |
+| sciatic nerve | ENCSR631NUQ |
+| omental fat pad | ENCSR080HPT |
+| tibial nerve | ENCSR648OSR |
+| breast epithelium | ENCSR094VRQ |
+| placenta | ENCSR484WZL |
+| sigmoid colon | ENCSR857WJK |
+| thyroid gland | ENCSR687HJY |
+| esophagus squamous epithelium | ENCSR474TRG |
+| sigmoid colon | ENCSR812AKX |
+| endometrial microvascular endothelial cells | ENCSR919MZM |
+| SJCRH30 | ENCSR568YRP |
+| ovary | ENCSR841ADZ |
+| gastrocnemius medialis | ENCSR609NZM |
+| upper lobe of left lung | ENCSR313COD |
+| upper lobe of left lung | ENCSR500JSJ |
+| adrenal gland | ENCSR954PZB |
+| subcutaneous adipose tissue | ENCSR708VVE |
+| subcutaneous adipose tissue | ENCSR504NIU |
+| tibial nerve | ENCSR858QEL |
+| heart left ventricle | ENCSR391VGU |
+| testis | ENCSR029KNZ |
+| prostate gland | ENCSR701TST |
+| lower leg skin | ENCSR551NII |
+| right lobe of liver | ENCSR323GUF |
+| lower leg skin | ENCSR991HIR |
+| colonic mucosa | ENCSR202OWR |
+| stomach | ENCSR853WOM |
+| placenta | ENCSR479MNN |
+| thoracic aorta | ENCSR429EWK |
+| placenta | ENCSR288RRZ |
+| upper lobe of left lung | ENCSR406SAW |
+| sigmoid colon | ENCSR827IXS |
+| right lobe of liver | ENCSR226KML |
+| esophagus muscularis mucosa | ENCSR620LQN |
+| gastrocnemius medialis | ENCSR967JPI |
+| omental fat pad | ENCSR645TCG |
+| gastroesophageal sphincter | ENCSR740YMS |
+| HT-29 | ENCSR971GPJ |
+| A375 | ENCSR504VXC |
+| testis | ENCSR344MQK |
+| transverse colon | ENCSR653ZJF |
+| spleen | ENCSR330UMQ |
+| transverse colon | ENCSR403SZN |
+| ascending aorta | ENCSR719PXC |
+| adrenal gland | ENCSR801MKV |
+| transverse colon | ENCSR800WIY |
+| esophagus muscularis mucosa | ENCSR098BUF |
+| ovary | ENCSR042GYH |
+| right atrium auricular region | ENCSR571RXE |
+| breast epithelium | ENCSR434TEU |
+| suprapubic skin | ENCSR108MAU |
+| Peyer's patch | ENCSR450BNZ |
+| breast epithelium | ENCSR438YPF |
+| hepatocyte | ENCSR859HWB |
+| omental fat pad | ENCSR158KFO |
+| upper lobe of left lung | ENCSR839ZDH |
+| heart left ventricle | ENCSR436QDU |
+| uterus | ENCSR113HQM |
+| prostate gland | ENCSR495HDM |
+| spleen | ENCSR194HVU |
+| right cardiac atrium | ENCSR266PVZ |
+| suprapubic skin | ENCSR480SLD |
+| HFFc6 | ENCSR841QAC |
+| Right ventricle myocardium inferior | ENCSR015PUN |
+| right lobe of liver | ENCSR229LFK |
+| adrenal gland | ENCSR201XOZ |
+| adrenal gland | ENCSR003BTD |
+| MCF-7 | ENCSR355JZC |
+| IMR-90 | ENCSR797RXV |
+| HepG2 | ENCSR245ATJ |
+| placenta | ENCSR942YMN |
+| T-cell | ENCSR336VTK |
+| placenta | ENCSR420YFF |
+| adrenal gland | ENCSR763OMY |
+| ovary | ENCSR140DCD |
+| posterior vena cava | ENCSR130TZW |
+| ovary | ENCSR146ZLV |
+| endodermal cell | ENCSR559HWG |
+| left cardiac atrium | ENCSR993IPO |
+| mucosa of descending colon | ENCSR674KHG |
+| heart left ventricle | ENCSR924MSZ |
+| kidney | ENCSR892LBU |
+| ovary | ENCSR368HRJ |
+| heart left ventricle | ENCSR900FUP |
+| left lung | ENCSR410MSS |
+| lower lobe of right lung | ENCSR825UXP |
+| H1 | ENCSR895ZTB |
+| neural crest cell | ENCSR761SHI |
+| right cardiac atrium | ENCSR867WQC |
+| left cardiac atrium | ENCSR652PHZ |
+| heart right ventricle | ENCSR252UHW |
+| heart left ventricle | ENCSR837VMK |
+| chondrocyte | ENCSR774MGO |
+| HFFc6 | ENCSR735JKB |
+| placenta | ENCSR464VSR |
+| HFFc6 | ENCSR381OTM |
+| colonic mucosa | ENCSR516BJM |
+| Right ventricle myocardium superior | ENCSR132VGJ |
+| left ventricle myocardium inferior | ENCSR516TTH |
+| right cardiac atrium | ENCSR853TXT |
+| left lobe of liver | ENCSR357BYU |
+| posterior vena cava | ENCSR149AHS |
+| left colon | ENCSR759TPN |
+| GM12878 | ENCSR151NGC |
+| K562 | ENCSR792OIJ |
+| pancreas | ENCSR523RGW |
+| GM23338 | ENCSR379DEC |
+| pancreas | ENCSR165QTZ |
+| psoas muscle | ENCSR563VMC |
+| right cardiac atrium | ENCSR622PIH |
+| GM12878 | ENCSR843RJV |
+| smooth muscle cell | ENCSR236URT |
+| body of pancreas | ENCSR586SYA |
+| gastroesophageal sphincter | ENCSR528ZKN |
+| tibial nerve | ENCSR796HLX |
+| GM23338 | ENCSR748GVH |
+| transverse colon | ENCSR630VJN |
+| gastroesophageal sphincter | ENCSR035SKV |
+| gastrocnemius medialis | ENCSR678TMV |
+| endothelial cell | ENCSR429EGC |
+| type B pancreatic cell | ENCSR352JCY |
+| aorta | ENCSR185TQB |
+| placenta | ENCSR648YUM |
+| activated T-cell | ENCSR900DUO |
+| astrocyte | ENCSR129VBC |
+| mucosa of gallbladder | ENCSR343XXH |
+| ovary | ENCSR320OTJ |
+| T-cell | ENCSR306IAW |
+| excitatory neuron | ENCSR877FRY |
+| upper lobe of left lung | ENCSR589EBT |
+| placenta | ENCSR244HHV |
+| pancreas | ENCSR071DYD |
+| H9 | ENCSR712BRU |
+| cardiac septum | ENCSR818DBU |
+| T-cell | ENCSR631FXT |
+| activated T-cell | ENCSR844SCP |
+| left lung | ENCSR816HLU |
+| right lobe of liver | ENCSR135IAL |
+| placenta | ENCSR903XMI |
+| spleen | ENCSR621PZI |
+| heart right ventricle | ENCSR997KDB |
+| HFFc6 | ENCSR420ZKB |

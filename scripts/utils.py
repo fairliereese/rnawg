@@ -1447,7 +1447,7 @@ def get_sr_tpm_table(df,
         df = df.transpose()
 
     print('Number of genes reported: {}'.format(len(df.index)))
-    df.index.name = 'gene_id'
+    df.index.name = 'gid_stable'
     df.columns.name = ''
     
     if save:
