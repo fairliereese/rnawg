@@ -2967,6 +2967,10 @@ def plot_sankey(df,
     elif color == 'nov':
         c_dict, order = get_ic_nov_colors()
     print(c_dict)
+    
+    # df[source] = pd.Categorical(df[source], order)
+    # df[sink] = pd.Categorical(df[sink], order)
+    # df.sort_values([source, sink], inplace=True)
 
     order.reverse()
     order_2 = order+order
@@ -2980,6 +2984,12 @@ def plot_sankey(df,
     df['source'] = df[source].map(source_map)
     df['sink'] = df[sink].map(sink_map)
 
+    # nodes = dict(
+    #     label=order_l,
+    #     color=[c_dict[n] for n in order_2],
+    #     x=[0.001, 0.001, 0.001, 0.001, 0.001, 0.999, 0.999, 0.999, 0.999, 0.999],
+    #     y=[0.001, 75/285, 160/285, 190/285, 1, 0.001, 75/285, 130/285, 215/285, 1])
+    
     nodes = dict(
         label=order_l,
         color=[c_dict[n] for n in order_2])
