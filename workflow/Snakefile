@@ -61,18 +61,18 @@ df_pas = pd.read_csv('configs/pas_metadata.tsv', sep='\t') \
 include: "download/Snakefile"
 include: "common/Snakefile"
 include: "lapa/Snakefile"
-include: "igv/Snakefile"
-include: "tss/Snakefile"
-include: "polyA/Snakefile"
-include: "pas/Snakefile"
-include: "miRNA/Snakefile"
-include: "splicing/Snakefile"
+# include: "igv/Snakefile"
+# include: "tss/Snakefile"
+# include: "polyA/Snakefile"
+# include: "pas/Snakefile"
+# include: "miRNA/Snakefile"
+# include: "splicing/Snakefile"
 # include: "plot/Snakefile"
 
 
 rule all:
     input:
-        rules.all_polyA.input
+        rules.all_download.input
         # rules.all_common.input
 
         # rules.all_miRNA.input,
