@@ -73,8 +73,8 @@ def get_sector_colors(cats=None):
     return c_dict, order
 
 def get_tissue_cell_line_colors(cats=None):
-    tissue = '#d4a95b'
-    cell_line = '#d67471'
+    tissue = '#e39f24'
+    cell_line = '#7680e8'
     c_dict = {'cell_line': cell_line,
               'tissue': tissue}
     order = ['cell_line', 'tissue']

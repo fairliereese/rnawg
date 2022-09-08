@@ -185,7 +185,7 @@ def get_dataset_cols():
     datasets = df.hr.tolist()
     return datasets
 
-def get_sample_datasets(sample=None):
+def get_sample_datasets(sample=None, groupby=None):
     """
     Get the human-readable names of the datasets belonging
     to the input sample type.
@@ -229,6 +229,23 @@ def get_sample_datasets(sample=None):
         datasets = df[1].tolist()
     else:
         datasets = df.hr.tolist()
+        
+    
+    if groupby == 'sample':
+        df = pd.DataFrame(columns=['dataset'], data=datasets)
+        # add biosample name (ie without rep information)
+        df['biosample'] = df['dataset'].str.rsplit('_', n=2, expand=True)[0]
+        df.drop(['dataset'], axis=1, inplace=True)
+
+        # record the avg TPM value per biosample
+        tissue_df = get_tissue_metadata()
+        tissue_df = tissue_df[['tissue', 'biosample']]
+
+        df = df.merge(tissue_df, how='left', on='biosample')
+        df.loc[df.tissue.isnull(), 'tissue'] = df.loc[df.tissue.isnull(), 'biosample']
+        df.drop('biosample', axis=1, inplace=True)
+        df.rename({'tissue': 'biosample'}, axis=1, inplace=True)
+        datasets = df.biosample.unique().tolist()
 
     return datasets
 
@@ -2264,24 +2281,9 @@ def compute_genes_per_sector(df, gb_cols=[]):
     
     total_df = df[['gid']+gb_cols].groupby(gb_cols).count().reset_index()
     total_df.rename({'gid': 'total_genes'}, axis=1, inplace=True)
-    
     df = df[['gid', 'sector']+gb_cols].groupby(['sector']+gb_cols).count().reset_index()
     df.rename({'gid':'n_genes'}, axis=1, inplace=True)
-    
     df = df.merge(total_df, how='left', on=gb_cols)
-    print
-    
-    # df['total'] = np.nan
-    # for gb in gb_cols:
-    #     inds = df.index.tolist()
-    #     for g in df[gb].unique().tolist():
-    #         inds = list(set(inds)&set(df.loc[df[gb] == g].index.tolist())
-    # df.loc[df[inds, 'total'] = df.loc[inds, 'n_genes'].sum()
-        #todo
-    # for s in df['sample'].unique().tolist():
-    #     inds = df['sample'] == s
-    #     df.loc[inds, 'total'] = df.loc[inds, 'n_genes'].sum()
-
     df['perc'] = (df.n_genes/df.total_genes)*100
     
     return df
