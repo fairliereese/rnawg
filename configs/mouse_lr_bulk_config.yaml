@@ -22,8 +22,11 @@ ref:
     gid: refs/biomart_tf_gids.tsv
 
 lapa:
-    hasan_gtf: /dfs7/samlab/mcelik/mousewg/data/results/talon_corrected/mouse_talon.corrected.gtf
-    hasan_ab: /dfs7/samlab/mcelik/mousewg/data/results/talon_corrected/mouse_talon_abundance_filtered.corrected.tsv
+
+    hasan_gtf: /share/crsp/lab/seyedam/mcelik/mousewg/data/results/talon_corrected/mouse_talon.corrected.gtf
+    hasan_ab: /share/crsp/lab/seyedam/mcelik/mousewg/data/results/talon_corrected/mouse_talon_abundance_filtered.corrected.tsv
+    # hasan_gtf: /dfs7/samlab/mcelik/mousewg/data/results/talon_corrected/mouse_talon.corrected.gtf
+    # hasan_ab: /dfs7/samlab/mcelik/mousewg/data/results/talon_corrected/mouse_talon_abundance_filtered.corrected.tsv
 
     # corrected output right from lapa
     gtf: mouse/lr_bulk/lapa/mouse_talon.corrected.gtf

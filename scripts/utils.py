@@ -2259,6 +2259,33 @@ def count_gisx_region_genes(df, source, tss, tes, spl):
     n = len(df.loc[(df.tss_ratio <= tss)&(df.tes_ratio <= tes)&(df.spl_ratio <= spl)].index)
     print('{} ({:.2f}%) genes are simple in {}'.format(n, (n/t)*100, source))
 
+def compute_genes_per_sector(df, gb_cols=[]):
+    df = assign_gisx_sector(df)
+    
+    total_df = df[['gid']+gb_cols].groupby(gb_cols).count().reset_index()
+    total_df.rename({'gid': 'total_genes'}, axis=1, inplace=True)
+    
+    df = df[['gid', 'sector']+gb_cols].groupby(['sector']+gb_cols).count().reset_index()
+    df.rename({'gid':'n_genes'}, axis=1, inplace=True)
+    
+    df = df.merge(total_df, how='left', on=gb_cols)
+    print
+    
+    # df['total'] = np.nan
+    # for gb in gb_cols:
+    #     inds = df.index.tolist()
+    #     for g in df[gb].unique().tolist():
+    #         inds = list(set(inds)&set(df.loc[df[gb] == g].index.tolist())
+    # df.loc[df[inds, 'total'] = df.loc[inds, 'n_genes'].sum()
+        #todo
+    # for s in df['sample'].unique().tolist():
+    #     inds = df['sample'] == s
+    #     df.loc[inds, 'total'] = df.loc[inds, 'n_genes'].sum()
+
+    df['perc'] = (df.n_genes/df.total_genes)*100
+    
+    return df
+
 def assign_gisx_sector(df):
     if 'n_tss' in df.columns.tolist():
         tss = 'n_tss'
