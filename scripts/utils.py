@@ -916,6 +916,23 @@ def get_gene_number(df, col, pref):
 #
 #     return gtf
 
+def get_gid_from_feat(df, col):
+    """
+    Get gid from a feature name
+    
+    Parameters:
+        df (pandas DataFrame)
+        col (str): Column or 'index'
+    """
+    df = df.copy(deep=True)
+    if col == 'index':
+        df['temp_feat'] = df.index.tolist()
+    else:
+        df['temp_feat'] = df[col].tolist()
+    df['gid'] = df.temp_feat.str.split('_', expand=True)[0]
+    df.drop('temp_feat', axis=1, inplace=True)
+    return df.gid.tolist()
+
 def add_feat(df, col, kind, as_index=False, as_number=False,
              drop_gid=True,
              drop_triplet=True):
@@ -2279,12 +2296,21 @@ def count_gisx_region_genes(df, source, tss, tes, spl):
 def compute_genes_per_sector(df, gb_cols=[]):
     df = assign_gisx_sector(df)
     
-    total_df = df[['gid']+gb_cols].groupby(gb_cols).count().reset_index()
-    total_df.rename({'gid': 'total_genes'}, axis=1, inplace=True)
+    if len(gb_cols) != 0:
+        total_df = df[['gid']+gb_cols].groupby(gb_cols).count().reset_index()
+        total_df.rename({'gid': 'total_genes'}, axis=1, inplace=True)
+    else:
+        total = len(df.index)
+            
+    # get number of genes / sector / gb cols
     df = df[['gid', 'sector']+gb_cols].groupby(['sector']+gb_cols).count().reset_index()
     df.rename({'gid':'n_genes'}, axis=1, inplace=True)
-    df = df.merge(total_df, how='left', on=gb_cols)
-    df['perc'] = (df.n_genes/df.total_genes)*100
+    
+    if len(gb_cols) != 0:
+        df = df.merge(total_df, how='left', on=gb_cols)
+        df['perc'] = (df.n_genes/df.total_genes)*100
+    else:
+        df['perc'] = (df.n_genes/total)*100
     
     return df
 
