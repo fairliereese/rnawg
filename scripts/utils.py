@@ -1073,6 +1073,85 @@ def get_gtf_info(how='gene',
 
     return df, biotype_counts, biotype_cat_counts
 
+def get_mouse_metadata_from_ab(df):
+    """
+    Get metadata dataframe from dagettaset names in
+    TALON abundance file
+
+    Parameters:
+        df (pandas DataFrame): df of TALON abundance file
+    Returns:
+        df (pandas DataFrame): metadata for datasets
+
+    """
+
+    meta = pd.DataFrame()
+
+    dataset_cols = get_sample_datasets('mouse')
+    df = df[dataset_cols]
+    df = df.transpose()
+    df.reset_index(inplace=True)
+    df.rename({'index': 'dataset'}, axis=1, inplace=True)
+    df = df['dataset'].to_frame()
+
+    print(len(df.index))
+
+    # label and add metadata for entries from
+    # the mouse timecourse
+    timepts = ['4d', '10d', '14d', '25d',
+               '36d', '2mo', '18-20mo']
+    c = 'b6cast'
+    df['temp'] = df.dataset.str.split('_', expand=True)[1]
+    df[c] = df['temp'].isin(timepts)
+    df.drop('temp', axis=1, inplace=True)
+    temp = df.loc[df[c]==True].copy(deep=True)
+    temp[['tissue', 'age', 'sex', 'rep']] = temp['dataset'].str.split('_', expand=True)
+    meta = pd.concat([meta, temp])
+
+    # label and add metadata for entries from 5x vs wt brain
+    df['temp'] = df.dataset.str.split('_', expand=True)[0]
+    c = '5x_v_wt'
+    df[c] = (df.b6cast==False)&\
+            (df['temp'].isin(['hippocampus', 'cortex']))
+    df.drop('temp', axis=1, inplace=True)
+    temp = df.loc[df[c] == True].copy(deep=True)
+    temp[['tissue', 'disease_status', 'sex']] = temp['dataset'].str.split('_', expand=True)[[0,1,2]]
+    meta = pd.concat([meta, temp])
+
+    # forelimb
+    df['temp'] = df.dataset.str.split('_', expand=True)[0]
+    c = 'forelimb'
+    df[c] = (df.b6cast==False)&\
+            (df['temp']=='forelimb')
+    df.drop('temp', axis=1, inplace=True)
+    temp = df.loc[df[c] == True].copy(deep=True)
+    temp[['tissue', 'age']] = temp['dataset'].str.split('_', expand=True)[[0,1]]
+    meta = pd.concat([meta, temp])
+
+    # c2c12
+    df['temp'] = df.dataset.str.split('_', expand=True)[0]
+    c = 'c2c12'
+    df[c] = (df.b6cast==False)&\
+            (df['temp']=='c2c12')
+    df.drop('temp', axis=1, inplace=True)
+    temp = df.loc[df[c] == True].copy(deep=True)
+    temp['tissue'] = temp['dataset'].str.rsplit('_', n=2, expand=True)[0]
+    meta = pd.concat([meta, temp])
+
+    # adrenal
+    df['temp'] = df.dataset.str.split('_', expand=True)[0]
+    c = 'adrenal'
+    df[c] = (df.b6cast==False)&\
+            (df['temp']=='adrenal')
+    df.drop('temp', axis=1, inplace=True)
+    temp = df.loc[df[c] == True].copy(deep=True)
+    temp['tissue'] = temp['dataset'].str.split('_', expand=True)[0]
+    meta = pd.concat([meta, temp])
+
+    print(len(meta.index))
+
+    return meta
+
 def get_feat_psi(df, feat, **kwargs):
     """
     Calculate psi values for each feature
