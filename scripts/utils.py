@@ -1073,6 +1073,42 @@ def get_gtf_info(how='gene',
 
     return df, biotype_counts, biotype_cat_counts
 
+def get_feat_psi(df, feat, **kwargs):
+    """
+    Calculate psi values for each feature
+    
+    Parameters:
+        df (pandas DataFrame): DF from filtered abundance
+        feat (str): {'tss', 'ic', 'tes'}
+        **kwargs: To pass to `get_tpm_table`
+    """
+    
+    # add feat type to kwargs
+    kwargs['feat'] = feat
+    
+    # get tpm of each feature
+    df, ids = get_tpm_table(df, **kwargs)
+    
+    # melt and remove entries that are unexpressed
+    df = df.melt(ignore_index=False, var_name='dataset', value_name='tpm')
+    df = df.loc[df.tpm >= min_tpm]
+    df['gid_stable'] = get_gid_from_feat(df, 'index')
+    df.reset_index(inplace=True)
+    
+    # sum up expression values
+    total_df = df.copy(deep=True)
+    total_df = total_df.groupby(['dataset', 'gid_stable']).sum().reset_index()
+    
+    # merge total into original df 
+    df = df.merge(total_df, how='left',
+                  on=['dataset', 'gid_stable'],
+                  suffixes=('_'+feat, '_gene'))
+    
+    # actual psi calculation
+    df['psi'] = df['tpm_'+feat] / df['tpm_gene']  
+    
+    return df
+
 def get_det_table(df,
                   groupby='library',
                   min_tpm=0,
