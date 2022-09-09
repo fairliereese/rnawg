@@ -60,17 +60,17 @@ rule all:
         config['talon']['filt_ab'],
         config['talon']['ab'],
         config['talon']['filt_gtf'],
-        config['talon']['read_annot']
-        # config['ref']['vM21']['gtf'],
-        # config['ref']['vM25']['gtf'],
-        # config['cerberus']['update_gtf'],
-        # config['cerberus']['update_ab'],
-        # config['ref']['vM25']['cerberus']['g_info'],
-        # config['ref']['vM25']['cerberus']['t_info'],
-        # config['ref']['vM21']['cerberus']['t_info'],
-        # config['ref']['vM25']['cerberus']['gtf'],
-        # config['ref']['vM21']['cerberus']['gtf'],
-        # config['swan']['sg_unfilt']
+        config['talon']['read_annot'],
+        config['ref']['vM21']['gtf'],
+        config['ref']['vM25']['gtf'],
+        config['cerberus']['update_gtf'],
+        config['cerberus']['update_ab'],
+        config['ref']['vM25']['cerberus']['g_info'],
+        config['ref']['vM25']['cerberus']['t_info'],
+        config['ref']['vM21']['cerberus']['t_info'],
+        config['ref']['vM25']['cerberus']['gtf'],
+        config['ref']['vM21']['cerberus']['gtf'],
+        config['swan']['sg_unfilt']
         # expand(
         #   expand(config['swan']['die'], zip,
         #          cond1=get_comparisons('age')[0],
@@ -886,6 +886,39 @@ rule cerberus_get_g_info_vM25:
         o = config['ref']['vM25']['cerberus']['g_info']
     run:
         get_gene_info(input.gtf, output.o)
+
+def make_mouse_metadata(ab, o):
+    df = pd.read_csv(ab, sep='\t')
+    df = get_mouse_metadata_from_ab(df)
+
+    # create sample level metadata
+    df['sample'] = False
+
+    # for timecourse+forelimb use tissue + age
+    inds = df.loc[(df.b6cast)|(df.forelimb)].index
+    df.loc[inds, 'sample'] = df.loc[inds, 'tissue']+'_'+df.loc[inds, 'age']
+
+    # for c2c12,  use tissue
+    inds = df.loc[df.c2c12==True].index
+    df.loc[inds, 'sample'] = df.loc[inds, 'tissue']
+
+    # for adrenal, hc, ctx from 5x, use tissue
+    inds = df.loc[(df['5x_v_wt']==True)|(df.adrenal==True)].index
+    df.loc[inds, 'sample'] = df.loc[inds, 'tissue']
+
+    df.to_csv(o, sep='\t', index=False)
+
+rule get_swan_metadata:
+    input:
+        ab = config['talon']['filt_ab']
+    resources:
+        mem_gb = 4,
+        threads = 1
+    output:
+        o = config['swan']['meta']
+    run:
+        make_mouse_metadata(ab, o)
+
 
 def make_sg(input, params):
 
