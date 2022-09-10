@@ -906,6 +906,10 @@ def make_mouse_metadata(ab, o):
     inds = df.loc[(df['5x_v_wt']==True)|(df.adrenal==True)].index
     df.loc[inds, 'sample'] = df.loc[inds, 'tissue']
 
+    # for f1219 use tissue
+    inds = df.loc[df['f1219']==True]
+    df.loc[inds, 'sample'] = df.loc[inds, 'tissue']
+
     df.to_csv(o, sep='\t', index=False)
 
 rule get_swan_metadata:
