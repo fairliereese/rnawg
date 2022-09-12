@@ -224,7 +224,7 @@ def get_sample_datasets(sample=None, groupby=None):
         df = df.merge(sample_df, how='inner', left_on='hr', right_on='dataset')
         datasets = df.hr.tolist()
     elif sample == 'mouse':
-        fname = '/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/mouse/lr_bulk/file_to_hr.tsv'
+        fname = '{}/../mouse/lr_bulk/file_to_hr.tsv'.format(d)
         df = pd.read_csv(fname, sep='\t', header=None)
         datasets = df[1].tolist()
         datasets = [d.replace('-', '_') for d in datasets]
