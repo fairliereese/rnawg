@@ -224,15 +224,15 @@ def get_sample_datasets(sample=None, groupby=None):
         df = df.merge(sample_df, how='inner', left_on='hr', right_on='dataset')
         datasets = df.hr.tolist()
     elif sample == 'mouse':
-        fname = '/Users/fairliereese/Documents/programming/mortazavi_lab/data/rnawg/mouse/lr_bulk/file_to_hr.tsv'
+        fname = '{}/../mouse/lr_bulk/file_to_hr.tsv'.format(d)
         df = pd.read_csv(fname, sep='\t', header=None)
         datasets = df[1].tolist()
         datasets = [d.replace('-', '_') for d in datasets]
         datasets = [d.replace('18_20', '18-20') for d in datasets]
     else:
         datasets = df.hr.tolist()
-
-
+        
+    
     if groupby == 'sample':
         df = pd.DataFrame(columns=['dataset'], data=datasets)
         # add biosample name (ie without rep information)
@@ -921,7 +921,7 @@ def get_gene_number(df, col, pref):
 def get_gid_from_feat(df, col):
     """
     Get gid from a feature name
-
+    
     Parameters:
         df (pandas DataFrame)
         col (str): Column or 'index'
@@ -1077,7 +1077,7 @@ def get_gtf_info(how='gene',
 
 def get_mouse_metadata_from_ab(df):
     """
-    Get metadata dataframe from dataset names in
+    Get metadata dataframe from dagettaset names in
     TALON abundance file
 
     Parameters:
@@ -1140,16 +1140,6 @@ def get_mouse_metadata_from_ab(df):
     temp['tissue'] = temp['dataset'].str.rsplit('_', n=2, expand=True)[0]
     meta = pd.concat([meta, temp])
 
-    # f1219
-    df['temp'] = df.dataset.str.split('_', expand=True)[0]
-    c = 'f1219'
-    df[c] = (df.b6cast==False)&\
-            (df['temp']=='f1219')
-    df.drop('temp', axis=1, inplace=True)
-    temp = df.loc[df[c] == True].copy(deep=True)
-    df['tissue'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
-    meta = pd.concat([meta, temp])
-
     # adrenal
     df['temp'] = df.dataset.str.split('_', expand=True)[0]
     c = 'adrenal'
@@ -1160,10 +1150,6 @@ def get_mouse_metadata_from_ab(df):
     temp['tissue'] = temp['dataset'].str.split('_', expand=True)[0]
     meta = pd.concat([meta, temp])
 
-    # f1219
-
-
-
     print(len(meta.index))
 
     return meta
@@ -1171,37 +1157,37 @@ def get_mouse_metadata_from_ab(df):
 def get_feat_psi(df, feat, **kwargs):
     """
     Calculate psi values for each feature
-
+    
     Parameters:
         df (pandas DataFrame): DF from filtered abundance
         feat (str): {'tss', 'ic', 'tes'}
         **kwargs: To pass to `get_tpm_table`
     """
-
+    
     # add feat type to kwargs
     kwargs['feat'] = feat
-
+    
     # get tpm of each feature
     df, ids = get_tpm_table(df, **kwargs)
-
+    
     # melt and remove entries that are unexpressed
     df = df.melt(ignore_index=False, var_name='dataset', value_name='tpm')
     df = df.loc[df.tpm >= min_tpm]
     df['gid_stable'] = get_gid_from_feat(df, 'index')
     df.reset_index(inplace=True)
-
+    
     # sum up expression values
     total_df = df.copy(deep=True)
     total_df = total_df.groupby(['dataset', 'gid_stable']).sum().reset_index()
-
-    # merge total into original df
+    
+    # merge total into original df 
     df = df.merge(total_df, how='left',
                   on=['dataset', 'gid_stable'],
                   suffixes=('_'+feat, '_gene'))
-
+    
     # actual psi calculation
-    df['psi'] = df['tpm_'+feat] / df['tpm_gene']
-
+    df['psi'] = df['tpm_'+feat] / df['tpm_gene']  
+    
     return df
 
 def get_det_table(df,
@@ -1234,7 +1220,7 @@ def get_det_table(df,
 
     # calc TPM per library on desired samples
     df, tids = get_tpm_table(df, **kwargs)
-
+    
     df = df.transpose()
     df.index.name = 'dataset'
     df.reset_index(inplace=True)
@@ -1533,7 +1519,7 @@ def get_sr_tpm_table(df,
                      gene_subset=None,
                      save=False,
                      **kwargs):
-
+    
     print('Calculating short-read gene TPM values')
 
     df.drop('biotype_category', axis=1, inplace=True)
@@ -1614,7 +1600,7 @@ def get_sr_tpm_table(df,
     print('Number of genes reported: {}'.format(len(df.index)))
     df.index.name = 'gid_stable'
     df.columns.name = ''
-
+    
     if save:
         fname = '{}_tpm.tsv'.format(how)
         df.to_csv(fname, sep='\t')
@@ -1654,7 +1640,7 @@ def get_tpm_table(df,
             samples above the input detection threshold.
         ids (list of str): List of str indexing the table
     """
-
+    
     if how == 'sr':
         df, ids = get_sr_tpm_table(df, groupby, min_tpm, gene_subset, save, **kwargs)
     else:
@@ -2429,23 +2415,23 @@ def count_gisx_region_genes(df, source, tss, tes, spl):
 
 def compute_genes_per_sector(df, gb_cols=[]):
     df = assign_gisx_sector(df)
-
+    
     if len(gb_cols) != 0:
         total_df = df[['gid']+gb_cols].groupby(gb_cols).count().reset_index()
         total_df.rename({'gid': 'total_genes'}, axis=1, inplace=True)
     else:
         total = len(df.index)
-
+            
     # get number of genes / sector / gb cols
     df = df[['gid', 'sector']+gb_cols].groupby(['sector']+gb_cols).count().reset_index()
     df.rename({'gid':'n_genes'}, axis=1, inplace=True)
-
+    
     if len(gb_cols) != 0:
         df = df.merge(total_df, how='left', on=gb_cols)
         df['perc'] = (df.n_genes/df.total_genes)*100
     else:
         df['perc'] = (df.n_genes/total)*100
-
+    
     return df
 
 def assign_gisx_sector(df):
