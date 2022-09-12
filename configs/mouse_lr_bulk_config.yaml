@@ -104,5 +104,5 @@ swan:
   sg: mouse/lr_bulk/swan/swan.p
   die: mouse/lr_bulk/swan/die/{tissue}_{cond1}_{cond2}_{gb}_{kind}_die.tsv
   die_all: 'temp.tsv'
-  sg_unfilt: 'mouse/lr_bulk/cerberus/swan/swan.p'
+  sg_unfilt: 'mouse/lr_bulk/swan/swan.p'
   meta: 'mouse/lr_bulk/swan/mouse_metadata.tsv'
