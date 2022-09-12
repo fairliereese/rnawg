@@ -1139,7 +1139,7 @@ def get_mouse_metadata_from_ab(df):
     temp = df.loc[df[c] == True].copy(deep=True)
     temp['tissue'] = temp['dataset'].str.rsplit('_', n=2, expand=True)[0]
     meta = pd.concat([meta, temp])
-
+    
     # f1219
     df['temp'] = df.dataset.str.split('_', expand=True)[0]
     c = 'f1219'
@@ -1147,7 +1147,7 @@ def get_mouse_metadata_from_ab(df):
             (df['temp']=='f1219')
     df.drop('temp', axis=1, inplace=True)
     temp = df.loc[df[c] == True].copy(deep=True)
-    df['tissue'] = df.dataset.str.rsplit('_', n=2, expand=True)[0]
+    temp['tissue'] = temp['dataset'].str.rsplit('_', n=2, expand=True)[0]
     meta = pd.concat([meta, temp])
 
     # adrenal
@@ -1160,14 +1160,9 @@ def get_mouse_metadata_from_ab(df):
     temp['tissue'] = temp['dataset'].str.split('_', expand=True)[0]
     meta = pd.concat([meta, temp])
 
-    # f1219
-
-
-
     print(len(meta.index))
 
     return meta
-
 def get_feat_psi(df, feat, **kwargs):
     """
     Calculate psi values for each feature
