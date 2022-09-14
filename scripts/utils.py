@@ -185,6 +185,24 @@ def get_dataset_cols():
     datasets = df.hr.tolist()
     return datasets
 
+def get_mouse_match_samples():
+    mm_samples = ['adrenal gland', 'heart',
+              'muscle', 'brain', 'pgp1_excite_neuron',
+              'pgp1_astro', 'h9_osteocyte',
+              'h1', 'wtc11']
+    return mm_samples
+
+def get_tissue_cell_line_map():
+    """
+    Get map from ENCODE 'Biosample type' categories to 
+    {'tissue', 'cell_line'}
+    """
+    m = {'tissue': 'tissue',
+         'cell line': 'cell_line',
+         'in vitro differentiated cells': 'cell_line', 
+         'primary cells': 'cell_line'}
+    return m
+
 def get_sample_datasets(sample=None, groupby=None):
     """
     Get the human-readable names of the datasets belonging

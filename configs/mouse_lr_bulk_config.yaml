@@ -49,6 +49,7 @@ raw:
 
 meta:
   file_to_hr: mouse/lr_bulk/file_to_hr.tsv
+  meta: mouse/lr_bulk/metadata.tsv
 
 talon:
   prefix: mouse/lr_bulk/talon/mouse

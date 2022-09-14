@@ -16,8 +16,53 @@ import matplotlib.ticker as tck
 from collections import defaultdict
 import plotly.graph_objects as go
 import math
+import plotly.io as pio
+
 
 from .utils import *
+
+def get_tissue_age_colors():
+    c_dict, order = get_tissue_colors()
+
+    # get different color for each age / tissue
+    new_c_dict = {}
+    min_color = '#FFFFFF'
+    ages = ['4d', '10d', '14d', '25d', '36d', '2mo', '18-20mo']
+    order = []
+    for tissue, max_color in c_dict.items():
+        cmap = mpl.colors.LinearSegmentedColormap.from_list(tissue, [min_color, max_color], N=8)
+        for i, age in enumerate(ages):
+            key = '{}_{}'.format(tissue, age)
+            new_c_dict[key] = mpl.colors.to_hex(cmap(i+1))
+            order.append(key)
+
+    return new_c_dict, order
+
+def get_tissue_colors(cats=None, rgb=False):
+    d = os.path.dirname(__file__)
+    fname = '{}/../mouse/refs/tissue_colors.tsv'.format(d)
+    df = pd.read_csv(fname, sep='\t')
+    c_dict = {}
+    for ind, entry in df.iterrows():
+        c_dict[entry.tissue] = entry.color
+    order = ['adrenal', 'hippocampus', 'cortex', 'gastroc', 'heart']
+
+    if cats:
+        pop_list = []
+        for key in keys:
+            if key not in cats:
+                pop_list.append(key)
+        for p in pop_list:
+            del c_dict[p]
+        order = [o for o in order if o in cats]
+
+    if rgb:
+        for key, item in c_dict.items():
+            item = item[1:]
+            r,g,b = tuple(int(item[i:i+2], 16) for i in (0, 2, 4))
+            c_dict[key] = (r,g,b)
+
+    return c_dict, order
 
 def get_lr_bulk_sample_colors():
     c_dict, order = get_tissue_age_colors()
@@ -33,6 +78,9 @@ def get_lr_bulk_sample_colors():
     # adrenal, hc, ctx
     for t in ['adrenal', 'hippocampus', 'cortex']:
         c_dict[t] = get_tissue_colors()[0][t]
+        
+    # f1219
+    c_dict['f1219'] = '#4340bc'
 
     return c_dict, None
 
@@ -2967,14 +3015,14 @@ def plot_sankey(df,
     elif color == 'nov':
         c_dict, order = get_ic_nov_colors()
     print(c_dict)
-    
+
     # df[source] = pd.Categorical(df[source], order)
     # df[sink] = pd.Categorical(df[sink], order)
     # df.sort_values([source, sink], inplace=True)
 
-    order.reverse()
+    # order.reverse()
     order_2 = order+order
-    
+
     order_l = [o.capitalize() for o in order_2]
     order_l = [o if o != 'Tss' else 'TSS' for o in order_l]
     order_l = [o if o != 'Tes' else 'TES' for o in order_l]
@@ -2984,15 +3032,32 @@ def plot_sankey(df,
     df['source'] = df[source].map(source_map)
     df['sink'] = df[sink].map(sink_map)
 
-    # nodes = dict(
-    #     label=order_l,
-    #     color=[c_dict[n] for n in order_2],
-    #     x=[0.001, 0.001, 0.001, 0.001, 0.001, 0.999, 0.999, 0.999, 0.999, 0.999],
-    #     y=[0.001, 75/285, 160/285, 190/285, 1, 0.001, 75/285, 130/285, 215/285, 1])
-    
+    def nodify(order):
+
+        y_values = [i for i, beep in enumerate(order)]
+        y_values += y_values
+        x_values = [0 for i in range(len(order))]
+        x_values += [1 for i in range(len(order))]
+
+        y_values = [y/max(y_values) for y in y_values]
+        x_values = [x/max(x_values) for x in x_values]
+        x_values = [x if x > 0 else 0.01 for x in x_values]
+        y_values = [y if y > 0 else 0.01 for y in y_values]
+
+        return x_values, y_values
+
+    ghost_cookie = nodify(order)
+
     nodes = dict(
         label=order_l,
-        color=[c_dict[n] for n in order_2])
+        color=[c_dict[n] for n in order_2], 
+        x=ghost_cookie[0],
+        y=ghost_cookie[1])
+
+    # add coords to node labels
+    # nodes['label'] = ['{}: ({},{})'.format(l, x, y) for l,x,y in zip(nodes['label'], nodes['x'], nodes['y'])]
+
+    # print(nodes)
 
     links = dict(
         source=df.source.tolist(),
@@ -3000,7 +3065,9 @@ def plot_sankey(df,
         value=df[counts].tolist(),
         color=[c_dict[n] for n in df[source].tolist()]) # color links by source
 
-    data = go.Sankey(node=nodes, link=links)
+    # print(links)
+
+    data = go.Sankey(node=nodes, link=links, arrangement='snap')
     fig = go.Figure(data)
     fig.update_layout(title_text=title,
                       font_family='Times New Roman')
