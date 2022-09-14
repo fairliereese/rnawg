@@ -70,7 +70,8 @@ rule all:
         config['ref']['vM21']['cerberus']['t_info'],
         config['ref']['vM25']['cerberus']['gtf'],
         config['ref']['vM21']['cerberus']['gtf'],
-        config['swan']['sg_unfilt']
+        config['swan']['meta']
+        # config['swan']['sg_unfilt']
         # expand(
         #   expand(config['swan']['die'], zip,
         #          cond1=get_comparisons('age')[0],
@@ -887,36 +888,66 @@ rule cerberus_get_g_info_vM25:
     run:
         get_gene_info(input.gtf, output.o)
 
-def make_mouse_metadata(ab, o):
+def make_mouse_metadata(ab, hr, meta, o):
+
     df = pd.read_csv(ab, sep='\t')
     df = get_mouse_metadata_from_ab(df)
     print(df.columns)
+
     # create sample level metadata
     df['sample'] = False
+
     # for timecourse+forelimb use tissue + age
     inds = df.loc[(df.b6cast)|(df.forelimb)].index
     df.loc[inds, 'sample'] = df.loc[inds, 'tissue']+'_'+df.loc[inds, 'age']
+
     # for c2c12,  use tissue
     inds = df.loc[df.c2c12==True].index
     df.loc[inds, 'sample'] = df.loc[inds, 'tissue']
+
     # for adrenal, hc, ctx from 5x, use tissue
     inds = df.loc[(df['5x_v_wt']==True)|(df.adrenal==True)].index
     df.loc[inds, 'sample'] = df.loc[inds, 'tissue']
+
     # for f1219 use tissue
     inds = df.loc[df['f1219']==True].index
     df.loc[inds, 'sample'] = df.loc[inds, 'tissue']
+
+    # add cell line / tissue classification
+
+    # dataset id --> file id
+    file_ids = pd.read_csv(hr, sep='\t',
+                           header=None,
+                           names=['file_id', 'hr'])
+    file_ids['hr'] = file_ids.hr.str.replace('-', '_')
+    file_ids['hr'] = file_ids.hr.str.replace('18_20', '18-20')
+
+    # dataset id --> classification
+    meta = pd.read_csv('../mouse/lr_bulk/metadata.tsv', sep='\t')
+    meta = meta[['File accession', 'Biosample type']]
+    meta.columns = ['file_id', 'classification']
+    class_map = get_tissue_cell_line_map()
+    meta.classification = meta.classification.map(class_map)
+
+    file_ids = file_ids.merge(meta, on='file_id')
+    df = df.merge(file_ids, left_on='dataset', right_on='hr')
+    df.drop('file_id', axis=1, inplace=True)
+
+    # save
     df.to_csv(o, sep='\t', index=False)
 
 rule get_swan_metadata:
     input:
-        ab = config['talon']['filt_ab']
+        ab = config['talon']['filt_ab'],
+        hr = config['meta']['file_to_hr'],
+        meta = config['meta']['meta']
     resources:
         mem_gb = 4,
         threads = 1
     output:
         o = config['swan']['meta']
     run:
-        make_mouse_metadata(input.ab, output.o)
+        make_mouse_metadata(input.ab, input.hr, input.meta, output.o)
 
 
 def make_sg(input, params):
