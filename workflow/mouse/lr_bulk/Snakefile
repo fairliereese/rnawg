@@ -888,7 +888,7 @@ rule cerberus_get_g_info_vM25:
     run:
         get_gene_info(input.gtf, output.o)
 
-def make_mouse_metadata(ab, hr, meta, o):
+def make_mouse_metadata(ab, hr_file, meta_file, o):
 
     df = pd.read_csv(ab, sep='\t')
     df = get_mouse_metadata_from_ab(df)
@@ -916,14 +916,14 @@ def make_mouse_metadata(ab, hr, meta, o):
     # add cell line / tissue classification
 
     # dataset id --> file id
-    file_ids = pd.read_csv(hr, sep='\t',
+    file_ids = pd.read_csv(hr_file, sep='\t',
                            header=None,
                            names=['file_id', 'hr'])
     file_ids['hr'] = file_ids.hr.str.replace('-', '_')
     file_ids['hr'] = file_ids.hr.str.replace('18_20', '18-20')
 
     # dataset id --> classification
-    meta = pd.read_csv('../mouse/lr_bulk/metadata.tsv', sep='\t')
+    meta = pd.read_csv(meta_file, sep='\t')
     meta = meta[['File accession', 'Biosample type']]
     meta.columns = ['file_id', 'classification']
     class_map = get_tissue_cell_line_map()
