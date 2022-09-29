@@ -11,6 +11,9 @@ import pyranges as pyranges
 import cerberus
 import scipy.stats as st
 
+def get_polya_cats():
+    return ['protein_coding', 'lncRNA', 'pseudogene']
+
 def get_biotype_map():
     """
     Get a dictionary mapping each gene type to a more general biotype
@@ -55,15 +58,24 @@ def get_biotype_map():
     return map
 
 def get_gene_info(gtf, o):
-    df = pr.read_gtf(gtf, as_df=True)
+    df = pr.read_gtf(gtf, as_df=True, duplicate_attr=True)
 
     # remove sirvs and erccs
     print(len(df.index))
     df = df.loc[(~df.Chromosome.str.contains('SIRV'))&~(df.Chromosome.str.contains('ERCC'))]
     print(len(df.index))
 
-    # only gene
+    # mane status
+    df['MANE_Select'] = df.tag.str.contains('MANE_Select')
+    temp = df[['gene_id', 'MANE_Select']].copy(deep=True)
+    df.drop('MANE_Select', axis=1, inplace=True)
+    # pdb.set_trace()
+    temp = temp.groupby('gene_id').max().reset_index()
+    # mane_gids = temp.loc[temp.MANE]
+
+    # only gene, merge in that stuff
     df = df.loc[df.Feature == 'gene'].copy(deep=True)
+    df = df.merge(temp, how='left', on='gene_id')
 
     # rename some columns
     m = {'gene_id': 'gid',
@@ -102,7 +114,7 @@ def get_gene_info(gtf, o):
     df.drop('gid_stable', axis=1, inplace=True)
 
     # and save
-    df = df[['gid', 'gname', 'length', 'biotype', 'biotype_category', 'tf']]
+    df = df[['gid', 'gname', 'length', 'biotype', 'biotype_category', 'tf', 'MANE_Select']]
     df.to_csv(o, sep='\t', index=False)
 
 def get_transcript_info(gtf, o):
@@ -194,12 +206,12 @@ def get_mouse_match_samples():
 
 def get_tissue_cell_line_map():
     """
-    Get map from ENCODE 'Biosample type' categories to 
+    Get map from ENCODE 'Biosample type' categories to
     {'tissue', 'cell_line'}
     """
     m = {'tissue': 'tissue',
          'cell line': 'cell_line',
-         'in vitro differentiated cells': 'cell_line', 
+         'in vitro differentiated cells': 'cell_line',
          'primary cells': 'cell_line'}
     return m
 
@@ -1157,7 +1169,7 @@ def get_mouse_metadata_from_ab(df):
     temp = df.loc[df[c] == True].copy(deep=True)
     temp['tissue'] = temp['dataset'].str.rsplit('_', n=2, expand=True)[0]
     meta = pd.concat([meta, temp])
-    
+
     # f1219
     df['temp'] = df.dataset.str.split('_', expand=True)[0]
     c = 'f1219'
@@ -1755,6 +1767,8 @@ def get_tpm_table(df,
                 gene_inds = df.loc[df.biotype_category.isin(polya_cats), id_col].tolist()
             elif gene_subset == 'tf':
                 gene_inds = df.loc[df.tf == True, id_col].tolist()
+            else:
+                gene_inds = df.loc[df.biotype_category == gene_subset, id_col].tolist()
         else:
             gene_inds = df[id_col].tolist()
 

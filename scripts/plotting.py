@@ -21,6 +21,9 @@ import plotly.io as pio
 
 from .utils import *
 
+def get_not_det_color():
+    return '#E5ECF6'
+
 def get_tissue_age_colors():
     c_dict, order = get_tissue_colors()
 
@@ -78,7 +81,7 @@ def get_lr_bulk_sample_colors():
     # adrenal, hc, ctx
     for t in ['adrenal', 'hippocampus', 'cortex']:
         c_dict[t] = get_tissue_colors()[0][t]
-        
+
     # f1219
     c_dict['f1219'] = '#4340bc'
 
@@ -1251,7 +1254,7 @@ def plot_avg_isos_per_gene(df,
 
     fname = '{}_isos_per_gene_per_{}.png'.format(opref, sample)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
-    
+
 
 
 def plot_biosamp_det(df,
@@ -1282,8 +1285,8 @@ def plot_biosamp_det(df,
         nov = kwargs['nov'][0]
     else:
         nov = 'Known'
-        
-    df = get_det_table(df, **kwargs)    
+
+    df = get_det_table(df, **kwargs)
 
     # finally, calculate the number of biosamples / libraries these
     # genes or transcripts are expressed >= min TPM
@@ -2430,487 +2433,128 @@ def plot_transcript_novelty_per_1(df,
     fname = '{}_{}_{}_novelty.png'.format(opref, gene, dataset)
     plt.savefig(fname, dpi=300, bbox_inches='tight')
 
-def zip_pts(df, c):
-    return zip(df[c['a']], df[c['b']], df[c['c']])
-
-def max_pts(df, c):
-    return max(df[c['a']].max(), df[c['b']].max(), df[c['c']].max())
-
-def density_dorito(counts,
-                   c,
-                   scale=20,
-                   cmap='viridis',
-                   vmax=None,
-                   log=False,
-                   pad=0.15):
-    """
-    Plot the density of a dataset on a ternary plot
-    From here: https://github.com/marcharper/python-ternary/issues/81
-
-    Parameters:
-        counts
-        c
-        scale
-        cmap
-
-    Returns:
-        fig
-        tax
-        counts (pandas DataFrame): Counts, scaled by factor used
-    """
-    hm_dict = defaultdict(int)
-    for i in range(0, scale+1):
-        for j in range(0, scale+1):
-            for k in range(0, scale+1):
-                if i+j+k == scale:
-                    # print(i,j,k)
-                    # i = 1
-                    # j = 1
-                    # k = 1
-                    temp = counts.copy(deep=True)
-                    if i != scale:
-                        temp = temp.loc[(temp.tss_ratio*scale>=i)&(temp.tss_ratio*scale<i+1)]
-                        # print(temp)
-                    else:
-                        temp = temp.loc[(temp.tss_ratio*scale>=i)&(temp.tss_ratio*scale<=i+1)]
-                    if j != scale:
-                        temp = temp.loc[(temp.top_ratio*scale>=j)&(temp.top_ratio*scale<j+1)]
-                        # print(temp)
-                    else:
-                        temp = temp.loc[(temp.top_ratio*scale>=j)&(temp.top_ratio*scale<=j+1)]
-                    # print(i)
-                    # print(j)
-                    # print(temp.head())
-                    n = len(temp.index)
-                    # print(n)
-                    hm_dict[i,j] += n
-
-    # log values if necessary
-    if log:
-        for key, item in hm_dict.items():
-            hm_dict[key] = np.log2(item+1)
-
-    # double checking stuff
-    df = pd.DataFrame.from_dict(hm_dict, orient='index')
-    df['i'] = [b[0] for b in df.index.tolist()]
-    df['j'] = [b[1] for b in df.index.tolist()]
-    # df['k'] = [b[2] for b in df.index.tolist()]
-    df.rename({0:'val'}, axis=1, inplace=True)
-    # print(df.loc[df.val >= 14])
-
-
-
-    figure, tax = ternary.figure(scale=scale, permutation='210')
-    # tax.heatmap(hm_dict, colorbar=False, style='t', vmax=vmax)
-    tax.heatmap(hm_dict, colorbar=False, style='t', adj_vlims=True, cmap=cmap)
-    # tax.heatmap(interp_dict, colorbar=False)
-
-    # scale according to chosen resolution
-    for key in c.keys():
-        counts[c[key]] = counts[c[key]]*scale
-
-    # colorbar - hacked together by broken ternary code
-    ax = tax.get_axes()
-    flat = []
-    for key, item in hm_dict.items():
-        flat.append(item)
-    min_val = min(flat)
-    max_val = max(flat)
-
-    if vmax:
-        max_val = vmax
-
-    # print(min_val)
-    # print(max_val)
-    norm = plt.Normalize(vmin=min_val, vmax=max_val)
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm._A = []
-
-    def exp_format(x,pos):
-            x = int(x)
-            return r'$2^{{{}}}$'.format(x)
-
-    if not log:
-        cb = plt.colorbar(sm, ax=ax, pad=pad)
-    else:
-        cb = plt.colorbar(sm, ax=ax, pad=pad,
-                          format=tck.FuncFormatter(exp_format))
-
-    for t in cb.ax.get_yticklabels():
-        t.set_fontsize(16)
-    if not log:
-        cb.ax.set_yticklabels([])
-        cb.ax.set_yticks([])
-
-    cb.set_label('Density', size=16)
-
-    return figure, tax, counts
-
-def jitter_dorito(counts, c, scale):
-    """
-    Parameters:
-        counts
-        c
-        scale
-
-    Returns
-        counts
-        c
-    """
-
-    # figure out how much to jitter by
-    sigma = (1/250)*scale
-    for d in c.keys():
-        d_jitter = '{}_jitter'.format(d)
-        counts[d_jitter] = counts[c[d]].apply(lambda x: np.random.normal(x, sigma))
-        c[d] = d_jitter
-
-    return counts, c
-
-def scatter_dorito(counts,
-                   c,
-                   hue,
-                   size,
-                   log_size,
-                   cmap,
-                   mmap,
-                   alpha,
-                   density,
-                   legend,
-                   figure,
-                   tax):
-    """
-    Parameters
-        counts (pandas DataFrame): subset the thing
-        c (dict of str): Dictionary of column names to plot as a, b, c
-            indexed by 'a', 'b', 'c'
-    """
-
-    def scale_col(points, counts, col, log=False, how='color'):
-            if log:
-                log_col = '{}_log'.format(col)
-                counts[log_col] = np.log10(counts[col])
-                col = log_col
-            vals = counts[[col]]
-            max_val = vals[col].max()
-            min_val = vals[col].min()
-            min_max_scaler = preprocessing.MinMaxScaler(feature_range=(10, 300))
-            vals = min_max_scaler.fit_transform(vals)
-            max_scaled = max(vals)
-            min_scaled = min(vals)
-
-            # replace nans w/ 100
-            vals = [100 if np.isnan(v) else v for v in vals]
-
-            return vals, min_val, max_val, min_scaled, max_scaled
-
-    # defaults
-    points = [(x[0], x[1], x[2]) for x in zip_pts(counts, c)]
-    labels = ['' for i in range(len(points))]
-    hue_type = None
-    figsize = (10,10)
-    colors = '#e78424'
-    if len(points) < 60:
-        sizes = [100 for i in range(len(points))]
-    else:
-        sizes =  [20 for i in range(len(points))]
-    markers = 'o'
-    vmin = 0
-    vmax = 1
-    plotted = False
-
-    # get color
-    if hue:
-
-        # categorical
-        if counts[hue].dtype.name == 'object':
-            hue_type = 'cat'
-            colors = counts[hue].map(cmap).tolist()
-            labels = counts[hue].tolist()
-
-        # continuous
-        else:
-            hue_type = 'cont'
-            colors, abs_min, abs_max, vmin, vmax = scale_col(points, counts, hue)
-
-    # get sizes
-    if size:
-        sizes,_,_,_,_ = scale_col(points, counts, size, log_size)
-        print(sizes[:5])
-
-    # marker style
-    if mmap:
-        markers = [mmap[val] if val in mmap.keys() else 'o' for val in counts[hue].unique()]
-
-    # figure size handling
-    if hue_type == 'cat' and density: figsize = (13,10)
-    elif hue_type == 'cat' and not density: figsize = (10,10)
-    elif hue_type == 'cont' and density: figsize = (16,10)
-    elif hue_type == 'cont' and not density: figsize = (13,10)
-    elif density: figsize = (13,10)
-    figure.set_size_inches(figsize[0], figsize[1])
-
-    # actual scatter call
-    if hue_type == 'cat':
-        for point, color, size, label, marker in zip(points, colors, sizes, labels, markers):
-            tax.scatter([point], vmin=vmin, vmax=vmax,
-                    s=size, c=color, cmap=cmap,
-                    marker=marker,label=label,
-                    alpha=alpha, zorder=3)
-    else:
-        tax.scatter(points, vmin=vmin, vmax=vmax,
-                    s=sizes, c=colors, cmap=cmap, marker=markers,
-                    alpha=alpha, zorder=3)
-
-    # legend handling
-    if hue_type == 'cat' and legend:
-        if density: x = 1.6
-        else: x = 1.4
-        tax.legend(bbox_to_anchor=(x, 1.05),
-                   loc='upper right', prop={'size': 14})
-
-        # fix marker size
-        ax = tax.get_axes()
-        lgnd = ax.get_legend()
-        for handle in lgnd.legendHandles:
-            handle._sizes = [100]
-
-    # colorbar handling
-    if hue_type == 'cont':
-        ax = tax.get_axes()
-        norm = plt.Normalize(vmin=abs_min, vmax=abs_max)
-        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-        sm._A = []
-        cb = plt.colorbar(sm, ax=ax, pad=0.1)
-        for t in cb.ax.get_yticklabels():
-             t.set_fontsize(16)
-        if hue == 'tss' or hue == 'tes':
-            cb.set_label('# {}s'.format(hue.upper()), size=16)
-        elif hue == 'intron_chain':
-            cb.set_label('# {}s'.format(hue), size=16)
-
-    return figure, tax
-
-def line_dorito(alpha, beta, gamma,
-                scale, tax, figure):
-    c_dict, _ = get_sector_colors()
-
-    # scale
-    alpha = alpha*scale
-    beta = beta*scale
-    gamma = gamma*scale
-
-    linewidth = 3
-
-    # splicing line
-    tax.horizontal_line(beta, linewidth=linewidth,
-                        color=c_dict['splicing'],
-                        linestyle='--')
-
-    # tss
-    tax.right_parallel_line(alpha, linewidth=linewidth,
-                           color=c_dict['tss'],
-                           linestyle='--')
-
-    # tes
-    tax.left_parallel_line(gamma, linewidth=linewidth,
-                           color=c_dict['tes'],
-                           linestyle='--')
-
-def plot_dorito(counts,
-                top='splicing_ratio',
-                subset=None,
-                gene=None,
-                hue=None,
-                cmap='magma',
-                mmap=None,
-                density=False,
-                density_scale=1,
-                density_cmap='viridis',
-                density_vmax=None,
-                sectors=False,
-                sect_alpha=0.5,
-                sect_beta=0.5,
-                sect_gamma=0.5,
-                log_density=False,
-                scatter=True,
-                size=None,
-                legend=True,
-                log_size=False,
-                jitter=False,
-                alpha=1,
-                scale=True,
-                title=None,
-                opref='figures/'):
-    """
-    Plot a dorito from counts with the given subset in a given
-    color
-
-    Parameters:
-        counts (pandas DataFrame): DF of the counts per gene
-            of ic, tss, tes from get_ic_tss_tes or
-            compute_triplets (or both!!!)
-        top (str): Column name to plot as apex of dorito.
-            Choose from 'ic' or 'splicing_ratio'
-        subset (dict of lists): List mapping counts column names
-            to values in said columns to include in the data
-        hue (str): Column from counts to color by
-        cmap (str or dict of str): Either a dictionary mapping
-            categorical column values from hue or a valid
-            matplotlib continuous named color palette
-        mmap (str or dict of str): Dictionary mapping categorical
-            column values from hue to marker styles
-        scale (bool): Whether to scale values b/w 1 and 0.
-        alpha (float): Alpha value of points
-        title (str): Title to give plot
-        opref (str): Output file prefix to save fig
-    """
-
-    #### subset dataset and transform numbers as needed ####
-    temp = counts.copy(deep=True)
-
-    # if we have a gene name, limit to those entries
-    if gene:
-        temp = temp.loc[temp.gname == gene]
-
-    # if we have a list of allowed sources, limit to those entries
-    if subset:
-        for col, val in subset.items():
-            if type(val) != list:
-                val = [val]
-            temp = temp.loc[temp[col].isin(val)]
-
-    # scale and assign which columns to use
-    c = dict()
-    if scale:
-        if top == 'splicing_ratio':
-            temp['total'] = temp.tss+temp.tes+temp.splicing_ratio
-        elif top == 'intron_chain':
-            temp['total'] = temp.tss+temp.tes+temp.intron_chain
-        temp['tss_ratio'] = temp.tss/temp.total
-        temp['tes_ratio'] = temp.tes/temp.total
-        temp['top_ratio'] = temp[top]/temp.total
-
-        c['a'] = 'tss_ratio'
-        c['b'] = 'top_ratio'
-        c['c'] = 'tes_ratio'
-    else:
-        c['a'] = 'tss'
-        c['b'] = top
-        c['c'] = 'tes'
-
-    if scale == True:
-        scale = 1
-        mult = 0.2
-    else:
-        scale = max_pts(temp, c)
-
-    # density
-    if density:
-        if hue:
-            if counts[hue].dtype.name == 'object':
-                pad = 0.1
-            else:
-                pad = 0.0
-        else:
-            pad = 0.1
-        figure, tax, temp = density_dorito(temp, c,
-                                 density_scale,
-                                 density_cmap,
-                                 density_vmax,
-                                 log_density,
-                                 pad=pad)
-        scale = density_scale
-        figure.set_size_inches(13,10)
-
-    # if we're jittering, adjust the points for each thing
-    if jitter:
-        temp, c = jitter_dorito(temp, c, density_scale)
-
-    # figure layout parameters
-    fontsize = 18
-    offset = 0.1
-    mult = scale/5
-
-    # if we don't already have a fig and axis from density,
-    # make one
-    if not density:
-        figure, tax = ternary.figure(scale=scale, permutation='210')
-        figure.set_facecolor('white')
-
-    # plot gridlines below the scatterplot
-    tax.gridlines(linewidth=3, multiple=mult,
-                  color='white', zorder=1, linestyle=None)
-
-    # scatter
-    if scatter:
-        figure, tax = scatter_dorito(temp, c, hue,
-                                    size, log_size,
-                                    cmap, mmap, alpha,
-                                    density, legend,
-                                    figure, tax)
-
-    # sectors
-    if sectors:
-        line_dorito(sect_alpha, sect_beta, sect_gamma,
-                    scale, tax, figure)
-
-    # title handler
-    if not title:
-        if gene:
-            title = '$\it{}$\n'.format(gene)
-        else:
-            title = ''
-    else:
-        if gene:
-            title = '{} $\it{}$\n'.format(title, gene)
-        else:
-            title = '{}\n'.format(title)
-
-    tax.set_title(title, fontsize=20)
-    tax.boundary(linewidth=2, c='#e5ecf6')
-    labels = ['{:.1f}'.format(n) for n in np.arange(0, 1.2, .2)]
-    tax.ticks(ticks=labels,
-              axis='lbr', linewidth=1, multiple=mult,
-              tick_formats="%.1f", offset=0.014,
-              fontsize=14)
-    # tax.ticks(axis='lbr', linewidth=1, multiple=mult,
-    #           tick_formats="%.1f", offset=0.014,
-    #           fontsize=14)
-
-    tax.clear_matplotlib_ticks()
-    tax.get_axes().axis('off')
-    tax.set_background_color('#e5ecf6')
-
-    if top == 'splicing_ratio':
-        top_label = 'Splicing ratio $\\beta$'
-    elif top == 'intron_chain':
-        top_label = 'Intron chains $\\delta$'
-    # tax.left_corner_label('# TSSs $\\alpha$', fontsize=fontsize)
-    # tax.top_corner_label(top_label, fontsize=fontsize)
-    # tax.right_corner_label('# TESs $\\gamma$', fontsize=fontsize)
-    tax.left_axis_label('TSS $\\alpha$', fontsize=fontsize, offset=0.12)
-    tax.right_axis_label(top_label, fontsize=fontsize, offset=0.12)
-    tax.bottom_axis_label('TES $\\gamma$', fontsize=fontsize, offset=0.00)
-
-    figure.set_facecolor('white')
-
-    # tax.show()
-
-    # save figure
-    fname = opref
-    if gene:
-        fname += '_{}'.format(gene)
-    if density:
-        fname += '_density'
-    if scatter:
-        fname += '_scatter'
-    if hue:
-        fname += '_{}'.format(hue)
-    fname += '.png'
-    plt.savefig(fname, dpi=300, bbox_inches='tight')
-
-    return temp
+def plot_gene_det_by_biotype_tpm(df,
+                                 how,
+                                 ver, 
+                                 **kwargs):
+    df, inds = get_tpm_table(df,
+                how='gene',
+                gene_subset='polya',
+                min_tpm=0, 
+                **kwargs)
+
+    gene_df, b_counts, b_cat_counts = get_gtf_info(how='gene', ver=ver)
+
+    polya_biotypes = ['protein_coding', 'pseudogene', 'lncRNA']
+    polya_genes = gene_df.loc[gene_df.biotype_category.isin(polya_biotypes), 'gid'].tolist()
+    n_polya = len(polya_genes)
+    n_det_polya = len(df.index)
+
+    print('Detected {} / {} ({:.3}%) annotated polyA genes'.format(n_det_polya, n_polya, (n_det_polya/n_polya)*100))
+
+    tpm_df = df.copy(deep=True)
+    tpm_dfs = []
+    tpm_dfs.append(tpm_df)
+    tpm_dfs.append(tpm_df.loc[(tpm_df >= 1).any(axis=1)])
+    tpm_dfs.append(tpm_df.loc[(tpm_df >= 100).any(axis=1)])
+
+    det_df = pd.DataFrame()
+    for df, tpm in zip(tpm_dfs, [0,1,100]):
+     gene_df, _, _ = get_gtf_info(how='gene', subset='polya', ver=ver, add_stable_gid=True)
+     gene_df = gene_df[['gid_stable', 'gname', 'biotype_category']]
+
+     df.reset_index(inplace=True)
+     df = df.merge(gene_df, how='left', on='gid_stable')
+
+     df = df[['gid_stable', 'biotype_category']].groupby('biotype_category').count()
+     df.rename({'gid_stable':'obs_counts'}, axis=1, inplace=True)
+
+     gene_df = gene_df[['gid_stable', 'biotype_category']].groupby('biotype_category').count()
+     gene_df.rename({'gid_stable':'annot_counts'}, axis=1, inplace=True)
+     df = df.merge(gene_df, how='left', left_index=True, right_index=True)
+
+     df['perc'] = (df.obs_counts/df.annot_counts)*100
+     df = df.sort_values(by='perc', ascending=False)
+     df['tpm_thresh'] = tpm
+     det_df = pd.concat([det_df, df])
+
+    det_df = det_df.reset_index()
+    det_df.head()
+
+    sns.set_context('paper', font_scale=2)
+    plt.figure(figsize=(6,6))
+    mpl.rcParams['font.family'] = 'Arial'
+    mpl.rcParams['pdf.fonttype'] = 42
+    ic_colors, order = get_ic_nov_colors()
+    gray = get_not_det_color()
+    c = ic_colors['Known']
+    cats = [100,1,0]
+    c_dict, order = get_shade_colors(c, cats)
+    order.reverse()
+    biotypes = ['protein_coding', 'lncRNA', 'pseudogene']
+    b_dict = {'protein_coding': 'Protein coding',
+              'lncRNA': 'lncRNA',
+              'pseudogene': 'Pseudogene'}
+
+    # https://matplotlib.org/2.0.2/examples/api/barchart_demo.html
+    def add_n(rects, label):
+        ax = plt.gca()
+        for rect in rects:
+            # height = rect.get_height()
+            x = rect.get_y()+rect.get_height()/2.5
+            y = rect.get_width()*1.1
+            ax.text(y,x,
+                    '{:,}'.format(label),
+                    ha='center', va='bottom', size=16)
+
+    def add_n_2(rects, label):
+        ax = plt.gca()
+        for rect in rects:
+            # height = rect.get_height()
+            x = rect.get_y()+rect.get_height()*1.2
+            y = rect.get_width()/2
+            ax.text(y,x,
+                    '{:,}'.format(label),
+                    ha='center', va='bottom', size=16)
+
+    for b in biotypes:
+        x = b_dict[b]
+        y = 0
+        rects = plt.barh(x, [100], color=gray, height=0.5)
+        # add total number of genes
+        n = det_df.loc[(det_df.biotype_category == b)&(det_df.tpm_thresh==1), 'annot_counts'].tolist()[0]
+        add_n(rects, n)
+
+        for c in order:
+            curr_y = det_df.loc[(det_df.biotype_category == b)&(det_df.tpm_thresh==c), 'perc'].tolist()[0]
+            rects = plt.barh(x, [curr_y], color=c_dict[c], height=0.5)
+            if c == 1:
+                n = det_df.loc[(det_df.biotype_category == b)&(det_df.tpm_thresh==1), 'obs_counts'].tolist()[0]
+                add_n_2(rects, n)
+                print(b)
+                print(curr_y)
+                print()
+            y = y+curr_y
+
+
+
+    leg_labels = ['Not Detected', 'Detected', 'Detected >= 1 TPM', 'Detected >= 100 TPM']
+    plt.legend(leg_labels, bbox_to_anchor=(.6, 1.05))
+    ax = plt.gca()
+    leg = ax.get_legend()
+
+    # plt.yticks(rotation=90)
+
+    # plt.ylabel('Biotype')
+    plt.xlabel('% of GENCODE v40 genes')
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    fname = 'figures/gene_det_by_biotype.png'
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
+    fname = 'figures/gene_det_by_biotype.pdf'
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
 
 def plot_species_sector_gene_counts(m_counts, h_counts):
     temp = pd.DataFrame()
@@ -3050,7 +2694,7 @@ def plot_sankey(df,
 
     nodes = dict(
         label=order_l,
-        color=[c_dict[n] for n in order_2], 
+        color=[c_dict[n] for n in order_2],
         x=ghost_cookie[0],
         y=ghost_cookie[1])
 
@@ -3082,11 +2726,14 @@ def plot_n_feat_per_gene(h5,
                          source,
                          feat,
                          max_ends=10,
+                         show_pc=False,
                          subset=None):
     """
     Plot number of features per gene in a given source,
     in a given subset
     """
+
+    feat_col = 'n_{}'.format(feat)
 
     # get these features from cerberus
     df = get_ca_table(h5, feat)
@@ -3095,23 +2742,33 @@ def plot_n_feat_per_gene(h5,
     if subset:
         df = df.loc[df.Name.isin(subset)]
 
+    #
+    if show_pc:
+        gene_df, _, _ = get_gtf_info(how='gene', ver='v40_cerberus')
+        gene_df['gid'] = cerberus.get_stable_gid(gene_df, col='gid')
+        gene_df = gene_df[['gid', 'biotype_category']]
+        df = df.merge(gene_df, how='left', left_on='gene_id', right_on='gid')
+
     # count # feats / gene
-    df = df[['gene_id', 'Name']]
-    df = df.groupby('gene_id').count().reset_index()
-    df.rename({'Name': 'n_{}'.format(feat)}, axis=1, inplace=True)
+    gb_cols = ['gene_id']
+    if show_pc:
+        gb_cols += ['biotype_category']
+    keep_cols = gb_cols + ['Name']
+    df = df[keep_cols]
+    df = df.groupby(gb_cols).count().reset_index()
+    df.rename({'Name': feat_col}, axis=1, inplace=True)
 
     # create counts df
-    df = df.groupby('n_{}'.format(feat)).count().reset_index()
-    df.rename({'gene_id': 'n_genes'}, axis=1, inplace=True)
-    n = df.loc[df['n_{}'.format(feat)] >= max_ends, 'n_genes'].sum()
-    df = df.loc[df['n_{}'.format(feat)] < max_ends]
-    temp = pd.DataFrame()
-    temp['n_{}'.format(feat)] = ['{}+'.format(max_ends)]
-    temp['n_genes'] = [n]
-    df = pd.concat([df, temp])
+    gb_cols = [feat_col]
+    if show_pc:
+        gb_cols += ['biotype_category']
+    df = df.groupby(gb_cols).count().reset_index()
 
-    # plot
-    # plt.figure(figsize=(4.5, 3), dpi=300)
+    # group all the entries over the max number
+    df.rename({'gene_id': 'n_genes'}, axis=1, inplace=True)
+    df.loc[df[feat_col] >= max_ends, feat_col] = '{}+'.format(max_ends)
+    df = df.groupby(gb_cols).sum().reset_index()
+
     sns.set_context('paper', font_scale=2)
     mpl.rcParams['font.family'] = 'Arial'
     mpl.rcParams['pdf.fonttype'] = 42
@@ -3122,14 +2779,40 @@ def plot_n_feat_per_gene(h5,
         c = c_dict['splicing']
     else:
         c = c_dict[feat]
+    if show_pc:
+        biotypes = ['protein_coding', 'lncRNA', 'pseudogene']
+        b_dict = {'protein_coding': 'Protein coding',
+                  'lncRNA': 'lncRNA',
+                  'pseudogene': 'Pseudogene'}
+        # biotypes.reverse()
+        c_dict, order = get_shade_colors(c, biotypes)
+        # order.reverse()
 
-    ax = sns.barplot(data=df,
-                x='n_{}'.format(feat), y='n_genes',
-                color=c, saturation=1)
+    df = df.pivot(index=feat_col, columns=['biotype_category'])
+    df.columns = df.columns.droplevel(0)
+    df.reset_index(inplace=True)
+
+    df[feat_col] = df[feat_col].astype(str)
+    x = df[feat_col].unique().tolist()
+
+    # loop through biotypes
+    bottom = [0 for i in range(len(x))]
+    for b in order:
+        y = df[b].tolist()
+        plt.bar(x, y, color=c_dict[b], bottom=bottom)
+        bottom = [b_coord+y_coord for b_coord, y_coord in zip(bottom, y)]
 
     plt.xlabel('# {}s / gene'.format(feat.upper()))
     plt.ylabel('# genes')
     sns.despine()
+
+    leg_labels = [b_dict[o] for o in order]
+    plt.legend(leg_labels, bbox_to_anchor=(.6, 1.05))
+    ax = plt.gca()
+    leg = ax.get_legend()
+    shade_dict, _ = get_shade_colors('#000000', order)
+    for i, o in enumerate(order):
+        leg.legendHandles[i].set_color(shade_dict[o])
 
     fname = 'figures/{}_per_gene_support.png'.format(feat)
     plt.savefig(fname, dpi=500, bbox_inches='tight')
