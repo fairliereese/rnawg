@@ -26,6 +26,8 @@ gtex:
   gz: lr_bulk/gtex/flair_filter_transcripts.gtf.gz
   gtf: lr_bulk/gtex/flair_filter_transcripts.gtf
   filt_gtf: lr_bulk/gtex/flair_filter_transcripts_no_novel_genes.gtf
+  cerberus:
+    annot: lr_bulk/gtex/gtex_cerberus.h5
 
 talon:
   prefix: lr_bulk/talon/human

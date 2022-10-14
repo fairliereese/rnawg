@@ -362,14 +362,14 @@ def filter_novel_genes(df):
     df = df.loc[df.gene_novelty=='Known']
     return df
 
-def filter_gtex_gtf(gtf, oname):
-    df = pr.read_gtf(gtf, as_df=True)
-    df = df.loc[~df.gene_id.str.contains('chr')]
-    # df = df.loc[df.gene_id.str.contains('ENSG')]
-    # inds = df.loc[df.gene_id.str.contains('chr')].index.tolist()
-    # df.loc[inds, 'gene_id'] = df.loc[inds, 'gene_id'].str.split('_', n=1, expand=True)[1]
-    df = pr.PyRanges(df)
-    df.to_gtf(oname)
+# def filter_gtex_gtf(gtf, oname):
+#     df = pr.read_gtf(gtf, as_df=True)
+#     df = df.loc[~df.gene_id.str.contains('chr')]
+#     # df = df.loc[df.gene_id.str.contains('ENSG')]
+#     # inds = df.loc[df.gene_id.str.contains('chr')].index.tolist()
+#     # df.loc[inds, 'gene_id'] = df.loc[inds, 'gene_id'].str.split('_', n=1, expand=True)[1]
+#     df = pr.PyRanges(df)
+#     df.to_gtf(oname)
 
 # create gtf only with novelty categories we want
 # and remove sirv / ercc
@@ -801,6 +801,26 @@ rule cerberus_annotate_transcriptome:
             --gene_source {params.gene_source} \
             --source {params.source} \
             -o {output.annot}"
+
+rule cerberus_annotate_gtex:
+input:
+    gtf = config['gtex']['filt_gtf'],
+    ref = config['cerberus']['annot']
+resources:
+    mem_gb = 56,
+    threads = 1
+params:
+    source = 'gtex',
+    gene_source = 'v40'
+output:
+    annot = config['gtex']['cerberus']['annot']
+shell:
+    "cerberus annotate_transcriptome \
+        --gtf {input.gtf} \
+        --h5 {input.ref} \
+        --gene_source {params.gene_source} \
+        --source {params.source} \
+        -o {output.annot}"
 
 rule cerberus_update_abundance:
     input:
