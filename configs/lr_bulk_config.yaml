@@ -112,6 +112,7 @@ cerberus:
   annot: lr_bulk/cerberus/cerberus_annot.h5 # does contain full transcripts
   update_ab: lr_bulk/cerberus/cerberus_filtered_abundance.tsv
   update_gtf: lr_bulk/cerberus/cerberus.gtf
+  t_info: lr_bulk/cerberus/cerberus_transcript_metadata.tsv
 
 wtc11:
   cage:

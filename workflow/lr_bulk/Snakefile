@@ -58,7 +58,9 @@ rule all:
         config['cerberus']['update_ab'],
         config['ref']['v40']['cerberus']['t_info'],
         config['ref']['v40']['cerberus']['g_info'],
-        config['swan']['sg_unfilt']
+        config['cerberus']['t_info'],
+        config['swan']['sg_unfilt'],
+        config['gtex']['cerberus']['annot']
 
 #### refs ####
 rule dl_v40:
@@ -803,24 +805,24 @@ rule cerberus_annotate_transcriptome:
             -o {output.annot}"
 
 rule cerberus_annotate_gtex:
-input:
-    gtf = config['gtex']['filt_gtf'],
-    ref = config['cerberus']['annot']
-resources:
-    mem_gb = 56,
-    threads = 1
-params:
-    source = 'gtex',
-    gene_source = 'v40'
-output:
-    annot = config['gtex']['cerberus']['annot']
-shell:
-    "cerberus annotate_transcriptome \
-        --gtf {input.gtf} \
-        --h5 {input.ref} \
-        --gene_source {params.gene_source} \
-        --source {params.source} \
-        -o {output.annot}"
+    input:
+        gtf = config['gtex']['filt_gtf'],
+        ref = config['cerberus']['annot']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    params:
+        source = 'gtex',
+        gene_source = 'v40'
+    output:
+        annot = config['gtex']['cerberus']['annot']
+    shell:
+        "cerberus annotate_transcriptome \
+            --gtf {input.gtf} \
+            --h5 {input.ref} \
+            --gene_source {params.gene_source} \
+            --source {params.source} \
+            -o {output.annot}"
 
 rule cerberus_update_abundance:
     input:
@@ -924,6 +926,18 @@ rule cerberus_get_g_info_v40:
         o = config['ref']['v40']['cerberus']['g_info']
     run:
         get_gene_info(input.gtf, output.o)
+
+rule cerberus_get_t_info
+    input:
+        gtf = config['cerberus']['update_gtf'],
+        tfs = config['ref']['tf']['gid']
+    resources:
+        mem_gb = 56,
+        threads = 1
+    output:
+        o = config['cerberus']['t_info']
+    run:
+        get_transcript_info(input.gtf, output.o)
 
 #### Bru ####
 # rule get_bru_tids:
