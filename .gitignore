@@ -1,3 +1,6 @@
+*tsv
+*.zip
+*csv
 *ENSG*png
 *triplets*tsv
 *ENST*png
