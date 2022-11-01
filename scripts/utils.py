@@ -70,8 +70,8 @@ def get_gene_info(gtf, o):
     df['MANE_Select'] = df.tag.str.contains('MANE_Select')
     df['MANE_Plus_Clinical'] = df.tag.str.contains('MANE_Plus_Clinical')
     temp = df[['gene_id', 'MANE_Select', 'MANE_Plus_Clinical']].copy(deep=True)
-    df.drop('MANE_Select', axis=1, inplace=True)
-    temp = temp.groupby('gene_id').max().reset_index()    
+    df.drop(['MANE_Select', 'MANE_Plus_Clinical'], axis=1, inplace=True)
+    temp = temp.groupby('gene_id').max().reset_index()
 
     # only gene, merge in that stuff
     df = df.loc[df.Feature == 'gene'].copy(deep=True)
@@ -161,13 +161,14 @@ def get_transcript_info(gtf, o):
     df['biotype_category'] = df.biotype.map(biotype_map)
 
     df['exon_len'] = (df.Start-df.End).abs()+1
-    
+
     # add mane and mane plus clinical info
     df['MANE_Select'] = df.tag.str.contains('MANE_Select')
     df['MANE_Plus_Clinical'] = df.tag.str.contains('MANE_Plus_Clinical')
 
-    df = df[['gid', 'gname', 'tid', 'exon_len', 'biotype', 'biotype_category', 
-            'MANE_Select', 'MANE_Plus_Clinical']]
+    cols = ['gid', 'gname', 'tid', 'exon_len', 'biotype', 'biotype_category',
+            'MANE_Select', 'MANE_Plus_Clinical']
+    df = df[cols]
     df_copy = df[['gid', 'gname', 'tid', 'biotype', 'biotype_category']].copy(deep=True)
     df_copy = df_copy.drop_duplicates(keep='first')
 
@@ -2554,40 +2555,40 @@ def compare_species(h_counts, m_counts, source='obs'):
     return h_counts
 
 def compute_centroid(ca, gene=None, subset=None):
-    """ 
+    """
     Compute the centroid of simplex coordinates for a given set of genes / triplets
-    
+
     Parameters:
         ca (cerberus CerberusAnnotation): Cerberus annotation object
         gene (str): Gene ID or name
         subset (dict of str): Subset
     """
-    
+
     df = ca.triplets.copy(deep=True)
-    
+
     if gene:
         df, gene = cerberus.subset_df_on_gene(df, gene)
 
     # if we have a list of allowed sources, limit to those entries
     if subset:
         df = cerberus.subset_df(df, subset)
-    
+
     df = cerberus.compute_simplex_coords(df, 'splicing_ratio')
-    
+
     df = df[['tss_ratio', 'spl_ratio', 'tes_ratio']]
     centroid = df.mean().tolist()
-    
+
     return centroid
 
 def simplex_dist(a, b, how='js'):
     """
     Compute the distance between two points on a simplex
-    
+
     Parameters:
         a (np.array): Coords of pt a
         b (np.array): Coords of pt b
         how (str): How to calculate distance. {'jensenshannon'}
-    
+
     Returns:
         dist (float): Distance b/w a and b using distance metric
     """
@@ -2598,7 +2599,7 @@ def simplex_dist(a, b, how='js'):
 def simplex_dist_x(x, suff_a=None, suff_b=None, **kwargs):
     """
     From a series, compute the distance between two points
-    
+
     Parameters:
         x (pandas Series)
     """
@@ -2612,9 +2613,9 @@ def simplex_dist_x(x, suff_a=None, suff_b=None, **kwargs):
             tes = '{}{}'.format(tes, suff)
         pt = [x[tss], x[ic], x[tes]]
         return pt
-    
+
     a = get_pt(x, suff_a)
     b = get_pt(x, suff_b)
     dist = simplex_dist(a,b, **kwargs)
-    
+
     return dist
