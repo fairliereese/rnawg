@@ -9,6 +9,7 @@ import numpy as np
 import pyranges as pr
 import pyranges as pyranges
 import cerberus
+import scipy
 import scipy.stats as st
 
 def get_polya_cats():
@@ -65,13 +66,12 @@ def get_gene_info(gtf, o):
     df = df.loc[(~df.Chromosome.str.contains('SIRV'))&~(df.Chromosome.str.contains('ERCC'))]
     print(len(df.index))
 
-    # mane status
+    # mane / mane clinical status
     df['MANE_Select'] = df.tag.str.contains('MANE_Select')
-    temp = df[['gene_id', 'MANE_Select']].copy(deep=True)
+    df['MANE_Plus_Clinical'] = df.tag.str.contains('MANE_Plus_Clinical')
+    temp = df[['gene_id', 'MANE_Select', 'MANE_Plus_Clinical']].copy(deep=True)
     df.drop('MANE_Select', axis=1, inplace=True)
-    # pdb.set_trace()
-    temp = temp.groupby('gene_id').max().reset_index()
-    # mane_gids = temp.loc[temp.MANE]
+    temp = temp.groupby('gene_id').max().reset_index()    
 
     # only gene, merge in that stuff
     df = df.loc[df.Feature == 'gene'].copy(deep=True)
@@ -114,7 +114,7 @@ def get_gene_info(gtf, o):
     df.drop('gid_stable', axis=1, inplace=True)
 
     # and save
-    df = df[['gid', 'gname', 'length', 'biotype', 'biotype_category', 'tf', 'MANE_Select']]
+    df = df[['gid', 'gname', 'length', 'biotype', 'biotype_category', 'tf', 'MANE_Select', 'MANE_Plus_Clinical']]
     df.to_csv(o, sep='\t', index=False)
 
 def get_transcript_info(gtf, o):
@@ -161,8 +161,13 @@ def get_transcript_info(gtf, o):
     df['biotype_category'] = df.biotype.map(biotype_map)
 
     df['exon_len'] = (df.Start-df.End).abs()+1
+    
+    # add mane and mane plus clinical info
+    df['MANE_Select'] = df.tag.str.contains('MANE_Select')
+    df['MANE_Plus_Clinical'] = df.tag.str.contains('MANE_Plus_Clinical')
 
-    df = df[['gid', 'gname', 'tid', 'exon_len', 'biotype', 'biotype_category']]
+    df = df[['gid', 'gname', 'tid', 'exon_len', 'biotype', 'biotype_category', 
+            'MANE_Select', 'MANE_Plus_Clinical']]
     df_copy = df[['gid', 'gname', 'tid', 'biotype', 'biotype_category']].copy(deep=True)
     df_copy = df_copy.drop_duplicates(keep='first')
 
@@ -269,7 +274,6 @@ def get_sample_datasets(sample=None, groupby=None):
         df['biosample'] = df['dataset'].str.rsplit('_', n=2, expand=True)[0]
         df.drop(['dataset'], axis=1, inplace=True)
 
-        # record the avg TPM value per biosample
         tissue_df = get_tissue_metadata()
         tissue_df = tissue_df[['tissue', 'biosample']]
 
@@ -979,6 +983,8 @@ def add_feat(df, col, kind, as_index=False, as_number=False,
             new feat
         as_number (bool): Just add the number of element, not
             geneid_#
+        drop_gid (bool): Drop added gene id
+        drop_triplet (bool): Drop added triplet
 
     Returns:
         df (pandas DataFrame): DF w/ additional "kind" col
@@ -1521,6 +1527,15 @@ def get_source_feats(h5,
 
     ids = df.Name.tolist()
     return ids
+
+def filter_gtex_gtf(gtf, oname):
+    df = pr.read_gtf(gtf, as_df=True)
+    df = df.loc[~df.gene_id.str.contains('chr')]
+    # df = df.loc[df.gene_id.str.contains('ENSG')]
+    # inds = df.loc[df.gene_id.str.contains('chr')].index.tolist()
+    # df.loc[inds, 'gene_id'] = df.loc[inds, 'gene_id'].str.split('_', n=1, expand=True)[1]
+    df = pr.PyRanges(df)
+    df.to_gtf(oname)
 
 def get_det_feats(h5,
                   filt_ab,
@@ -2475,19 +2490,7 @@ def compute_genes_per_sector(df, gb_cols=[]):
 
     return df
 
-def assign_gisx_sector(df):
-    if 'n_tss' in df.columns.tolist():
-        tss = 'n_tss'
-        tes = 'n_tes'
-    else:
-        tss = 'tss'
-        tes = 'tes'
-    spl = 'splicing_ratio'
-    df['total'] = df[tss]+df[tes]+df[spl]
-    df['tss_ratio'] = df[tss] / df.total
-    df['tes_ratio'] = df[tes] / df.total
-    df['spl_ratio'] = df[spl] / df.total
-
+def assign_sector(df):
     df['sector'] = 'simple'
 
     df.loc[df.tss_ratio > 0.5, 'sector'] = 'tss'
@@ -2496,6 +2499,30 @@ def assign_gisx_sector(df):
 
     # mixed genes
     df.loc[(df.sector=='simple')&(df.n_iso>1), 'sector'] = 'mixed'
+
+    return df
+
+def assign_gisx_sector(df):
+    """
+    Assign sector from coords w/o ratio versions
+    """
+    if 'tss' in df.columns.tolist():
+        df.rename({'tss': 'n_tss',
+                   'tes': 'n_tes'},
+                  axis=1, inplace=True)
+        # tss = 'n_tss'
+        # tes = 'n_tes'
+    # else:
+        # tss = 'tss'
+        # tes = 'tes'
+    spl = 'splicing_ratio'
+    df = cerberus.compute_simplex_coords(df, spl)
+    # df['total'] = df[tss]+df[tes]+df[spl]
+    # df['tss_ratio'] = df[tss] / df.total
+    # df['tes_ratio'] = df[tes] / df.total
+    # df['spl_ratio'] = df[spl] / df.total
+
+    df = assign_sector(df)
 
     return df
 
@@ -2525,3 +2552,69 @@ def compare_species(h_counts, m_counts, source='obs'):
                               suffixes=('_human', '_mouse'))
 
     return h_counts
+
+def compute_centroid(ca, gene=None, subset=None):
+    """ 
+    Compute the centroid of simplex coordinates for a given set of genes / triplets
+    
+    Parameters:
+        ca (cerberus CerberusAnnotation): Cerberus annotation object
+        gene (str): Gene ID or name
+        subset (dict of str): Subset
+    """
+    
+    df = ca.triplets.copy(deep=True)
+    
+    if gene:
+        df, gene = cerberus.subset_df_on_gene(df, gene)
+
+    # if we have a list of allowed sources, limit to those entries
+    if subset:
+        df = cerberus.subset_df(df, subset)
+    
+    df = cerberus.compute_simplex_coords(df, 'splicing_ratio')
+    
+    df = df[['tss_ratio', 'spl_ratio', 'tes_ratio']]
+    centroid = df.mean().tolist()
+    
+    return centroid
+
+def simplex_dist(a, b, how='js'):
+    """
+    Compute the distance between two points on a simplex
+    
+    Parameters:
+        a (np.array): Coords of pt a
+        b (np.array): Coords of pt b
+        how (str): How to calculate distance. {'jensenshannon'}
+    
+    Returns:
+        dist (float): Distance b/w a and b using distance metric
+    """
+    if how == 'js':
+        dist = scipy.spatial.distance.jensenshannon(a,b)
+    return dist
+
+def simplex_dist_x(x, suff_a=None, suff_b=None, **kwargs):
+    """
+    From a series, compute the distance between two points
+    
+    Parameters:
+        x (pandas Series)
+    """
+    def get_pt(x, suff):
+        tss = 'tss_ratio'
+        ic = 'spl_ratio'
+        tes = 'tes_ratio'
+        if suff:
+            tss = '{}{}'.format(tss, suff)
+            ic = '{}{}'.format(ic, suff)
+            tes = '{}{}'.format(tes, suff)
+        pt = [x[tss], x[ic], x[tes]]
+        return pt
+    
+    a = get_pt(x, suff_a)
+    b = get_pt(x, suff_b)
+    dist = simplex_dist(a,b, **kwargs)
+    
+    return dist

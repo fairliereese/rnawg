@@ -21,6 +21,16 @@ import plotly.io as pio
 
 from .utils import *
 
+def get_ccre_colors():
+    pls = '#FF0000'
+    pels = '#FFA700'
+    dels = '#FFCD00'
+    order = ['pls', 'pels', 'dels']
+    c_dict = {'pls': pls,
+              'pels': pels,
+              'dels': dels}
+    return c_dict, order
+
 def get_not_det_color():
     return '#E5ECF6'
 
@@ -162,6 +172,20 @@ def get_support_sector_colors(sector=None):
         order = o
 
     return new_c_dict, order
+
+def get_feat_triplet_colors(cats=None):
+    tss = '#56B4E9'
+    tes = '#E69F00'
+    splicing = '#CC79A7'
+    triplet = '#009E73'
+    c_dict = {'tss': tss,
+              'ic': splicing,
+              'tes': tes,
+              'triplet': triplet}
+    order = ['triplet', 'tss', 'ic', 'tes']
+    
+    c_dict, order = rm_color_cats(c_dict, order, cats)
+    return c_dict, order
 
 def get_feat_colors(cats=None):
     tss = '#56B4E9'
@@ -2821,3 +2845,249 @@ def plot_n_feat_per_gene(h5,
     plt.savefig(fname, dpi=500, bbox_inches='tight')
 
     return df
+
+
+def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
+                               h=0.1, w=56, x=14, fig_w=14, ref_source='v40', species='human',
+                               add_tss=False, add_ccre=False, major=False):
+    """
+    Plot browser style isoform models for a given sample
+
+    """
+    
+    def plot_tss(ca, sg, tpm_df, x, y, h, ax):
+        tpm_df = add_feat(tpm_df, kind='tss', col='transcript_id')
+        tpm_df.head()
+        tss_df = ca.tss.loc[ca.tss.Name.isin(tpm_df.tss.tolist())]
+        tss_df.head()
+        regions = [(entry.Start, entry.End) for ind, entry in tss_df.iterrows()]
+        color = get_sector_colors()[0]['tss']
+        ax = sg.pg.plot_regions(regions, sg.pg.scale, sg.pg.strand, sg.pg.g_min, sg.pg.g_max, x, y, h, color, ax)
+        return ax
+
+    def plot_ccre(ca, sg, x, y, h, ax):
+
+        # ccre regions
+        sources = ['pls', 'pels', 'dels']
+        ccre = ca.tss_map.loc[ca.tss_map.source.isin(sources)].copy(deep=True)
+
+        # get ranges w/i this region
+        min_coord = sg.pg.g_min
+        max_coord = sg.pg.g_max
+        chrom = sg.pg.chrom
+
+        ccre['min_coord'] = ccre[['Start', 'End']].min(axis=1)
+        ccre['max_coord'] = ccre[['Start', 'End']].max(axis=1)
+
+        # subset on regions 
+        ccre = pr.PyRanges(ccre)
+        region = pr.from_dict({'Chromosome': [chrom],
+                                        'Start': [min_coord],
+                                        'End': [max_coord]})
+        # ccre = ccre.intersect(region, strandedness=None, how='containment')
+        ccre = ccre.intersect(region, strandedness=None)
+        ccre = ccre.as_df()
+
+        # colors
+        c_dict, _ = get_ccre_colors()
+        colors = [c_dict[s] for s in ccre.source.tolist()]
+        regions = [(entry.Start, entry.End) for ind, entry in ccre.iterrows()]
+        ax = sg.pg.plot_regions(regions, sg.pg.scale, sg.pg.strand, sg.pg.g_min, sg.pg.g_max, x, y, h, colors, ax)
+
+        return ax
+
+    def get_major_isos(major_set, gene, sample=None):
+        """
+        Get list of major isfoorms in a given sample
+        """
+        df = pd.read_csv(major_set, sep='\t')
+        df = df.loc[df.gname == gene]
+        if sample:
+            df = df.loc[df['sample'] == sample]
+        tids = df.tid.unique().tolist()
+        return tids
+
+    def get_isos(ca, filt_ab, gene, sample):
+        df = pd.read_csv(filt_ab, sep='\t')
+        df = get_det_table(df,
+                       groupby='sample',
+                       how='iso',
+                       min_tpm=1,
+                       gene_subset='polya',
+                       species=species)
+        df = df.loc[sample]
+        df = df.to_frame()
+        df = df.loc[df[sample]==True]
+        gid = ca.triplets.loc[ca.triplets.gname==gene, 'gid'].values[0]
+        df.reset_index(inplace=True)
+        df['gid'] = df['index'].str.split('[', expand=True)[0]
+        df = df.loc[df.gid == gid]
+        tids = df['index'].tolist()
+        return tids
+
+
+    def get_tpm_df(sg, tids, obs_col, obs_condition):
+        # get tpm df
+        tpm_df = swan.calc_tpm(sg.adata, obs_col=obs_col).sparse.to_dense()
+        tpm_df = tpm_df.transpose()
+        tpm_df = tpm_df.loc[tids, obs_condition].to_frame()
+        return tpm_df
+    
+    if major:
+        tids = get_major_isos(major_set, gene, obs_condition)
+    else:
+        tids = get_isos(ca, filt_ab, gene, obs_condition)
+    tpm_df = get_tpm_df(sg, tids, obs_col, obs_condition)
+    
+    # colormap definition
+    light_shade = get_sector_colors()[0]['mixed']
+    dark_shade = get_sector_colors()[0]['simple']
+    cmap = mpl.colors.LinearSegmentedColormap.from_list('', [light_shade, dark_shade])
+    
+    # plotting settings
+    fig_h = ((h*10)/4)*len(tids)
+    # print('fig h: {}'.format(fig_h))
+    # print('fig w: {}'.format(fig_w))
+    plt.figure(1, figsize=(fig_w, fig_h), frameon=False)
+    mpl.rcParams['font.family'] = 'Arial'
+    mpl.rcParams['pdf.fonttype'] = 42
+    ax = plt.gca()
+    
+    # plotting order
+    tpm_df = tpm_df.sort_values(by=obs_condition, ascending=False)
+    tpm_df = tpm_df[obs_condition]
+    
+    # x coords for gencode name and cerberus name
+    x_gc = 6
+    x_c = 11
+    
+    # height spacing b/w models
+    h_space = h*1.75
+    # print('h_space : {}'.format(h_space))
+    
+    # add reference ids
+    tpm_df = tpm_df.to_frame()
+    df = ca.t_map.loc[ca.t_map.source == ref_source]
+    df = df[['transcript_id','original_transcript_id', 'original_transcript_name']]
+    tpm_df = tpm_df.merge(df, how='left', left_index=True, right_on='transcript_id')
+
+    # clean up for transcripts that aren't known
+    df = ca.t_map.loc[ca.t_map.source == 'lapa']
+    df = df[['transcript_id', 'transcript_name',
+             'tss_id', 'ic_id', 'tes_id']].drop_duplicates()
+    tpm_df = tpm_df.merge(df, how='left', on='transcript_id')
+    tpm_df.fillna('N/A', inplace=True)
+    
+    # label known transcripts with a * 
+    tpm_df['Known'] = ''
+    tpm_df = tpm_df.copy(deep=True)
+    tpm_df = tpm_df.merge(ca.ic[['Name', 'novelty']], how='left', left_on='ic_id', right_on='Name')
+    tpm_df.rename({'novelty':'ic_novelty'}, axis=1, inplace=True)
+    tpm_df.drop('Name', axis=1, inplace=True)
+    tpm_df = tpm_df.merge(ca.tss[['Name', 'novelty']], how='left', left_on='tss_id', right_on='Name')
+    tpm_df.rename({'novelty':'tss_novelty'}, axis=1, inplace=True)
+    tpm_df.drop('Name', axis=1, inplace=True)
+    tpm_df = tpm_df.merge(ca.tes[['Name', 'novelty']], how='left', left_on='tes_id', right_on='Name')
+    tpm_df.rename({'novelty':'tes_novelty'}, axis=1, inplace=True)
+    tpm_df.drop('Name', axis=1, inplace=True)
+    tpm_df.loc[(tpm_df.tss_novelty=='Known')&\
+               (tpm_df.ic_novelty=='Known')&\
+               (tpm_df.tes_novelty=='Known'), 'Known'] = '*'
+    
+    # triplets rather than entire transcript name
+    tpm_df['triplet'] = tpm_df.transcript_id.str.split('[', n=1, expand=True)[1]
+    tpm_df['triplet'] = tpm_df.triplet.str.split(']', n=1, expand=True)[0]
+    tpm_df['triplet'] = '['+tpm_df.triplet+']'
+    
+    i = 0
+    for index, entry in tpm_df.iterrows():
+        # tid
+        tid = entry['transcript_id']
+        tname = entry['transcript_name']
+        ref_tname = entry['original_transcript_name']
+        trip = entry['triplet'] 
+        known = entry['Known']
+    
+        # color by TPM
+        if len(tpm_df.index) == 1:
+            norm_val = entry[obs_condition]
+        else:
+            norm_val = (entry[obs_condition]-tpm_df[obs_condition].min())/(tpm_df[obs_condition].max()-tpm_df[obs_condition].min())
+        color = cmap(norm_val)
+
+        y = (len(tpm_df.index) - i)*(h_space)
+        ax = sg.plot_browser(tid, y=y, x=x, h=h, w=w, color=color, ax=ax) 
+
+        text_pos = y+h
+        
+#         # cerberus transcript id
+#         ax.text(x_c, y+(h/2), tname,
+#                 verticalalignment='center', 
+#                 horizontalalignment='center')    
+        
+#         # gencode transcript id, if any
+#         ax.text(x_gc,y+(h/2), ref_tname,
+#                 verticalalignment='center',
+#                 horizontalalignment='center') 
+
+       # known or novel
+        small_text = 6/(6.11/16)
+        ax.text(x_c, y+(h/2), known,
+                verticalalignment='center', 
+                horizontalalignment='center',
+                size=small_text)    
+    
+        # if known == '*': 
+        #      ax.scatter(x_c,y,s=14,c='k',
+        #                 marker='*')
+        
+        # triplet
+        ax.text(x_gc,y+(h/2), trip,
+                verticalalignment='center',
+                horizontalalignment='center', 
+                size=small_text) 
+        
+        i += 1
+        
+    # label the different columns
+    y = (len(tpm_df.index)+1)*(h_space)
+    # ax.text(x_c, y+(h/2), 'Cerberus Name',
+    #     verticalalignment='center', 
+    #     horizontalalignment='center')    
+    # ax.text(x_gc,y+(h/2), 'GENCODE v40 Name',
+    #         verticalalignment='center',
+            # horizontalalignment='center')
+    
+    big_text = 6.71/(6.11/16)
+    print(small_text)
+    print(big_text)
+    ax.text(x_c, y+(h/2), 'Known',
+        verticalalignment='center', 
+        horizontalalignment='center', 
+        size=big_text)    
+    ax.text(x_gc,y+(h/2), 'Triplet',
+            verticalalignment='center',
+            horizontalalignment='center',
+            size=big_text)   
+    
+    plt.xlim((x_c-2, 72))
+    
+    i = len(tpm_df.index)
+    if add_tss:
+        y = (len(tpm_df.index) - i)*(h_space)
+        ax = plot_tss(ca, sg, tpm_df, x, y, h, ax)
+        i += 1
+    
+    if add_ccre:
+        y = (len(tpm_df.index) - i)*(h_space)
+        ax = plot_ccre(ca, sg, x, y, h, ax)
+        i += 1
+        
+    # add scale
+    y = (len(tpm_df.index) - i)*(h_space)
+    # print('y right here: {}'.format(y))
+    ax = sg.pg.plot_scale(x, y, h, 14, ax)
+        
+    plt.axis('off')
+    
+    return ax, tpm_df

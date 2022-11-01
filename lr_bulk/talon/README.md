@@ -22,6 +22,8 @@ Snakemake command
 ```bash
 conda activate snakemake
 snakemake -s workflow/lr_bulk/Snakefile -j 10 --latency-wait 120 --cluster "sbatch -A seyedam_lab --mem={resources.mem_gb}GB -c {resources.threads} --mail-user=freese@uci.edu --mail-type=START,END, --time=72:00:00" -n
+
+snakemake -s workflow/lr_bulk/Snakefile -j 10 --latency-wait 120 --cluster "sbatch -A COSMOS2021 --mem={resources.mem_gb}GB -c {resources.threads} --mail-user=freese@uci.edu --mail-type=START,END, --time=72:00:00" -n
 ```
 
 if it wants to rerun stuff that's not necessary, add `--rerun-triggers mtime`

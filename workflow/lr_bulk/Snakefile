@@ -927,7 +927,7 @@ rule cerberus_get_g_info_v40:
     run:
         get_gene_info(input.gtf, output.o)
 
-rule cerberus_get_t_info
+rule cerberus_get_t_info:
     input:
         gtf = config['cerberus']['update_gtf'],
         tfs = config['ref']['tf']['gid']
