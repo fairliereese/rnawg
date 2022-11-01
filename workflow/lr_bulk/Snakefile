@@ -904,7 +904,7 @@ rule cerberus_update_v40_gtf:
             --collapse \
             -o {output.update_gtf}"
 
-rule cerberus_get_t_info_v40:
+rule get_t_info_v40:
     input:
         gtf = config['ref']['v40']['gtf'],
         tfs = config['ref']['tf']['gid']
