@@ -2964,13 +2964,12 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     
     # plotting settings
     fig_len = len(tids)
-    # fig_len += 1 # for scale
+    fig_len += 1 # for scale
     # fig_len += 1 # for column labels
     if add_tss: 
         fig_len += 1
     elif add_ccre:
         fig_len += 1
-    # fig_h = ((h*10)/4)*fig_len
     fig_h = h_space*(fig_len-1)+h
     fig_h += 0.3 # vertical spacing adjustment
     print('fig h: {}'.format(fig_h))
@@ -3114,33 +3113,18 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
         
     # add scale
     y = (len(tpm_df.index) - i)*(h_space)
-    # print('y right here: {}'.format(y))
-    # ax = sg.pg.plot_scale(x, y, h, 14, ax)
+    print('y scale: {}'.format(y))
+    ax = sg.pg.plot_scale(x, y, h, 14, ax)
         
     # remove axes
-    # plt.axis('off')
-    # ax.get_xaxis().set_visible(False)
-    # ax.get_yaxis().set_visible(False) 
-    
-    plt.tick_params(
-        axis='x',          # changes apply to the x-axis
-        which='both',      # both major and minor ticks are affected
-        bottom=False,      # ticks along the bottom edge are off
-        top=False,         # ticks along the top edge are off
-        labelbottom=False)
-    
-    plt.tick_params(
-        axis='y',          # changes apply to the x-axis
-        which='both',      # both major and minor ticks are affected
-        bottom=False,      # ticks along the bottom edge are off
-        top=False,         # ticks along the top edge are off
-        labelbottom=False)
-    
+    plt.axis('off')
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False) 
     plt.tight_layout()
     
     # set x / y lim
     y_max = (len(tpm_df.index) - 0)*(h_space)+h
-    y_min = h_space
+    y_min = y
     plt.ylim((y_min,y_max))
     print('ylim: ({},{})'.format(y_min,y_max))
     
