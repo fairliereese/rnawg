@@ -83,19 +83,25 @@ def get_lr_bulk_sample_colors():
     # c2c12
     c_dict['c2c12_myoblast'] = '#ca79a7'
     c_dict['c2c12_myotube'] = '#009c73'
+    order += ['c2c12_myoblast', 'c2c12_myotube']
 
     # forelimb
     c_dict['forelimb_e11'] = '#99ebec'
     c_dict['forelimb_e13'] = '#01ced0'
+    order += ['forelimb_e11', 'forelimb_e13']
+    
 
     # adrenal, hc, ctx
     for t in ['adrenal', 'hippocampus', 'cortex']:
         c_dict[t] = get_tissue_colors()[0][t]
+    order += ['adrenal', 'hippocampus', 'cortex']
+    
 
     # f1219
     c_dict['f1219'] = '#4340bc'
+    order += ['f1219']
 
-    return c_dict, None
+    return c_dict, order
 
 def get_shade_colors(color, order):
     c_dict = {}
@@ -2944,10 +2950,31 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     dark_shade = get_sector_colors()[0]['simple']
     cmap = mpl.colors.LinearSegmentedColormap.from_list('', [light_shade, dark_shade])
     
+    # font sizes
+    small_text = 6/(6.11/16)
+    big_text = 6.71/(6.11/16)
+    print('small text size: {}'.format(small_text))
+    print('big text size: {}'.format(big_text))
+    
+    
+    # height spacing b/w models
+    h_space = h*1.75
+    print('h_space : {}'.format(h_space))
+    print('h: {}'.format(h))
+    
     # plotting settings
-    fig_h = ((h*10)/4)*len(tids)
-    # print('fig h: {}'.format(fig_h))
-    # print('fig w: {}'.format(fig_w))
+    fig_len = len(tids)
+    # fig_len += 1 # for scale
+    # fig_len += 1 # for column labels
+    if add_tss: 
+        fig_len += 1
+    elif add_ccre:
+        fig_len += 1
+    # fig_h = ((h*10)/4)*fig_len
+    fig_h = h_space*(fig_len-1)+h
+    fig_h += 0.3 # vertical spacing adjustment
+    print('fig h: {}'.format(fig_h))
+    print('fig w: {}'.format(fig_w))
     plt.figure(1, figsize=(fig_w, fig_h), frameon=False)
     mpl.rcParams['font.family'] = 'Arial'
     mpl.rcParams['pdf.fonttype'] = 42
@@ -2961,10 +2988,6 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     x_gc = 6
     x_c = 11
     
-    # height spacing b/w models
-    h_space = h*1.75
-    # print('h_space : {}'.format(h_space))
-    
     # add reference ids
     tpm_df = tpm_df.to_frame()
     df = ca.t_map.loc[ca.t_map.source == ref_source]
@@ -2973,7 +2996,7 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
 
     # clean up for transcripts that aren't known
     df = ca.t_map.loc[ca.t_map.source == 'lapa']
-    df = df[['transcript_id', 'transcript_name',
+    df = df[['gene_name', 'transcript_id', 'transcript_name',
              'tss_id', 'ic_id', 'tes_id']].drop_duplicates()
     tpm_df = tpm_df.merge(df, how='left', on='transcript_id')
     tpm_df.fillna('N/A', inplace=True)
@@ -2990,9 +3013,15 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     tpm_df = tpm_df.merge(ca.tes[['Name', 'novelty']], how='left', left_on='tes_id', right_on='Name')
     tpm_df.rename({'novelty':'tes_novelty'}, axis=1, inplace=True)
     tpm_df.drop('Name', axis=1, inplace=True)
-    tpm_df.loc[(tpm_df.tss_novelty=='Known')&\
-               (tpm_df.ic_novelty=='Known')&\
-               (tpm_df.tes_novelty=='Known'), 'Known'] = '*'
+    # tpm_df.loc[(tpm_df.tss_novelty=='Known')&\
+    #            (tpm_df.ic_novelty=='Known')&\
+    #            (tpm_df.tes_novelty=='Known'), 'Known'] = '*'
+    if species == 'human':
+        refs = ['v40', 'v29']
+    elif species == 'mouse':
+        refs = ['vM21', 'vM25']
+    known_tids = ca.t_map.loc[ca.t_map.source.isin(refs)].transcript_id.unique().tolist()
+    tpm_df.loc[tpm_df.transcript_id.isin(known_tids), 'Known'] = '*'
     
     # triplets rather than entire transcript name
     tpm_df['triplet'] = tpm_df.transcript_id.str.split('[', n=1, expand=True)[1]
@@ -3000,12 +3029,15 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     tpm_df['triplet'] = '['+tpm_df.triplet+']'
     
     i = 0
+    print('h: {}'.format(h))
     for index, entry in tpm_df.iterrows():
         # tid
         tid = entry['transcript_id']
+        gname = entry['gene_name']
         tname = entry['transcript_name']
         ref_tname = entry['original_transcript_name']
         trip = entry['triplet'] 
+        iso_trip = '{} {}'.format(gname, trip)
         known = entry['Known']
     
         # color by TPM
@@ -3017,6 +3049,7 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
 
         y = (len(tpm_df.index) - i)*(h_space)
         ax = sg.plot_browser(tid, y=y, x=x, h=h, w=w, color=color, ax=ax) 
+        print('transcipt #{}, {}, y = {}'.format(i, iso_trip, y))
 
         text_pos = y+h
         
@@ -3031,7 +3064,6 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
 #                 horizontalalignment='center') 
 
        # known or novel
-        small_text = 6/(6.11/16)
         ax.text(x_c, y+(h/2), known,
                 verticalalignment='center', 
                 horizontalalignment='center',
@@ -3042,7 +3074,7 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
         #                 marker='*')
         
         # triplet
-        ax.text(x_gc,y+(h/2), trip,
+        ax.text(x_gc,y+(h/2), iso_trip,
                 verticalalignment='center',
                 horizontalalignment='center', 
                 size=small_text) 
@@ -3051,24 +3083,21 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
         
     # label the different columns
     y = (len(tpm_df.index)+1)*(h_space)
-    # ax.text(x_c, y+(h/2), 'Cerberus Name',
-    #     verticalalignment='center', 
-    #     horizontalalignment='center')    
-    # ax.text(x_gc,y+(h/2), 'GENCODE v40 Name',
-    #         verticalalignment='center',
-            # horizontalalignment='center')
+   # # ax.text(x_c, y+(h/2), 'Cerberus Name',
+    ##     verticalalignment='center', 
+    ##     horizontalalignment='center')    
+    ## ax.text(x_gc,y+(h/2), 'GENCODE v40 Name',
+    ##         verticalalignment='center',
+          #  # horizontalalignment='center')
     
-    big_text = 6.71/(6.11/16)
-    print(small_text)
-    print(big_text)
-    ax.text(x_c, y+(h/2), 'Known',
-        verticalalignment='center', 
-        horizontalalignment='center', 
-        size=big_text)    
-    ax.text(x_gc,y+(h/2), 'Triplet',
-            verticalalignment='center',
-            horizontalalignment='center',
-            size=big_text)   
+    # ax.text(x_c, y+(h/2), 'Known',
+    #     verticalalignment='center', 
+    #     horizontalalignment='center', 
+    #     size=big_text)    
+    # ax.text(x_gc,y+(h/2), 'Isoform triplet',
+    #         verticalalignment='center',
+    #         horizontalalignment='center',
+    #         size=big_text)   
     
     plt.xlim((x_c-2, 72))
     
@@ -3086,8 +3115,33 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     # add scale
     y = (len(tpm_df.index) - i)*(h_space)
     # print('y right here: {}'.format(y))
-    ax = sg.pg.plot_scale(x, y, h, 14, ax)
+    # ax = sg.pg.plot_scale(x, y, h, 14, ax)
         
-    plt.axis('off')
+    # remove axes
+    # plt.axis('off')
+    # ax.get_xaxis().set_visible(False)
+    # ax.get_yaxis().set_visible(False) 
+    
+    plt.tick_params(
+        axis='x',          # changes apply to the x-axis
+        which='both',      # both major and minor ticks are affected
+        bottom=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+        labelbottom=False)
+    
+    plt.tick_params(
+        axis='y',          # changes apply to the x-axis
+        which='both',      # both major and minor ticks are affected
+        bottom=False,      # ticks along the bottom edge are off
+        top=False,         # ticks along the top edge are off
+        labelbottom=False)
+    
+    plt.tight_layout()
+    
+    # set x / y lim
+    y_max = (len(tpm_df.index) - 0)*(h_space)+h
+    y_min = h_space
+    plt.ylim((y_min,y_max))
+    print('ylim: ({},{})'.format(y_min,y_max))
     
     return ax, tpm_df
