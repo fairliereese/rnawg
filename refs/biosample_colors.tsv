@@ -22,10 +22,10 @@ caco2	cell_line	#ff9000
 calu3	cell_line	#009801
 gm12878	cell_line	#0798c8
 hct116	cell_line	#82ae4d
-hepg2	cell_line	#2e0e6b
+hepg2	cell_line	#660f26
 hmec	cell_line	#9e99cd
 huvec	cell_line	#9b009b
-imr90	cell_line	#661026
+imr90	cell_line	#71145b
 k562	cell_line	#2e0e6b
 mcf10a	cell_line	#056879
 mcf7	cell_line	#2f3d4a

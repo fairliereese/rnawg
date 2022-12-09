@@ -12,6 +12,16 @@ import cerberus
 import scipy
 import scipy.stats as st
 
+def get_lr_samples():
+    """
+    Get colors for each biosample
+    """
+    d = os.path.dirname(__file__)
+    fname = '{}/../refs/biosample_colors.tsv'.format(d)
+    df = pd.read_csv(fname, sep='\t')
+    samples = df['biosample'].unique().tolist()
+    return samples
+
 def get_polya_cats():
     return ['protein_coding', 'lncRNA', 'pseudogene']
 
@@ -1592,6 +1602,7 @@ def get_sr_tpm_table(df,
     # replace column names with the metadata human readable versions
     meta.set_index('File accession', inplace=True)
     dataset_cols = meta.hr.tolist()
+    meta = meta[['hr']]
     meta = meta.to_dict(orient='index')
     for key, item in meta.items():
         meta[key] = item['hr']
@@ -1670,6 +1681,25 @@ def get_sr_tpm_table(df,
 
     return df, ids
 
+def add_sample(df):
+    """
+    Add biosample id to each dataset name.
+    
+    Parameters:
+        temp (pandas DataFrame): DF w/ 'dataset' col
+    """
+    temp = df.copy(deep=True)
+    temp['biosample'] = temp.dataset.str.rsplit('_', n=2, expand=True)[0]
+    tissue_df = get_tissue_metadata()
+    tissue_df = tissue_df[['tissue', 'biosample']]
+    temp = temp.merge(tissue_df, how='left', on='biosample')
+    temp.loc[temp.tissue.isnull(), 'tissue'] = temp.loc[temp.tissue.isnull(), 'biosample']
+    temp.drop('biosample', axis=1, inplace=True)
+    temp.rename({'tissue': 'sample'}, axis=1, inplace=True)
+    temp['sample'].unique()
+    
+    return temp
+
 def get_tpm_table(df,
                 sample='all',
                 how='gene',
@@ -1687,7 +1717,7 @@ def get_tpm_table(df,
     """
     Parameters:
         df (pandas DataFrame): TALON abundance table
-        sample (str): Choose from 'cell_line', 'tissue', or None
+        sample (str): {'cell_line', 'tissue', None, 'lr_match'}
         how (str): Choose from 'gene' or 'iso'
         groupby (str): Choose from 'library' or 'sample'. Sample will avg.
         nov (list of str): List of accepted novelty types (w/ how='iso')
@@ -1704,6 +1734,14 @@ def get_tpm_table(df,
 
     if how == 'sr':
         df, ids = get_sr_tpm_table(df, groupby, min_tpm, gene_subset, save, **kwargs)
+        # limit only to samples that are in lr
+        if sample == 'lr_match':
+            temp = pd.DataFrame(data=df.columns.tolist(), columns=['dataset'])
+            temp = add_sample(temp)
+            samples = get_lr_samples()
+            temp = temp.loc[temp['sample'].isin(samples)]
+            datasets = temp['dataset'].tolist()
+            df = df[datasets]
     else:
         print('Calculating {} TPM values'.format(how))
 
@@ -2497,6 +2535,9 @@ def compute_genes_per_sector(df, gb_cols=[]):
 
     return df
 
+def perc(n_num, n):
+    return (n_num/n)*100
+
 def assign_sector(df):
     df['sector'] = 'simple'
 
@@ -2586,7 +2627,7 @@ def compute_centroid(ca, gene=None, subset=None):
 
     return centroid
 
-def simplex_dist(a, b, how='js'):
+def simplex_dist_pts(a, b, how='js'):
     """
     Compute the distance between two points on a simplex
 
@@ -2602,7 +2643,7 @@ def simplex_dist(a, b, how='js'):
         dist = scipy.spatial.distance.jensenshannon(a,b)
     return dist
 
-def simplex_dist_x(x, suff_a=None, suff_b=None, **kwargs):
+def simplex_dist(x, suff_a=None, suff_b=None, **kwargs):
     """
     From a series, compute the distance between two points
 
@@ -2622,6 +2663,6 @@ def simplex_dist_x(x, suff_a=None, suff_b=None, **kwargs):
 
     a = get_pt(x, suff_a)
     b = get_pt(x, suff_b)
-    dist = simplex_dist(a,b, **kwargs)
+    dist = simplex_dist_pts(a,b, **kwargs)
 
     return dist

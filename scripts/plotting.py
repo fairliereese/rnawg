@@ -1334,6 +1334,15 @@ def plot_biosamp_det(df,
         color = c_dict[nov]
     else:
         color = c_dict['Known']
+    
+    # color by triplet feature type
+    if how in ['tss', 'tes', 'ic']:
+        c_dict, order = get_sector_colors()
+        if how == 'ic':
+            color = c_dict['splicing']
+        else:
+            color = c_dict[how]
+            
     ax = sns.displot(data=df, x='n_samples', kind='hist',
                  color=color, binwidth=1, linewidth=0,
                  alpha=1)
@@ -1345,9 +1354,11 @@ def plot_biosamp_det(df,
         if nov == 'Known':
             nov = nov.lower()
         ylabel = '# transcripts w/ {} ICs'.format(nov)
+    elif how in ['tss', 'ic', 'tes']:
+        ylabel = '# {}s'.format(how.upper())
 
     if groupby == 'sample':
-        xlabel = '# cell lines and tissues'
+        xlabel = '# samples'
     elif groupby == 'tissue':
         xlabel = '# tissues'
     elif groupby == 'cell_line':
@@ -1361,8 +1372,10 @@ def plot_biosamp_det(df,
             xlabel = '# libraries'
 
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+    
+    sample = groupby
 
-    if groupby == sample:
+    if groupby == 'sample':
         fname = '{}{}_{}_{}_detection.png'.format(opref, sample, nov, how)
     else:
         fname = '{}{}_{}_{}_library_detection.png'.format(opref, sample, nov, how)
@@ -2466,12 +2479,20 @@ def plot_transcript_novelty_per_1(df,
 def plot_gene_det_by_biotype_tpm(df,
                                  how,
                                  ver, 
+                                 opref='figures/',
                                  **kwargs):
-    df, inds = get_tpm_table(df,
-                how='gene',
-                gene_subset='polya',
-                min_tpm=0, 
-                **kwargs)
+    if how == 'sr':
+        df, inds = get_tpm_table(df,
+                    how='sr',
+                    gene_subset='polya',
+                    min_tpm=0, 
+                    **kwargs)
+    else:
+        df, inds = get_tpm_table(df,
+                    how='gene',
+                    gene_subset='polya',
+                    min_tpm=0, 
+                    **kwargs)
 
     gene_df, b_counts, b_cat_counts = get_gtf_info(how='gene', ver=ver)
 
@@ -2581,9 +2602,9 @@ def plot_gene_det_by_biotype_tpm(df,
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
-    fname = 'figures/gene_det_by_biotype.png'
+    fname = f'{opref}gene_det_by_biotype.png'
     plt.savefig(fname, dpi=500, bbox_inches='tight')
-    fname = 'figures/gene_det_by_biotype.pdf'
+    fname = f'{opref}gene_det_by_biotype.pdf'
     plt.savefig(fname, dpi=500, bbox_inches='tight')
 
 def plot_species_sector_gene_counts(m_counts, h_counts):
@@ -2731,7 +2752,7 @@ def plot_sankey(df,
     # add coords to node labels
     # nodes['label'] = ['{}: ({},{})'.format(l, x, y) for l,x,y in zip(nodes['label'], nodes['x'], nodes['y'])]
 
-    # print(nodes)
+    print(nodes)
 
     links = dict(
         source=df.source.tolist(),
@@ -2854,11 +2875,12 @@ def plot_n_feat_per_gene(h5,
 
 
 def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
+                              
                                h=0.1, w=56, x=14, fig_w=14, ref_source='v40', species='human',
+                               h_space=None,
                                add_tss=False, add_ccre=False, major=False):
     """
     Plot browser style isoform models for a given sample
-
     """
     
     def plot_tss(ca, sg, tpm_df, x, y, h, ax):
@@ -2951,29 +2973,30 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     cmap = mpl.colors.LinearSegmentedColormap.from_list('', [light_shade, dark_shade])
     
     # font sizes
-    small_text = 6/(6.11/16)
+    # small_text = 6/(6.11/16)
+    small_text = 20.3
     big_text = 6.71/(6.11/16)
     print('small text size: {}'.format(small_text))
     print('big text size: {}'.format(big_text))
     
     
     # height spacing b/w models
-    h_space = h*1.75
-    print('h_space : {}'.format(h_space))
-    print('h: {}'.format(h))
+    if not h_space:
+        h_space = h*1.75
+    # print('h_space : {}'.format(h_space))
+    # print('h: {}'.format(h))
     
     # plotting settings
     fig_len = len(tids)
     fig_len += 1 # for scale
-    # fig_len += 1 # for column labels
     if add_tss: 
         fig_len += 1
-    elif add_ccre:
+    if add_ccre:
         fig_len += 1
     fig_h = h_space*(fig_len-1)+h
     fig_h += 0.3 # vertical spacing adjustment
-    print('fig h: {}'.format(fig_h))
-    print('fig w: {}'.format(fig_w))
+    # print('fig h: {}'.format(fig_h))
+    # print('fig w: {}'.format(fig_w))
     plt.figure(1, figsize=(fig_w, fig_h), frameon=False)
     mpl.rcParams['font.family'] = 'Arial'
     mpl.rcParams['pdf.fonttype'] = 42
@@ -2984,7 +3007,7 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     tpm_df = tpm_df[obs_condition]
     
     # x coords for gencode name and cerberus name
-    x_gc = 6
+    x_gc = -4
     x_c = 11
     
     # add reference ids
@@ -3028,8 +3051,13 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     tpm_df['triplet'] = '['+tpm_df.triplet+']'
     
     i = 0
-    print('h: {}'.format(h))
+    # print('h: {}'.format(h))
     for index, entry in tpm_df.iterrows():
+        
+        # y coords
+        y = (len(tpm_df.index) - i)*(h_space)
+        y_text = y+(h/2)
+        
         # tid
         tid = entry['transcript_id']
         gname = entry['gene_name']
@@ -3045,43 +3073,23 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
         else:
             norm_val = (entry[obs_condition]-tpm_df[obs_condition].min())/(tpm_df[obs_condition].max()-tpm_df[obs_condition].min())
         color = cmap(norm_val)
-
-        y = (len(tpm_df.index) - i)*(h_space)
         ax = sg.plot_browser(tid, y=y, x=x, h=h, w=w, color=color, ax=ax) 
-        print('transcipt #{}, {}, y = {}'.format(i, iso_trip, y))
+        # print('transcipt #{}, {}, y = {}'.format(i, iso_trip, y))
 
-        text_pos = y+h
-        
-#         # cerberus transcript id
-#         ax.text(x_c, y+(h/2), tname,
-#                 verticalalignment='center', 
-#                 horizontalalignment='center')    
-        
-#         # gencode transcript id, if any
-#         ax.text(x_gc,y+(h/2), ref_tname,
-#                 verticalalignment='center',
-#                 horizontalalignment='center') 
-
-       # known or novel
-        ax.text(x_c, y+(h/2), known,
+       # isoform name / novelty
+        ax.text(x_c, y_text, known,
                 verticalalignment='center', 
                 horizontalalignment='center',
-                size=small_text)    
-    
-        # if known == '*': 
-        #      ax.scatter(x_c,y,s=14,c='k',
-        #                 marker='*')
-        
-        # triplet
-        ax.text(x_gc,y+(h/2), iso_trip,
+                size=small_text)   
+        ax.text(x_gc, y_text, iso_trip,
                 verticalalignment='center',
-                horizontalalignment='center', 
+                horizontalalignment='left', 
                 size=small_text) 
         
         i += 1
         
     # label the different columns
-    y = (len(tpm_df.index)+1)*(h_space)
+    # y = (len(tpm_df.index)+1)*(h_space)
    # # ax.text(x_c, y+(h/2), 'Cerberus Name',
     ##     verticalalignment='center', 
     ##     horizontalalignment='center')    
@@ -3098,7 +3106,6 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     #         horizontalalignment='center',
     #         size=big_text)   
     
-    plt.xlim((x_c-2, 72))
     
     i = len(tpm_df.index)
     if add_tss:
@@ -3113,7 +3120,7 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
         
     # add scale
     y = (len(tpm_df.index) - i)*(h_space)
-    print('y scale: {}'.format(y))
+    # print('y scale: {}'.format(y))
     ax = sg.pg.plot_scale(x, y, h, 14, ax)
         
     # remove axes
@@ -3126,6 +3133,7 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     y_max = (len(tpm_df.index) - 0)*(h_space)+h
     y_min = y
     plt.ylim((y_min,y_max))
-    print('ylim: ({},{})'.format(y_min,y_max))
+    plt.xlim((-4, 72))
+    # print('ylim: ({},{})'.format(y_min,y_max))
     
     return ax, tpm_df

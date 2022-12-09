@@ -1,0 +1,127 @@
+dataset	b6cast	tissue	age	sex	rep	5x_v_wt	disease_status	forelimb	c2c12	f1219	adrenal	sample	hr	classification	sample_display	adult	tissue_adult
+adrenal_gland_2_1	False	adrenal				False		False	False	False	True	adrenal	adrenal_gland_2_1	tissue	Adrenal gland	True	adrenal_True
+adrenal_gland_2_2	False	adrenal				False		False	False	False	True	adrenal	adrenal_gland_2_2	tissue	Adrenal gland	True	adrenal_True
+adrenal_gland_1_1	False	adrenal				False		False	False	False	True	adrenal	adrenal_gland_1_1	tissue	Adrenal gland	True	adrenal_True
+adrenal_gland_1_2	False	adrenal				False		False	False	False	True	adrenal	adrenal_gland_1_2	tissue	Adrenal gland	True	adrenal_True
+adrenal_10d_m_2	True	adrenal	10d	m	2.0							adrenal_10d	adrenal_10d_m_2	tissue	Adrenal gland PND10	False	adrenal_False
+adrenal_10d_m_1	True	adrenal	10d	m	1.0							adrenal_10d	adrenal_10d_m_1	tissue	Adrenal gland PND10	False	adrenal_False
+adrenal_10d_f_1	True	adrenal	10d	f	1.0							adrenal_10d	adrenal_10d_f_1	tissue	Adrenal gland PND10	False	adrenal_False
+adrenal_10d_f_2	True	adrenal	10d	f	2.0							adrenal_10d	adrenal_10d_f_2	tissue	Adrenal gland PND10	False	adrenal_False
+adrenal_14d_f_2	True	adrenal	14d	f	2.0							adrenal_14d	adrenal_14d_f_2	tissue	Adrenal gland PND14	False	adrenal_False
+adrenal_14d_f_1	True	adrenal	14d	f	1.0							adrenal_14d	adrenal_14d_f_1	tissue	Adrenal gland PND14	False	adrenal_False
+adrenal_14d_m_2	True	adrenal	14d	m	2.0							adrenal_14d	adrenal_14d_m_2	tissue	Adrenal gland PND14	False	adrenal_False
+adrenal_14d_m_1	True	adrenal	14d	m	1.0							adrenal_14d	adrenal_14d_m_1	tissue	Adrenal gland PND14	False	adrenal_False
+adrenal_18-20mo_m_1	True	adrenal	18-20mo	m	1.0							adrenal_18-20mo	adrenal_18-20mo_m_1	tissue	Adrenal gland PNM18-20	True	adrenal_True
+adrenal_18-20mo_f_1	True	adrenal	18-20mo	f	1.0							adrenal_18-20mo	adrenal_18-20mo_f_1	tissue	Adrenal gland PNM18-20	True	adrenal_True
+adrenal_18-20mo_f_2	True	adrenal	18-20mo	f	2.0							adrenal_18-20mo	adrenal_18-20mo_f_2	tissue	Adrenal gland PNM18-20	True	adrenal_True
+adrenal_25d_f_2	True	adrenal	25d	f	2.0							adrenal_25d	adrenal_25d_f_2	tissue	Adrenal gland PND25	False	adrenal_False
+adrenal_25d_f_1	True	adrenal	25d	f	1.0							adrenal_25d	adrenal_25d_f_1	tissue	Adrenal gland PND25	False	adrenal_False
+adrenal_25d_m_1	True	adrenal	25d	m	1.0							adrenal_25d	adrenal_25d_m_1	tissue	Adrenal gland PND25	False	adrenal_False
+adrenal_25d_m_2	True	adrenal	25d	m	2.0							adrenal_25d	adrenal_25d_m_2	tissue	Adrenal gland PND25	False	adrenal_False
+adrenal_2mo_m_2	True	adrenal	2mo	m	2.0							adrenal_2mo	adrenal_2mo_m_2	tissue	Adrenal gland PNM2	False	adrenal_False
+adrenal_2mo_m_1	True	adrenal	2mo	m	1.0							adrenal_2mo	adrenal_2mo_m_1	tissue	Adrenal gland PNM2	False	adrenal_False
+adrenal_2mo_f_1	True	adrenal	2mo	f	1.0							adrenal_2mo	adrenal_2mo_f_1	tissue	Adrenal gland PNM2	False	adrenal_False
+adrenal_2mo_f_2	True	adrenal	2mo	f	2.0							adrenal_2mo	adrenal_2mo_f_2	tissue	Adrenal gland PNM2	False	adrenal_False
+adrenal_36d_m_2	True	adrenal	36d	m	2.0							adrenal_36d	adrenal_36d_m_2	tissue	Adrenal gland PND36	False	adrenal_False
+adrenal_36d_m_1	True	adrenal	36d	m	1.0							adrenal_36d	adrenal_36d_m_1	tissue	Adrenal gland PND36	False	adrenal_False
+adrenal_36d_f_2	True	adrenal	36d	f	2.0							adrenal_36d	adrenal_36d_f_2	tissue	Adrenal gland PND36	False	adrenal_False
+adrenal_36d_f_1	True	adrenal	36d	f	1.0							adrenal_36d	adrenal_36d_f_1	tissue	Adrenal gland PND36	False	adrenal_False
+adrenal_4d_m_2	True	adrenal	4d	m	2.0							adrenal_4d	adrenal_4d_m_2	tissue	Adrenal gland PND4	False	adrenal_False
+adrenal_4d_m_1	True	adrenal	4d	m	1.0							adrenal_4d	adrenal_4d_m_1	tissue	Adrenal gland PND4	False	adrenal_False
+adrenal_4d_f_2	True	adrenal	4d	f	2.0							adrenal_4d	adrenal_4d_f_2	tissue	Adrenal gland PND4	False	adrenal_False
+adrenal_4d_f_1	True	adrenal	4d	f	1.0							adrenal_4d	adrenal_4d_f_1	tissue	Adrenal gland PND4	False	adrenal_False
+c2c12_myoblast_1_1	False	c2c12_myoblast				False		False	True			c2c12_myoblast	c2c12_myoblast_1_1	cell_line	C2C12	False	c2c12_myoblast_False
+c2c12_myoblast_1_2	False	c2c12_myoblast				False		False	True			c2c12_myoblast	c2c12_myoblast_1_2	cell_line	C2C12	False	c2c12_myoblast_False
+c2c12_myoblast_2_1	False	c2c12_myoblast				False		False	True			c2c12_myoblast	c2c12_myoblast_2_1	cell_line	C2C12	False	c2c12_myoblast_False
+c2c12_myoblast_2_2	False	c2c12_myoblast				False		False	True			c2c12_myoblast	c2c12_myoblast_2_2	cell_line	C2C12	False	c2c12_myoblast_False
+c2c12_myotube_1_1	False	c2c12_myotube				False		False	True			c2c12_myotube	c2c12_myotube_1_1	cell_line	C2C12-derived myotubes	False	c2c12_myotube_False
+c2c12_myotube_1_2	False	c2c12_myotube				False		False	True			c2c12_myotube	c2c12_myotube_1_2	cell_line	C2C12-derived myotubes	False	c2c12_myotube_False
+cortex_wt_m_1_1	False	cortex		m		True	wt					cortex	cortex_wt_m_1_1	tissue	Cortex	True	cortex_True
+cortex_wt_m_1_2	False	cortex		m		True	wt					cortex	cortex_wt_m_1_2	tissue	Cortex	True	cortex_True
+cortex_5x_f_1_1	False	cortex		f		True	5x					cortex	cortex_5x_f_1_1	tissue	Cortex	True	cortex_True
+cortex_5x_f_1_2	False	cortex		f		True	5x					cortex	cortex_5x_f_1_2	tissue	Cortex	True	cortex_True
+cortex_wt_f_1_1	False	cortex		f		True	wt					cortex	cortex_wt_f_1_1	tissue	Cortex	True	cortex_True
+cortex_wt_f_1_2	False	cortex		f		True	wt					cortex	cortex_wt_f_1_2	tissue	Cortex	True	cortex_True
+cortex_wt_m_2_1	False	cortex		m		True	wt					cortex	cortex_wt_m_2_1	tissue	Cortex	True	cortex_True
+cortex_wt_m_2_2	False	cortex		m		True	wt					cortex	cortex_wt_m_2_2	tissue	Cortex	True	cortex_True
+cortex_5x_m_1_1	False	cortex		m		True	5x					cortex	cortex_5x_m_1_1	tissue	Cortex	True	cortex_True
+cortex_5x_m_1_2	False	cortex		m		True	5x					cortex	cortex_5x_m_1_2	tissue	Cortex	True	cortex_True
+cortex_14d_m_1	True	cortex	14d	m	1.0							cortex_14d	cortex_14d_m_1	tissue	Cortex PND14	False	cortex_False
+cortex_14d_m_2	True	cortex	14d	m	2.0							cortex_14d	cortex_14d_m_2	tissue	Cortex PND14	False	cortex_False
+cortex_14d_f_1	True	cortex	14d	f	1.0							cortex_14d	cortex_14d_f_1	tissue	Cortex PND14	False	cortex_False
+cortex_14d_f_2	True	cortex	14d	f	2.0							cortex_14d	cortex_14d_f_2	tissue	Cortex PND14	False	cortex_False
+cortex_18-20mo_m_1	True	cortex	18-20mo	m	1.0							cortex_18-20mo	cortex_18-20mo_m_1	tissue	Cortex PNM18-20	True	cortex_True
+cortex_18-20mo_m_2	True	cortex	18-20mo	m	2.0							cortex_18-20mo	cortex_18-20mo_m_2	tissue	Cortex PNM18-20	True	cortex_True
+cortex_18-20mo_f_1	True	cortex	18-20mo	f	1.0							cortex_18-20mo	cortex_18-20mo_f_1	tissue	Cortex PNM18-20	True	cortex_True
+cortex_18-20mo_f_2	True	cortex	18-20mo	f	2.0							cortex_18-20mo	cortex_18-20mo_f_2	tissue	Cortex PNM18-20	True	cortex_True
+cortex_2mo_f_1	True	cortex	2mo	f	1.0							cortex_2mo	cortex_2mo_f_1	tissue	Cortex PNM2	False	cortex_False
+cortex_2mo_f_2	True	cortex	2mo	f	2.0							cortex_2mo	cortex_2mo_f_2	tissue	Cortex PNM2	False	cortex_False
+cortex_2mo_m_1	True	cortex	2mo	m	1.0							cortex_2mo	cortex_2mo_m_1	tissue	Cortex PNM2	False	cortex_False
+cortex_2mo_m_2	True	cortex	2mo	m	2.0							cortex_2mo	cortex_2mo_m_2	tissue	Cortex PNM2	False	cortex_False
+f1219_1_1	False	f1219				False		False	False	True		f1219	f1219_1_1	cell_line	F121-9	False	f1219_False
+f1219_1_2	False	f1219				False		False	False	True		f1219	f1219_1_2	cell_line	F121-9	False	f1219_False
+f1219_1_3	False	f1219				False		False	False	True		f1219	f1219_1_3	cell_line	F121-9	False	f1219_False
+forelimb_e11_1_1	False	forelimb	e11			False		True				forelimb_e11	forelimb_e11_1_1	tissue	Forelimb E11	False	forelimb_False
+forelimb_e13_1_1	False	forelimb	e13			False		True				forelimb_e13	forelimb_e13_1_1	tissue	Forelimb E13	False	forelimb_False
+gastroc_10d_f_2	True	gastroc	10d	f	2.0							gastroc_10d	gastroc_10d_f_2	tissue	Gastrocnemius PND10	False	gastroc_False
+gastroc_10d_f_1	True	gastroc	10d	f	1.0							gastroc_10d	gastroc_10d_f_1	tissue	Gastrocnemius PND10	False	gastroc_False
+gastroc_10d_m_1	True	gastroc	10d	m	1.0							gastroc_10d	gastroc_10d_m_1	tissue	Gastrocnemius PND10	False	gastroc_False
+gastroc_10d_m_2	True	gastroc	10d	m	2.0							gastroc_10d	gastroc_10d_m_2	tissue	Gastrocnemius PND10	False	gastroc_False
+gastroc_14d_f_2	True	gastroc	14d	f	2.0							gastroc_14d	gastroc_14d_f_2	tissue	Gastrocnemius PND14	False	gastroc_False
+gastroc_14d_f_1	True	gastroc	14d	f	1.0							gastroc_14d	gastroc_14d_f_1	tissue	Gastrocnemius PND14	False	gastroc_False
+gastroc_14d_m_2	True	gastroc	14d	m	2.0							gastroc_14d	gastroc_14d_m_2	tissue	Gastrocnemius PND14	False	gastroc_False
+gastroc_14d_m_1	True	gastroc	14d	m	1.0							gastroc_14d	gastroc_14d_m_1	tissue	Gastrocnemius PND14	False	gastroc_False
+gastroc_18-20mo_f_2	True	gastroc	18-20mo	f	2.0							gastroc_18-20mo	gastroc_18-20mo_f_2	tissue	Gastrocnemius PNM18-20	True	gastroc_True
+gastroc_18-20mo_f_1	True	gastroc	18-20mo	f	1.0							gastroc_18-20mo	gastroc_18-20mo_f_1	tissue	Gastrocnemius PNM18-20	True	gastroc_True
+gastroc_18-20mo_m_1	True	gastroc	18-20mo	m	1.0							gastroc_18-20mo	gastroc_18-20mo_m_1	tissue	Gastrocnemius PNM18-20	True	gastroc_True
+gastroc_18-20mo_m_2	True	gastroc	18-20mo	m	2.0							gastroc_18-20mo	gastroc_18-20mo_m_2	tissue	Gastrocnemius PNM18-20	True	gastroc_True
+gastroc_25d_m_2	True	gastroc	25d	m	2.0							gastroc_25d	gastroc_25d_m_2	tissue	Gastrocnemius PND25	False	gastroc_False
+gastroc_25d_m_1	True	gastroc	25d	m	1.0							gastroc_25d	gastroc_25d_m_1	tissue	Gastrocnemius PND25	False	gastroc_False
+gastroc_25d_f_1	True	gastroc	25d	f	1.0							gastroc_25d	gastroc_25d_f_1	tissue	Gastrocnemius PND25	False	gastroc_False
+gastroc_25d_f_2	True	gastroc	25d	f	2.0							gastroc_25d	gastroc_25d_f_2	tissue	Gastrocnemius PND25	False	gastroc_False
+gastroc_2mo_m_2	True	gastroc	2mo	m	2.0							gastroc_2mo	gastroc_2mo_m_2	tissue	Gastrocnemius PNM2	False	gastroc_False
+gastroc_2mo_m_1	True	gastroc	2mo	m	1.0							gastroc_2mo	gastroc_2mo_m_1	tissue	Gastrocnemius PNM2	False	gastroc_False
+gastroc_2mo_f_2	True	gastroc	2mo	f	2.0							gastroc_2mo	gastroc_2mo_f_2	tissue	Gastrocnemius PNM2	False	gastroc_False
+gastroc_2mo_f_1	True	gastroc	2mo	f	1.0							gastroc_2mo	gastroc_2mo_f_1	tissue	Gastrocnemius PNM2	False	gastroc_False
+gastroc_36d_f_2	True	gastroc	36d	f	2.0							gastroc_36d	gastroc_36d_f_2	tissue	Gastrocnemius PND36	False	gastroc_False
+gastroc_36d_f_1	True	gastroc	36d	f	1.0							gastroc_36d	gastroc_36d_f_1	tissue	Gastrocnemius PND36	False	gastroc_False
+gastroc_36d_m_1	True	gastroc	36d	m	1.0							gastroc_36d	gastroc_36d_m_1	tissue	Gastrocnemius PND36	False	gastroc_False
+gastroc_36d_m_2	True	gastroc	36d	m	2.0							gastroc_36d	gastroc_36d_m_2	tissue	Gastrocnemius PND36	False	gastroc_False
+gastroc_4d_m_1	True	gastroc	4d	m	1.0							gastroc_4d	gastroc_4d_m_1	tissue	Gastrocnemius PND4	False	gastroc_False
+gastroc_4d_m_2	True	gastroc	4d	m	2.0							gastroc_4d	gastroc_4d_m_2	tissue	Gastrocnemius PND4	False	gastroc_False
+gastroc_4d_f_2	True	gastroc	4d	f	2.0							gastroc_4d	gastroc_4d_f_2	tissue	Gastrocnemius PND4	False	gastroc_False
+gastroc_4d_f_1	True	gastroc	4d	f	1.0							gastroc_4d	gastroc_4d_f_1	tissue	Gastrocnemius PND4	False	gastroc_False
+heart_14d_m_2	True	heart	14d	m	2.0							heart_14d	heart_14d_m_2	tissue	Heart PND14	False	heart_False
+heart_14d_m_1	True	heart	14d	m	1.0							heart_14d	heart_14d_m_1	tissue	Heart PND14	False	heart_False
+heart_14d_f_1	True	heart	14d	f	1.0							heart_14d	heart_14d_f_1	tissue	Heart PND14	False	heart_False
+heart_14d_f_2	True	heart	14d	f	2.0							heart_14d	heart_14d_f_2	tissue	Heart PND14	False	heart_False
+heart_18-20mo_m_1	True	heart	18-20mo	m	1.0							heart_18-20mo	heart_18-20mo_m_1	tissue	Heart PNM18-20	True	heart_True
+heart_18-20mo_m_2	True	heart	18-20mo	m	2.0							heart_18-20mo	heart_18-20mo_m_2	tissue	Heart PNM18-20	True	heart_True
+heart_18-20mo_f_1	True	heart	18-20mo	f	1.0							heart_18-20mo	heart_18-20mo_f_1	tissue	Heart PNM18-20	True	heart_True
+heart_18-20mo_f_2	True	heart	18-20mo	f	2.0							heart_18-20mo	heart_18-20mo_f_2	tissue	Heart PNM18-20	True	heart_True
+heart_2mo_f_1	True	heart	2mo	f	1.0							heart_2mo	heart_2mo_f_1	tissue	Heart PNM2	False	heart_False
+heart_2mo_f_2	True	heart	2mo	f	2.0							heart_2mo	heart_2mo_f_2	tissue	Heart PNM2	False	heart_False
+heart_2mo_m_2	True	heart	2mo	m	2.0							heart_2mo	heart_2mo_m_2	tissue	Heart PNM2	False	heart_False
+heart_2mo_m_1	True	heart	2mo	m	1.0							heart_2mo	heart_2mo_m_1	tissue	Heart PNM2	False	heart_False
+hippocampus_wt_m_2_1	False	hippocampus		m		True	wt					hippocampus	hippocampus_wt_m_2_1	tissue	Hippocampus	True	hippocampus_True
+hippocampus_wt_m_2_2	False	hippocampus		m		True	wt					hippocampus	hippocampus_wt_m_2_2	tissue	Hippocampus	True	hippocampus_True
+hippocampus_wt_m_1_1	False	hippocampus		m		True	wt					hippocampus	hippocampus_wt_m_1_1	tissue	Hippocampus	True	hippocampus_True
+hippocampus_wt_m_1_2	False	hippocampus		m		True	wt					hippocampus	hippocampus_wt_m_1_2	tissue	Hippocampus	True	hippocampus_True
+hippocampus_5x_f_1_1	False	hippocampus		f		True	5x					hippocampus	hippocampus_5x_f_1_1	tissue	Hippocampus	True	hippocampus_True
+hippocampus_5x_f_1_2	False	hippocampus		f		True	5x					hippocampus	hippocampus_5x_f_1_2	tissue	Hippocampus	True	hippocampus_True
+hippocampus_wt_f_1_1	False	hippocampus		f		True	wt					hippocampus	hippocampus_wt_f_1_1	tissue	Hippocampus	True	hippocampus_True
+hippocampus_wt_f_1_2	False	hippocampus		f		True	wt					hippocampus	hippocampus_wt_f_1_2	tissue	Hippocampus	True	hippocampus_True
+hippocampus_5x_m_1_1	False	hippocampus		m		True	5x					hippocampus	hippocampus_5x_m_1_1	tissue	Hippocampus	True	hippocampus_True
+hippocampus_5x_m_1_2	False	hippocampus		m		True	5x					hippocampus	hippocampus_5x_m_1_2	tissue	Hippocampus	True	hippocampus_True
+hippocampus_14d_m_2	True	hippocampus	14d	m	2.0							hippocampus_14d	hippocampus_14d_m_2	tissue	Hippocampus PND14	False	hippocampus_False
+hippocampus_14d_m_1	True	hippocampus	14d	m	1.0							hippocampus_14d	hippocampus_14d_m_1	tissue	Hippocampus PND14	False	hippocampus_False
+hippocampus_14d_f_2	True	hippocampus	14d	f	2.0							hippocampus_14d	hippocampus_14d_f_2	tissue	Hippocampus PND14	False	hippocampus_False
+hippocampus_14d_f_1	True	hippocampus	14d	f	1.0							hippocampus_14d	hippocampus_14d_f_1	tissue	Hippocampus PND14	False	hippocampus_False
+hippocampus_18-20mo_m_2	True	hippocampus	18-20mo	m	2.0							hippocampus_18-20mo	hippocampus_18-20mo_m_2	tissue	Hippocampus PNM18-20	True	hippocampus_True
+hippocampus_18-20mo_m_1	True	hippocampus	18-20mo	m	1.0							hippocampus_18-20mo	hippocampus_18-20mo_m_1	tissue	Hippocampus PNM18-20	True	hippocampus_True
+hippocampus_18-20mo_f_2	True	hippocampus	18-20mo	f	2.0							hippocampus_18-20mo	hippocampus_18-20mo_f_2	tissue	Hippocampus PNM18-20	True	hippocampus_True
+hippocampus_18-20mo_f_1	True	hippocampus	18-20mo	f	1.0							hippocampus_18-20mo	hippocampus_18-20mo_f_1	tissue	Hippocampus PNM18-20	True	hippocampus_True
+hippocampus_2mo_f_1	True	hippocampus	2mo	f	1.0							hippocampus_2mo	hippocampus_2mo_f_1	tissue	Hippocampus PNM2	False	hippocampus_False
+hippocampus_2mo_f_2	True	hippocampus	2mo	f	2.0							hippocampus_2mo	hippocampus_2mo_f_2	tissue	Hippocampus PNM2	False	hippocampus_False
+hippocampus_2mo_m_1	True	hippocampus	2mo	m	1.0							hippocampus_2mo	hippocampus_2mo_m_1	tissue	Hippocampus PNM2	False	hippocampus_False
+hippocampus_2mo_m_2	True	hippocampus	2mo	m	2.0							hippocampus_2mo	hippocampus_2mo_m_2	tissue	Hippocampus PNM2	False	hippocampus_False
