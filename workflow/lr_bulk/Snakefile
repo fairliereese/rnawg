@@ -999,9 +999,7 @@ rule swan_unfilt:
 
 rule swan_metadata:
     input:
-        sg = config['swan']['sg_unfilt']
-    params:
-        prefix = config['swan']['sg_unfilt'].replace('.p', '')
+        in_sg = config['swan']['sg_unfilt']
     resources:
         mem_gb = 64,
         threads = 1
@@ -1009,8 +1007,8 @@ rule swan_metadata:
         sg = config['swan']['sg_unfilt_meta'],
         meta = config['swan']['meta']
     run:
-        print(input.sg)
-        add_swan_metadata(input.sg, output.meta, output.sg, species='human')
+        print(input.in_sg)
+        add_swan_metadata(input.in_sg, output.meta, output.sg, species='human')
 
 # # TODO - should only be isos >=1tpm from polya genes
 # rule swan_filt:

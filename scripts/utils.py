@@ -477,7 +477,7 @@ def get_ad_metadata():
     ad_df = pd.read_csv(fname, sep='\t')
     ad_df = ad_df[['file_id', 'health_status']]
     fname = '{}/../lr_bulk/file_to_hr.tsv'.format(d)
-    hr_df = pd.read_csv(fname, sep='\t', header=None, names=['file_id', 'hr'])
+    hr_df = pd.read_csv(fname, sep='\t', header=None, names=['file_id', 'hr', 'sample_display'])
 
     ad_df = ad_df.merge(hr_df, on='file_id')
     return ad_df
