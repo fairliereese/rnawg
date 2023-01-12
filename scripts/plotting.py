@@ -92,8 +92,14 @@ def get_lr_bulk_sample_colors():
     
 
     # adrenal, hc, ctx
-    for t in ['adrenal', 'hippocampus', 'cortex']:
-        c_dict[t] = get_tissue_colors()[0][t]
+    # for t in ['adrenal', 'hippocampus', 'cortex']:
+    #     c_dict[t] = get_tissue_colors()[0][t]
+    # manually grabbed shades from shade picker to be one darker than
+    # the last timecourse pt
+    c_dict['adrenal'] = '#8e361b'
+    c_dict['hippocampus'] = '#9a3c4f'
+    c_dict['cortex'] = '#634273'
+    
     order += ['adrenal', 'hippocampus', 'cortex']
     
 
@@ -189,6 +195,20 @@ def get_feat_triplet_colors(cats=None):
               'tes': tes,
               'triplet': triplet}
     order = ['triplet', 'tss', 'ic', 'tes']
+    
+    c_dict, order = rm_color_cats(c_dict, order, cats)
+    return c_dict, order
+
+def get_feat_triplet_colors_2(cats=None):
+    tss = '#56B4E9'
+    tes = '#E69F00'
+    splicing = '#CC79A7'
+    triplet = '#009E73'
+    c_dict = {'tss': tss,
+              'ic': splicing,
+              'tes': tes,
+              'iso': triplet}
+    order = ['iso', 'tss', 'ic', 'tes']
     
     c_dict, order = rm_color_cats(c_dict, order, cats)
     return c_dict, order
@@ -2773,8 +2793,110 @@ def plot_sankey(df,
     fig.show()
     return fig
 
+def plot_n_isos_per_gene(df,
+                       max_isos=10,
+                       show_pc=False,
+                       subset=None, 
+                    opref='figures/'):
+    
+    """
+    Plot number of isoforms per gene in a
+    given subset of isoforms
+    """
+    
+    df['gid'] = cerberus.get_stable_gid(df, 'annot_gene_id')
+
+    feat_col = 'n_iso'
+
+    # get subset features
+    if subset:
+        df = df.loc[df.annot_transcript_id.isin(subset)]
+
+    #
+    if show_pc:
+        gene_df, _, _ = get_gtf_info(how='gene', ver='v40_cerberus')
+        gene_df['gid'] = cerberus.get_stable_gid(gene_df, col='gid')
+        gene_df = gene_df[['gid', 'biotype_category']]
+        df = df.merge(gene_df, how='left', on='gid')
+
+    # count # feats / gene
+    gb_cols = ['gid']
+    if show_pc:
+        gb_cols += ['biotype_category']
+    keep_cols = gb_cols + ['annot_transcript_id']
+    df = df[keep_cols]
+    df = df.groupby(gb_cols).count().reset_index()
+    df.rename({'annot_transcript_id': feat_col}, axis=1, inplace=True)
+
+    # create counts df
+    gb_cols = [feat_col]
+    if show_pc:
+        gb_cols += ['biotype_category']
+    df = df.groupby(gb_cols).count().reset_index()
+
+    # group all the entries over the max number
+    df.rename({'gene_id': 'n_genes'}, axis=1, inplace=True)
+    df.loc[df[feat_col] >= max_isos, feat_col] = '{}+'.format(max_isos)
+    df = df.groupby(gb_cols).sum().reset_index()
+
+    sns.set_context('paper', font_scale=2)
+    mpl.rcParams['font.family'] = 'Arial'
+    mpl.rcParams['pdf.fonttype'] = 42
+    plt.figure(figsize=(5,4))
+
+    c_dict, order = get_talon_nov_colors(cats=['Known'])
+    c = c_dict['Known']
+    if show_pc:
+        biotypes = ['protein_coding', 'lncRNA', 'pseudogene']
+        b_dict = {'protein_coding': 'Protein coding',
+                  'lncRNA': 'lncRNA',
+                  'pseudogene': 'Pseudogene'}
+        # biotypes.reverse()
+        c_dict, order = get_shade_colors(c, biotypes)
+        # order.reverse()
+
+    df = df.pivot(index=feat_col, columns=['biotype_category'])
+    df.columns = df.columns.droplevel(0)
+    df.reset_index(inplace=True)
+
+    df[feat_col] = df[feat_col].astype(str)
+    x = df[feat_col].unique().tolist()
+
+    # loop through biotypes
+    bottom = [0 for i in range(len(x))]
+    for b in order:
+        y = df[b].tolist()
+        plt.bar(x, y, color=c_dict[b], bottom=bottom)
+        bottom = [b_coord+y_coord for b_coord, y_coord in zip(bottom, y)]
+
+    plt.xlabel('# isoforms / gene')
+    plt.ylabel('# genes')
+    sns.despine()
+    
+
+    leg_labels = [b_dict[o] for o in order]
+    plt.legend(leg_labels, bbox_to_anchor=(.6, 1.05))
+    ax = plt.gca()
+    leg = ax.get_legend()
+    shade_dict, _ = get_shade_colors('#000000', order)
+    for i, o in enumerate(order):
+        leg.legendHandles[i].set_color(shade_dict[o])
+    
+    ax.tick_params(axis="x", rotation=45)
+
+
+    fname = f'{opref}/isos_per_gene_support.png'
+    print(fname)
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
+
+    fname = f'{opref}/isos_per_gene_support.pdf'
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
+
+    return df
+                       
+                       
+
 def plot_n_feat_per_gene(h5,
-                         source,
                          feat,
                          max_ends=10,
                          show_pc=False,
@@ -2878,7 +3000,8 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
                               
                                h=0.1, w=56, x=14, fig_w=14, ref_source='v40', species='human',
                                h_space=None,
-                               add_tss=False, add_ccre=False, major=False):
+                               add_tss=False, add_ccre=False, major=False, order='expression',
+                     light_shade=None, dark_shade=None):
     """
     Plot browser style isoform models for a given sample
     """
@@ -2966,11 +3089,17 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     else:
         tids = get_isos(ca, filt_ab, gene, obs_condition)
     tpm_df = get_tpm_df(sg, tids, obs_col, obs_condition)
-    
+
     # colormap definition
-    light_shade = get_sector_colors()[0]['mixed']
-    dark_shade = get_sector_colors()[0]['simple']
+    # if cmap == 'gray':
+    if not light_shade:
+        light_shade = get_sector_colors()[0]['mixed']
+    if not dark_shade:
+        dark_shade = get_sector_colors()[0]['simple']
     cmap = mpl.colors.LinearSegmentedColormap.from_list('', [light_shade, dark_shade])
+    # else:
+    #     pass
+        
     
     # font sizes
     # small_text = 6/(6.11/16)
@@ -3004,14 +3133,18 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     
     # plotting order
     tpm_df = tpm_df.sort_values(by=obs_condition, ascending=False)
-    tpm_df = tpm_df[obs_condition]
+    tpm_df = tpm_df[[obs_condition]]
     
+    if order == 'tss':
+        tpm_df = add_feat(tpm_df, kind='tss', col='index')
+        tpm_df.sort_values(by=['tss', obs_condition], ascending=[True, False], inplace=True)
+        tpm_df.drop('tss', axis=1, inplace=True)
+
     # x coords for gencode name and cerberus name
     x_gc = -4
     x_c = 11
     
     # add reference ids
-    tpm_df = tpm_df.to_frame()
     df = ca.t_map.loc[ca.t_map.source == ref_source]
     df = df[['transcript_id','original_transcript_id', 'original_transcript_name']]
     tpm_df = tpm_df.merge(df, how='left', left_index=True, right_on='transcript_id')
