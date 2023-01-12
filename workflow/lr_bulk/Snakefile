@@ -1009,7 +1009,7 @@ rule swan_metadata:
         sg = config['swan']['sg_unfilt_meta'],
         meta = config['swan']['meta']
     run:
-        add_swan_metadata(input.sg, output.meta, species='human', output.sg)
+        add_swan_metadata(input.sg, output.meta, output.sg, species='human')
 
 # # TODO - should only be isos >=1tpm from polya genes
 # rule swan_filt:
