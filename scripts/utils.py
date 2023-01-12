@@ -71,7 +71,7 @@ def get_biotype_map():
 
 def add_swan_metadata(swan_file, ofile, out_swan, species='human'):
     if species == 'human':
-        sg = swan.read('swan.p')
+        sg = swan.read(swan_file)
         meta = sg.adata.obs.copy(deep=True)
         meta.reset_index(inplace=True, drop=True)
         meta['sample'] = meta.dataset.str.rsplit('_', n=2, expand=True)[0]
