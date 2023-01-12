@@ -68,7 +68,7 @@ def get_biotype_map():
                      'IG_J_pseudogene']}
     return map
 
-def add_swan_metadata(swan_file, ofile, species='human', out_swan):
+def add_swan_metadata(swan_file, ofile, out_swan, species='human'):
     if species == 'human':
         sg = swan.read('swan.p')
         meta = sg.adata.obs.copy(deep=True)
@@ -93,10 +93,10 @@ def add_swan_metadata(swan_file, ofile, species='human', out_swan):
         meta.drop('hr', axis=1, inplace=True)
 
         print('Found {} total samples'.format(len(meta['sample'].unique().tolist())))
-        
+
     # save metadata
     meta.to_csv(ofile, sep='\t', index=False)
-    
+
     # update swangraph with this metadata and these colors
     sg.add_metadata(ofile)
 
@@ -106,12 +106,12 @@ def add_swan_metadata(swan_file, ofile, species='human', out_swan):
 
     c_dict, order = get_ad_colors()
     sg.set_metadata_colors('health_status', c_dict)
-    
+
     c_dict, order = get_tissue_cell_line_colors()
     sg.set_metadata_colrs('classification', c_dict)
 
     sg.save_graph(out_swan)
-    
+
 def get_gene_info(gtf, o):
     df = pr.read_gtf(gtf, as_df=True, duplicate_attr=True)
 
@@ -186,7 +186,7 @@ def get_transcript_info(gtf, o):
     print(len(df.index))
     df = df.loc[(~df.Chromosome.str.contains('SIRV'))&~(df.Chromosome.str.contains('ERCC'))]
     print(len(df.index))
-    
+
     # mane status
     mane_df = df.loc[df.Feature == 'transcript'].copy(deep=True)
     mane_df.tag.fillna('', inplace=True)
@@ -197,7 +197,7 @@ def get_transcript_info(gtf, o):
 
     # only exons
     df = df.loc[df.Feature == 'exon'].copy(deep=True)
-    
+
     # rename some columns
     m = {'gene_id': 'gid',
          'gene_name': 'gname',
@@ -223,7 +223,7 @@ def get_transcript_info(gtf, o):
     df['biotype_category'] = df.biotype.map(biotype_map)
 
     df['exon_len'] = (df.Start-df.End).abs()+1
-    
+
     cols = ['gid', 'gname', 'tid', 'exon_len', 'biotype', 'biotype_category']
     df = df[cols]
     df_copy = df[['gid', 'gname', 'tid', 'biotype', 'biotype_category']].copy(deep=True)
@@ -231,8 +231,8 @@ def get_transcript_info(gtf, o):
 
     df = df.groupby('tid').sum().reset_index()
     df.rename({'exon_len': 't_len'}, axis=1, inplace=True)
-    df = df.merge(df_copy, on='tid', how='left') 
-    
+    df = df.merge(df_copy, on='tid', how='left')
+
     # merge mane info
     df = df.merge(mane_df, how='left', on='tid')
 
@@ -1728,7 +1728,7 @@ def get_sr_tpm_table(df,
 def add_sample(df):
     """
     Add biosample id to each dataset name.
-    
+
     Parameters:
         temp (pandas DataFrame): DF w/ 'dataset' col
     """
@@ -1741,7 +1741,7 @@ def add_sample(df):
     temp.drop('biosample', axis=1, inplace=True)
     temp.rename({'tissue': 'sample'}, axis=1, inplace=True)
     temp['sample'].unique()
-    
+
     return temp
 
 def get_tpm_table(df,
