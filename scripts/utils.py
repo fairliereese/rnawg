@@ -68,6 +68,50 @@ def get_biotype_map():
                      'IG_J_pseudogene']}
     return map
 
+def add_swan_metadata(swan_file, ofile, species='human', out_swan):
+    if species == 'human':
+        sg = swan.read('swan.p')
+        meta = sg.adata.obs.copy(deep=True)
+        meta.reset_index(inplace=True, drop=True)
+        meta['sample'] = meta.dataset.str.rsplit('_', n=2, expand=True)[0]
+
+        tissue_df = get_tissue_metadata()
+        tissue_df = tissue_df[['tissue', 'biosample']]
+        tissue_df.rename({'biosample': 'sample'}, axis=1, inplace=True)
+
+        meta = meta.merge(tissue_df, how='left', on='sample')
+        meta['classification'] = 'tissue'
+        meta.loc[meta.tissue.isnull(), 'classification'] = 'cell_line'
+
+        meta.loc[meta.tissue.isnull(), 'tissue'] = meta.loc[meta.tissue.isnull(), 'sample']
+        meta.drop('sample', axis=1, inplace=True)
+        meta.rename({'tissue': 'sample'}, axis=1, inplace=True)
+
+        ad_df = get_ad_metadata()
+        ad_df = ad_df[['health_status', 'hr', 'file_id', 'sample_display']]
+        meta = meta.merge(ad_df, how='left', left_on='dataset', right_on='hr')
+        meta.drop('hr', axis=1, inplace=True)
+
+        print('Found {} total samples'.format(len(meta['sample'].unique().tolist())))
+        
+    # save metadata
+    meta.to_csv(ofile, sep='\t', index=False)
+    
+    # update swangraph with this metadata and these colors
+    sg.add_metadata(ofile)
+
+    # colors
+    c_dict, order = get_biosample_colors()
+    sg.set_metadata_colors('sample', c_dict)
+
+    c_dict, order = get_ad_colors()
+    sg.set_metadata_colors('health_status', c_dict)
+    
+    c_dict, order = get_tissue_cell_line_colors()
+    sg.set_metadata_colrs('classification', c_dict)
+
+    sg.save_graph(out_swan)
+    
 def get_gene_info(gtf, o):
     df = pr.read_gtf(gtf, as_df=True, duplicate_attr=True)
 

@@ -61,6 +61,7 @@ rule all:
         config['ref']['v40']['cerberus']['g_info'],
         config['cerberus']['t_info'],
         config['swan']['sg_unfilt'],
+        config['swan']['sg_unfilt_meta'],
         config['gtex']['cerberus']['annot']
 
 #### refs ####
@@ -247,47 +248,47 @@ rule talon_known_nic_nnc_gtf:
             --o {params.prefix}"
 
 #### Swan stuff ####
-rule swan_filter:
-    input:
-        filt_ab = config['talon']['filt_ab']
-    output:
-        pass_list = config['swan']['pass_list']
-    resources:
-        mem_gb = 64,
-        threads = 1
-    run:
-        df = pd.read_csv(input.filt_ab, sep='\t')
-        _, inds = get_tpm_table(df,
-                                how='iso',
-                                sample='all',
-                                min_tpm=1,
-                                gene_subset='polya',
-                                nov=['Known', 'NIC', 'NNC'])
-        df = df.loc[df.annot_transcript_id.isin(inds)]
-        print(len(df.loc[df.transcript_novelty != 'Known'].index))
-        df = df[['gene_ID', 'transcript_ID']]
-        df.to_csv(output.pass_list, header=None, index=False)
-
-rule swan_gtf:
-    input:
-        db = config['talon']['db'],
-        pass_list = config['swan']['pass_list']
-    output:
-        gtf = config['swan']['gtf']
-    params:
-        prefix = config['swan']['gtf'].replace('_talon.gtf', ''),
-        annot = 'gencode_v29',
-        build = 'hg38'
-    resources:
-        mem_gb = 64,
-        threads = 1
-    shell:
-        "talon_create_GTF \
-            --db {input.db} \
-            -a {params.annot} \
-            -b {params.build} \
-            --whitelist {input.pass_list} \
-            --o {params.prefix}"
+# rule swan_filter:
+#     input:
+#         filt_ab = config['talon']['filt_ab']
+#     output:
+#         pass_list = config['swan']['pass_list']
+#     resources:
+#         mem_gb = 64,
+#         threads = 1
+#     run:
+#         df = pd.read_csv(input.filt_ab, sep='\t')
+#         _, inds = get_tpm_table(df,
+#                                 how='iso',
+#                                 sample='all',
+#                                 min_tpm=1,
+#                                 gene_subset='polya',
+#                                 nov=['Known', 'NIC', 'NNC'])
+#         df = df.loc[df.annot_transcript_id.isin(inds)]
+#         print(len(df.loc[df.transcript_novelty != 'Known'].index))
+#         df = df[['gene_ID', 'transcript_ID']]
+#         df.to_csv(output.pass_list, header=None, index=False)
+#
+# rule swan_gtf:
+#     input:
+#         db = config['talon']['db'],
+#         pass_list = config['swan']['pass_list']
+#     output:
+#         gtf = config['swan']['gtf']
+#     params:
+#         prefix = config['swan']['gtf'].replace('_talon.gtf', ''),
+#         annot = 'gencode_v29',
+#         build = 'hg38'
+#     resources:
+#         mem_gb = 64,
+#         threads = 1
+#     shell:
+#         "talon_create_GTF \
+#             --db {input.db} \
+#             -a {params.annot} \
+#             -b {params.build} \
+#             --whitelist {input.pass_list} \
+#             --o {params.prefix}"
 
 #### LAPA + cerberus ####
 rule copy_lapa_stuff_gtf:
@@ -364,15 +365,6 @@ def filter_spikes(df):
 def filter_novel_genes(df):
     df = df.loc[df.gene_novelty=='Known']
     return df
-
-# def filter_gtex_gtf(gtf, oname):
-#     df = pr.read_gtf(gtf, as_df=True)
-#     df = df.loc[~df.gene_id.str.contains('chr')]
-#     # df = df.loc[df.gene_id.str.contains('ENSG')]
-#     # inds = df.loc[df.gene_id.str.contains('chr')].index.tolist()
-#     # df.loc[inds, 'gene_id'] = df.loc[inds, 'gene_id'].str.split('_', n=1, expand=True)[1]
-#     df = pr.PyRanges(df)
-#     df.to_gtf(oname)
 
 # create gtf only with novelty categories we want
 # and remove sirv / ercc
@@ -635,7 +627,7 @@ rule cerberus_agg_tes_config:
         threads = 1
     params:
         add_ends = [True, True, True, True,
-                    True, False],
+                    False, False],
         refs = [True, True, False, False,
                 False, False],
         sources = ['v40', 'v29', 'lapa', 'gtex',
@@ -975,15 +967,16 @@ def make_sg(input, params):
     sg.add_abundance(input.ab)
     sg.add_abundance(input.gene_ab, how='gene')
 
-    # add metadata and add colors
-    sg.add_metadata(input.meta)
-    c_dict, order = get_biosample_colors()
-    sg.set_metadata_colors('sample', c_dict)
-    c_dict, order = get_ad_colors()
-    sg.set_metadata_colors('health_status', c_dict)
+    # # add metadata and add colors
+    # sg.add_metadata(input.meta)
+    # c_dict, order = get_biosample_colors()
+    # sg.set_metadata_colors('sample', c_dict)
+    # c_dict, order = get_ad_colors()
+    # sg.set_metadata_colors('health_status', c_dict)
 
     # save
     sg.save_graph(params.prefix)
+
 
 # unfiltered swan -- all isoforms from cerberus;
 # not filtered for abundance at all
@@ -1003,6 +996,20 @@ rule swan_unfilt:
         sg = config['swan']['sg_unfilt']
     run:
         make_sg(input, params)
+
+rule swan_metadata:
+    input:
+        sg = config['swan']['sg_unfilt']
+    params:
+        prefix = config['swan']['sg_unfilt'].replace('.p', '')
+    resources:
+        mem_gb = 64,
+        threads = 1
+    output:
+        sg = config['swan']['sg_unfilt_meta'],
+        meta = config['swan']['meta']
+    run:
+        add_swan_metadata(input.sg, output.meta, species='human', output.sg)
 
 # # TODO - should only be isos >=1tpm from polya genes
 # rule swan_filt:

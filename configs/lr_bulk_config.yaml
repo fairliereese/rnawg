@@ -57,6 +57,7 @@ swan:
   gtf: lr_bulk/swan/human_swan_talon.gtf
   meta: lr_bulk/swan/swan_metadata.tsv
   sg_unfilt: lr_bulk/cerberus/swan/swan.p
+  sg_unfilt_meta: lr_bulk/cerberus/swan/swan_meta.p
 
 pp:
   gtf_to_bed: ~/mortazavi_lab/bin/tama/tama_go/format_converter/tama_format_gtf_to_bed12_ensembl.py
