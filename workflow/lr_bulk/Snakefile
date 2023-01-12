@@ -1017,7 +1017,7 @@ def add_swan_metadata(swan_file, ofile, out_swan, species='human'):
     sg.set_metadata_colors('health_status', c_dict)
 
     c_dict, order = get_tissue_cell_line_colors()
-    sg.set_metadata_colrs('classification', c_dict)
+    sg.set_metadata_colors('classification', c_dict)
 
     sg.save_graph(out_swan)
 
@@ -1030,7 +1030,6 @@ rule swan_unfilt:
         ab = config['cerberus']['update_ab'],
         gene_ab = config['talon']['ab'],
         gtf = config['cerberus']['update_gtf'],
-        meta = config['swan']['meta']
     params:
         prefix = config['swan']['sg_unfilt'].replace('.p', '')
     resources:
