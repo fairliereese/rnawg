@@ -1,3 +1,6 @@
+lr_bulk/cerberus/archive/*
+*xml
+*.idx
 *tsv
 *.zip
 *csv
