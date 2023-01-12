@@ -11,6 +11,7 @@ import pyranges as pyranges
 import cerberus
 import scipy
 import scipy.stats as st
+import swan_vis as swan
 
 def get_lr_samples():
     """
