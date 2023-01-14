@@ -62,7 +62,8 @@ rule all:
         config['cerberus']['t_info'],
         config['swan']['sg_unfilt'],
         config['swan']['sg_unfilt_meta'],
-        config['gtex']['cerberus']['annot']
+        config['gtex']['cerberus']['annot'],
+        config['swan']['major_isos']
 
 #### refs ####
 rule dl_v40:
@@ -978,7 +979,7 @@ def make_sg(input, params):
     sg.save_graph(params.prefix)
 
 def add_swan_metadata(swan_file, ofile, out_swan, species='human'):
-
+    
     if species == 'human':
         sg = swan.read(swan_file)
         meta = sg.adata.obs.copy(deep=True)
@@ -1004,10 +1005,10 @@ def add_swan_metadata(swan_file, ofile, out_swan, species='human'):
 
         # get sample display and file id data
         hr_df = get_sample_display_metadata()
-        meta.merge(hr_df, how='left', left_on='dataset', right_on='hr')
+        meta = meta.merge(hr_df, how='left', left_on='dataset', right_on='hr')
         meta.drop('hr', axis=1, inplace=True)
-
         print('Found {} total samples'.format(len(meta['sample'].unique().tolist())))
+
     # save metadata
     meta.to_csv(ofile, sep='\t', index=False)
 

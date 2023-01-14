@@ -130,7 +130,7 @@ def get_major_isos(sg_file, filt_ab,
         gene_subset (str): Subset of genes to consider
     """
 
-    sg = swan.read(swan_file)
+    sg = swan.read(sg_file)
     t_df = pd.read_csv(filt_ab, sep='\t')
 
     tpm_df, tids = get_tpm_table(t_df,
