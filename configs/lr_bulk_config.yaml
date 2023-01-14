@@ -56,7 +56,7 @@ swan:
   # pass_list: lr_bulk/swan/human_talon_swan_pass_list.csv
   # gtf: lr_bulk/swan/human_swan_talon.gtf
   meta: lr_bulk/cerberus/swan/swan_metadata.tsv
-  sg_unfilt: lr_bulk/cerqberus/swan/swan.p
+  sg_unfilt: lr_bulk/cerberus/swan/swan.p
   sg_unfilt_meta: lr_bulk/cerberus/swan/swan_meta.p
 
 pp:
