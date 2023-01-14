@@ -136,8 +136,7 @@ def get_major_isos(sg_file, filt_ab,
     tpm_df, tids = get_tpm_table(t_df,
                how='iso',
                min_tpm=min_tpm,
-               gene_subset=gene_subset,
-               h5=h5)
+               gene_subset=gene_subset)
 
     t_df = t_df[['annot_gene_name', 'annot_transcript_id', 'annot_gene_id']]
     t_df.rename({'annot_gene_name': 'gname',

@@ -979,7 +979,7 @@ def make_sg(input, params):
     sg.save_graph(params.prefix)
 
 def add_swan_metadata(swan_file, ofile, out_swan, species='human'):
-    
+
     if species == 'human':
         sg = swan.read(swan_file)
         meta = sg.adata.obs.copy(deep=True)
