@@ -61,8 +61,8 @@ rule all:
         config['ref']['v40']['cerberus']['g_info'],
         config['cerberus']['t_info'],
         config['swan']['sg_unfilt'],
-        config['swan']['sg_unfilt_meta'],
-        config['gtex']['cerberus']['annot']
+        config['swan']['sg_unfilt_meta']
+        # config['gtex']['cerberus']['annot']
 
 #### refs ####
 rule dl_v40:
@@ -797,25 +797,25 @@ rule cerberus_annotate_transcriptome:
             --source {params.source} \
             -o {output.annot}"
 
-rule cerberus_annotate_gtex:
-    input:
-        gtf = config['gtex']['filt_gtf'],
-        ref = config['cerberus']['annot']
-    resources:
-        mem_gb = 56,
-        threads = 1
-    params:
-        source = 'gtex',
-        gene_source = 'v40'
-    output:
-        annot = config['gtex']['cerberus']['annot']
-    shell:
-        "cerberus annotate_transcriptome \
-            --gtf {input.gtf} \
-            --h5 {input.ref} \
-            --gene_source {params.gene_source} \
-            --source {params.source} \
-            -o {output.annot}"
+# rule cerberus_annotate_gtex:
+#     input:
+#         gtf = config['gtex']['filt_gtf'],
+#         ref = config['cerberus']['annot']
+#     resources:
+#         mem_gb = 56,
+#         threads = 1
+#     params:
+#         source = 'gtex',
+#         gene_source = 'v40'
+#     output:
+#         annot = config['gtex']['cerberus']['annot']
+#     shell:
+#         "cerberus annotate_transcriptome \
+#             --gtf {input.gtf} \
+#             --h5 {input.ref} \
+#             --gene_source {params.gene_source} \
+#             --source {params.source} \
+#             -o {output.annot}"
 
 rule cerberus_update_abundance:
     input:
@@ -1043,6 +1043,8 @@ rule swan_unfilt:
 rule swan_metadata:
     input:
         in_sg = config['swan']['sg_unfilt']
+    params:
+        prefix = config['swan']['sg_unfilt_meta'].replace('.p', '')
     resources:
         mem_gb = 64,
         threads = 1
@@ -1051,7 +1053,7 @@ rule swan_metadata:
         meta = config['swan']['meta']
     run:
         print(input.in_sg)
-        add_swan_metadata(input.in_sg, output.meta, output.sg, species='human')
+        add_swan_metadata(input.in_sg, output.meta, params.prefix, species='human')
 
 # # TODO - should only be isos >=1tpm from polya genes
 # rule swan_filt:
