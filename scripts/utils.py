@@ -113,19 +113,31 @@ def get_biotype_map():
 #
 #     sg.save_graph(out_swan)
 
-def get_major_isos(sg, t_df,
+def get_major_isos(sg_file, filt_ab,
                    obs_col,
                    ofile,
-                   min_tpm=1):
+                   min_tpm=1,
+                   gene_subset='polya'):
     """
     Get major isoforms per sample / gene combination
 
     Parameters:
-        sg (swan_vis SwanGraph): SwanGraph
+        sg_file (str): SwanGraph
+        filt_ab (str): Filtered abundance file name
         obs_col (str): Column in sg.adata.obs to use
         ofile (str): Where to save results
-        tids (list of str): List of transcripts to even consider
+        min_tpm (float): Min. TPM of isos to consider
+        gene_subset (str): Subset of genes to consider
     """
+
+    sg = swan.read(swan_file)
+    t_df = pd.read_csv(filt_ab, sep='\t')
+
+    tpm_df, tids = get_tpm_table(t_df,
+               how='iso',
+               min_tpm=min_tpm,
+               gene_subset=gene_subset,
+               h5=h5)
 
     t_df = t_df[['annot_gene_name', 'annot_transcript_id', 'annot_gene_id']]
     t_df.rename({'annot_gene_name': 'gname',

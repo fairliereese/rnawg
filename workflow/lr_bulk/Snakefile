@@ -1056,15 +1056,26 @@ rule swan_metadata:
         print(input.in_sg)
         add_swan_metadata(input.in_sg, output.meta, params.prefix, species='human')
 
-# rule get_sample_major_isos:
-#     input:
-#         sg = config['swan']['sg_unfilt_meta']
-#     params:
-#         min_tpm = 1,
-#         obs_col = 'sample'
-#     resources:
-#     output:
-#     run:
+rule get_sample_major_isos:
+    input:
+        sg = config['swan']['sg_unfilt_meta'],
+        filt_ab = config['cerberus']['update_ab']
+    params:
+        min_tpm = 1,
+        obs_col = 'sample',
+        gene_subset = 'polya'
+    resources:
+        mem_gb = 64,
+        threads = 1
+    output:
+        major_isos = config['swan']['major_isos']
+    run:
+        get_major_isos(input.sg,
+                       input.filt_ab,
+                       params.obs_col,
+                       output.major_isos,
+                       params.min_tpm,
+                       params.gene_subset)
 
 # # TODO - should only be isos >=1tpm from polya genes
 # rule swan_filt:
