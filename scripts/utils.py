@@ -113,6 +113,106 @@ def get_biotype_map():
 #
 #     sg.save_graph(out_swan)
 
+def get_major_isos(sg, t_df,
+                   obs_col,
+                   ofile,
+                   min_tpm=1):
+    """
+    Get major isoforms per sample / gene combination
+
+    Parameters:
+        sg (swan_vis SwanGraph): SwanGraph
+        obs_col (str): Column in sg.adata.obs to use
+        ofile (str): Where to save results
+        tids (list of str): List of transcripts to even consider
+    """
+
+    t_df = t_df[['annot_gene_name', 'annot_transcript_id', 'annot_gene_id']]
+    t_df.rename({'annot_gene_name': 'gname',
+                 'annot_gene_id': 'gid',
+                 'annot_transcript_id': 'tid'},
+                 axis=1,
+                 inplace=True)
+
+    df, _ = swan.calc_pi(sg.adata, sg.t_df, obs_col=obs_col)
+    df = df.sparse.to_dense().transpose()
+    tpm_df = swan.calc_tpm(sg.adata, obs_col=obs_col, how='max').sparse.to_dense().transpose()
+    tpm_df.reset_index(inplace=Truef
+    tpm_df.rename({'index':'tid'}, axis=1, inplace=True)
+
+    # melt to have one entry per tid / sample combination
+    def melt_transcript_sample(df, t_df, obs_col, col_name):
+        df = df.merge(t_df[['tid', 'gname', 'gid']], how='inner', on='tid')
+        df.set_index(['tid', 'gname', 'gid'], inplace=True)
+        df = df.melt(ignore_index=False, value_name=col_name, var_name=obs_col)
+        df = df.dropna(subset=[col_name])
+        df.reset_index(inplace=True)
+        return df
+
+    df = melt_transcript_sample(df, t_df, obs_col, col_name='pi')
+    tpm_df = melt_transcript_sample(tpm_df, t_df, obs_col, col_name='tpm')
+
+    # add tpm info in and subset based on tpm thresh
+    df = df.merge(tpm_df, how='left', on=['tid', 'gname', 'gid', 'sample'])
+    print(df.loc[(df.tpm < min_tpm)&(df.pi > 0)].head())
+    df = df.loc[df.tpm >= min_tpm]
+    df.drop('tpm', axis=1, inplace=True)
+
+    # determine the rank of each pi value for each sample / gene combo
+    df = df.sort_values(by='pi', ascending=False)
+    df['pi_rank'] = df.sort_values(by='pi', ascending=False).groupby(['gname', 'gid', obs_col]).cumcount()+1
+
+    # add a column that we can check for convergence with
+    df['gname_gid_biosamp'] = df.gname+'_'+df.gid+'_'+df[obs_col]
+
+    # add total pi value so that we can return all isos that sum up
+    # to this value if we've removed the isos that bring total to >= 90%
+    max_total_pis = df[['pi', 'gname_gid_biosamp']].groupby('gname_gid_biosamp').sum().reset_index()
+    max_total_pis.rename({'pi': 'max_total_pi'}, axis=1, inplace=True)
+
+    df.to_csv('isos_90_in_progress.tsv', sep='\t')
+
+    iso_df = pd.DataFrame()
+    max_pi_rank = df.pi_rank.max()
+    for max_pi in range(1, max_pi_rank+1):
+        pi_ranks = [i for i in range(1, max_pi+1)]
+        # for the first iteration, we don't have to limit which genes we look at
+        if max_pi == 1:
+            temp = df.loc[df.pi_rank.isin(pi_ranks)].groupby(['gname_gid_biosamp']).sum().reset_index()
+        else:
+            ids = iso_df.gname_gid_biosamp.tolist()
+            temp = df.loc[(~df.gname_gid_biosamp.isin(ids))&(df.pi_rank.isin(pi_ranks))].groupby(['gname_gid_biosamp']).sum().reset_index()
+
+        # converged if no more entries to analyze
+        if len(temp.index) == 0:
+            break
+
+        # get isoforms that have >90% isoform exp accounted for
+        temp = temp.merge(max_total_pis, how='left', on='gname_gid_biosamp')
+        temp.loc[temp.max_total_pi >= 90, 'max_total_pi'] = 90
+        temp = temp.loc[temp.pi >= temp.max_total_pi]
+        temp.drop(['pi_rank', 'max_total_pi'], axis=1, inplace=True)
+        temp['n_isos'] = max_pi
+        iso_df = pd.concat([iso_df, temp])
+
+
+    # get list of isoforms required for each sample / gene combination as well
+    df = df.merge(iso_df, how='left', on='gname_gid_biosamp')
+    df['in_90_set'] = df.pi_rank <= df.n_isos
+    df = df.loc[df.in_90_set]
+    df[['gname', 'gid', obs_col]] = df.gname_gid_biosamp.str.split('_', n=2, expand=True)
+    df.rename({'pi_x': 'pi'}, axis=1, inplace=True)
+    df.drop(['gname_gid_biosamp',
+            'pi_y', 'n_isos', 'in_90_set'], axis=1, inplace=True)
+
+    # get the sample / gene vs. n isoforms required for 90%
+    iso_df[['gname', 'gid', obs_col]] = iso_df.gname_gid_biosamp.str.split('_', n=2, expand=True)
+    iso_df.drop('gname_gid_biosamp', axis=1, inplace=True)
+    iso_df = iso_df.sort_values('n_isos', ascending=False)
+
+    df.to_csv(ofile, sep='\t', index=False)
+    return df
+
 def get_gene_info(gtf, o):
     df = pr.read_gtf(gtf, as_df=True, duplicate_attr=True)
 
@@ -463,6 +563,16 @@ def get_rank_order(df, how='max'):
     temp['celltype'] = rank_order
 
     return temp
+
+def get_sample_display_metadata():
+    """
+    Get metadata for display name for each sample
+    ad file ID
+    """
+    d = os.path.dirname(__file__)
+    fname = '{}/../lr_bulk/file_to_hr.tsv'.format(d)
+    hr_df = pd.read_csv(fname, sep='\t', header=None, names=['file_id', 'hr', 'sample_display'])
+    return hr_df
 
 def get_ad_metadata():
     """
