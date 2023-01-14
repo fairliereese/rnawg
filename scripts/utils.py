@@ -137,7 +137,7 @@ def get_major_isos(sg, t_df,
     df, _ = swan.calc_pi(sg.adata, sg.t_df, obs_col=obs_col)
     df = df.sparse.to_dense().transpose()
     tpm_df = swan.calc_tpm(sg.adata, obs_col=obs_col, how='max').sparse.to_dense().transpose()
-    tpm_df.reset_index(inplace=Truef
+    tpm_df.reset_index(inplace=True)
     tpm_df.rename({'index':'tid'}, axis=1, inplace=True)
 
     # melt to have one entry per tid / sample combination
