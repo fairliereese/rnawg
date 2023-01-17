@@ -2832,3 +2832,88 @@ def simplex_dist(x, suff_a=None, suff_b=None, **kwargs):
     dist = simplex_dist_pts(a,b, **kwargs)
 
     return dist
+
+def calculate_human_triplets(swan_file,
+                             h5,
+                             filt_ab,
+                             major_isos,
+                             ofile,
+                             ofile_tsv,
+                             obs_col='sample',
+                             min_tpm=1,
+                             gene_subset='polya'):
+
+    # read in sg and h5
+    ca = cerberus.read(h5)
+    sg = swan.read(swan_file)
+    filt_ab_df = pd.read_csv(filt_ab, sep='\t')
+    major_df = pd.read_csv(major_isos, sep='\t')
+    mm_samples = get_mouse_match_samples()
+
+    # triplets for each source
+    df = ca.get_source_triplets(sg=sg)
+    ca.add_triplets(df)
+
+    # observed triplets
+    df, tids = get_tpm_table(filt_ab_df,
+               how='iso',
+               min_tpm=min_tpm)
+    df = ca.get_subset_triplets(tids, 'obs_det', sg=sg)
+    ca.add_triplets(df)
+
+    # sample-level observed triplets
+    df = ca.get_expressed_triplets(sg,
+                                   obs_col=obs_col,
+                                   min_tpm=min_tpm,
+                                   source='sample_det')
+    ca.add_triplets(df)
+
+    # observed major triplets
+    tids = major_df.tid.unique().tolist()
+    df = ca.get_subset_triplets(tids,
+                                source='obs_major',
+                                sg=sg)
+    ca.add_triplets(df)
+
+    # sample-level major triplets
+    df = ca.get_expressed_triplets(sg,
+                                   obs_col=obs_col,
+                                   min_tpm=min_tpm,
+                                   source='sample_major',
+                                   subset=major_df)
+    ca.add_triplets(df)
+
+    # mouse-match observed triplets
+    df = get_det_table(filt_ab_df,
+                   groupby=obs_col,
+                   how='iso',
+                   min_tpm=min_tpm)
+    df = df.transpose()
+    df = df[mm_samples]
+    df = df.loc[df.any(axis=1)]
+    tids = df.index.tolist()
+    df = ca.get_subset_triplets(tids,
+                                source='obs_mm_det',
+                                sg=sg)
+    ca.add_triplets(df)
+
+    # mouse-match observed major triplets
+    subset = major_df.loc[major_df[obs_col].isin(mm_samples)]
+    tids = subset.tid.unique().tolist()
+    df = ca.get_subset_triplets(tids,
+                                source='obs_mm_major',
+                                sg=sg)
+    ca.add_triplets(df)
+
+    # remove non-polya geness
+    df, _, _ = get_gtf_info(how='gene',
+                            ver='v40_cerberus',
+                            subset=gene_subset)
+    df['gid_stable'] = cerberus.get_stable_gid(df, 'gid')
+    polya_gids = df.gid_stable.tolist()
+    ca.triplets = ca.triplets.loc[ca.triplets.gid.isin(polya_gids)]
+
+    # write stuff out
+    ca.write(ofile)
+    # also write out triplets separately to tsv
+    ca.triplets.to_csv(ofile_tsv, sep='\t', index=False)

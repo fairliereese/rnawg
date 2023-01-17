@@ -63,7 +63,8 @@ rule all:
         config['swan']['sg_unfilt'],
         config['swan']['sg_unfilt_meta'],
         config['gtex']['cerberus']['annot'],
-        config['swan']['major_isos']
+        config['swan']['major_isos'],
+        config['cerberus']['triplets']['h5']
 
 #### refs ####
 rule dl_v40:
@@ -1077,6 +1078,34 @@ rule get_sample_major_isos:
                        output.major_isos,
                        params.min_tpm,
                        params.gene_subset)
+
+rule calc_triplets:
+    input:
+        swan_file = config['swan']['sg_unfilt_meta'],
+        h5 = config['cerberus']['annot'],
+        filt_ab = config['cerberus']['update_ab'],
+        major_isos = config['swan']['major_isos'],
+        sg_file = config['swan']['sg_unfilt_meta']
+    params:
+        min_tpm = 1,
+        gene_subset = 'polya',
+        obs_col = 'sample'
+    resources:
+        threads = 1,
+        mem_gb = 64
+    output:
+        trips = config['cerberus']['triplets']['h5'],
+        tsv = config['cerberus']['triplets']['tsv']
+    run:
+        calculate_human_triplets(input.swan_file,
+                                 input.h5,
+                                 input.filt_ab,
+                                 input.major_isos,
+                                 output.trips,
+                                 output.tsv,
+                                 obs_col=params.obs_col,
+                                 min_tpm=params.min_tpm,
+                                 gene_subset=params.gene_subset)
 
 # # TODO - should only be isos >=1tpm from polya genes
 # rule swan_filt:

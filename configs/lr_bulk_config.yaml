@@ -116,6 +116,9 @@ cerberus:
   update_ab: lr_bulk/cerberus/cerberus_filtered_abundance.tsv
   update_gtf: lr_bulk/cerberus/cerberus.gtf
   t_info: lr_bulk/cerberus/cerberus_transcript_metadata.tsv
+  triplets:
+    h5: lr_bulk/cerberus/triplets/cerberus_annot_triplets.h5
+    tsv: lr_bulk/cerberus/triplets/triplets.tsv
 
 wtc11:
   cage:
