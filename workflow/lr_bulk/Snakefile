@@ -67,7 +67,7 @@ rule all:
         config['cerberus']['triplets']['h5'],
         config['swan']['major_isos_library'],
         config['cerberus']['suppa']['psi']['tss']
-        
+
 #### refs ####
 rule dl_v40:
     params:
@@ -1141,13 +1141,12 @@ rule get_cerberus_psi:
         threads = 1,
         mem_gb = 64
     output:
-        tss = config['cerberus']['suppa']['psi']['tss'],
-        ic = config['cerberus']['suppa']['psi']['ic'],
-        tes = config['cerberus']['suppa']['psi']['tes']
+        ofile = config['cerberus']['suppa']['psi']
     run:
         get_cerberus_psi(input.filt_ab,
                          params.min_tpm,
-                         params.gene_subset)
+                         params.gene_subset,
+                         output.ofile)
 
 # # TODO - should only be isos >=1tpm from polya genes
 # rule swan_filt:
