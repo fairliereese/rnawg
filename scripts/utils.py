@@ -1385,6 +1385,7 @@ def get_mouse_metadata_from_ab(df):
     print(len(meta.index))
 
     return meta
+
 def get_feat_psi(df, feat, **kwargs):
     """
     Calculate psi values for each feature
@@ -2937,6 +2938,7 @@ def get_cerberus_psi(filt_ab,
                           gene_subset=gene_subset,
                           min_tpm=min_tpm)
         df['feat'] = feat
+        df.rename({feat: 'feat_id', f'tpm_{feat}': 'feat_tpm'}, axis=1, inplace=True)
         out_df = pd.concat([out_df, df])
 
     df.to_csv(ofile, sep='\t', index=False)
