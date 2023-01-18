@@ -1058,7 +1058,7 @@ rule swan_metadata:
         print(input.in_sg)
         add_swan_metadata(input.in_sg, output.meta, params.prefix, species='human')
 
-rule get_sample_major_isos:
+rule get_library_major_isos:
     input:
         sg = config['swan']['sg_unfilt_meta'],
         filt_ab = config['cerberus']['update_ab']
@@ -1079,7 +1079,7 @@ rule get_sample_major_isos:
                        params.min_tpm,
                        params.gene_subset)
 
-rule get_library_major_isos:
+rule get_sample_major_isos:
    input:
        sg = config['swan']['sg_unfilt_meta'],
        filt_ab = config['cerberus']['update_ab']
