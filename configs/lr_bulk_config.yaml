@@ -59,6 +59,7 @@ swan:
   sg_unfilt: lr_bulk/cerberus/swan/swan.p
   sg_unfilt_meta: lr_bulk/cerberus/swan/swan_meta.p
   major_isos: lr_bulk/cerberus/swan/major_isos.tsv
+  major_isos_library: lr_bulk/cerberus/swan/major_isos_library.tsv
 
 pp:
   gtf_to_bed: ~/mortazavi_lab/bin/tama/tama_go/format_converter/tama_format_gtf_to_bed12_ensembl.py

@@ -64,8 +64,8 @@ rule all:
         config['swan']['sg_unfilt_meta'],
         config['gtex']['cerberus']['annot'],
         config['swan']['major_isos'],
-        config['cerberus']['triplets']['h5']
-
+        config['cerberus']['triplets']['h5'],
+        config['swan']['major_isos_library']
 #### refs ####
 rule dl_v40:
     params:
@@ -1064,13 +1064,13 @@ rule get_sample_major_isos:
         filt_ab = config['cerberus']['update_ab']
     params:
         min_tpm = 1,
-        obs_col = 'sample',
+        obs_col = 'dataset',
         gene_subset = 'polya'
     resources:
         mem_gb = 64,
         threads = 1
     output:
-        major_isos = config['swan']['major_isos']
+        major_isos = config['swan']['major_isos_library']
     run:
         get_major_isos(input.sg,
                        input.filt_ab,
@@ -1078,6 +1078,27 @@ rule get_sample_major_isos:
                        output.major_isos,
                        params.min_tpm,
                        params.gene_subset)
+
+   rule get_sample_major_isos:
+       input:
+           sg = config['swan']['sg_unfilt_meta'],
+           filt_ab = config['cerberus']['update_ab']
+       params:
+           min_tpm = 1,
+           obs_col = 'sample',
+           gene_subset = 'polya'
+       resources:
+           mem_gb = 64,
+           threads = 1
+       output:
+           major_isos = config['swan']['major_isos']
+       run:
+           get_major_isos(input.sg,
+                          input.filt_ab,
+                          params.obs_col,
+                          output.major_isos,
+                          params.min_tpm,
+                          params.gene_subset)
 
 rule calc_triplets:
     input:
