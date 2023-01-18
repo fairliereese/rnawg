@@ -16,6 +16,8 @@ Downloadable links and file descriptions available at each of the links below.
 * [TALON read annot](https://sandbox.zenodo.org/record/1055429)
 * [Swan SwanGraph](https://sandbox.zenodo.org/record/1148276)
 * [Sample-level major isoforms](https://sandbox.zenodo.org/record/1148273)
+* [Library-level major isoforms](https://sandbox.zenodo.org/record/1148891)
+* [File to human-readable dataset name table](https://sandbox.zenodo.org/record/1148905)
 
 ### Long-read RNA-seq data for mouse cell line and tissue data (updated 8/22/22)
 --------------------------------------------------------------------------------
