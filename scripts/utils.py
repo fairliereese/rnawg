@@ -1397,6 +1397,8 @@ def get_feat_psi(df, feat, **kwargs):
 
     # add feat type to kwargs
     kwargs['feat'] = feat
+    
+    min_tpm = kwargs['min_tpm']
 
     # get tpm of each feature
     df, ids = get_tpm_table(df, **kwargs)
