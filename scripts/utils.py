@@ -164,7 +164,7 @@ def get_major_isos(sg_file, filt_ab,
     tpm_df = melt_transcript_sample(tpm_df, t_df, obs_col, col_name='tpm')
 
     # add tpm info in and subset based on tpm thresh
-    df = df.merge(tpm_df, how='left', on=['tid', 'gname', 'gid', 'sample'])
+    df = df.merge(tpm_df, how='left', on=['tid', 'gname', 'gid', obs_col])
     print(df.loc[(df.tpm < min_tpm)&(df.pi > 0)].head())
     df = df.loc[df.tpm >= min_tpm]
     df.drop('tpm', axis=1, inplace=True)
@@ -1204,7 +1204,8 @@ def add_feat(df, col, kind, as_index=False, as_number=False,
 def get_gtf_info(how='gene',
                  subset=None,
                  add_stable_gid=False,
-                 ver='v40_cerberus'):
+                 ver='v40_cerberus',
+                 fname=None):
     """
     Gets the info from the annotation about genes / transcripts
 
@@ -1212,7 +1213,7 @@ def get_gtf_info(how='gene',
         how (str): 'gene', 'iso', 'ic', 'tss', 'tes'
         subset (str): 'polya', 'tf', 'protein_coding' or None
         add_stable_gid (bool): Add stable gid (code from cerberus)
-        ver (str): {'v29', 'v40_cerberus'}
+        ver (str): {'v29', 'v40_cerberus', 'v25_cerberus'}
 
     Returns:
         df (pandas DataFrame): DataFrame with info for gene / transcript
@@ -1222,21 +1223,23 @@ def get_gtf_info(how='gene',
             per meta biotype reported in gencode
     """
     iso_hows = ['iso', 'tss', 'tes', 'ic']
-    d = os.path.dirname(__file__)
-    if how == 'gene' and ver == 'v29':
-        fname = '{}/../refs/gencode_v29_gene_metadata.tsv'.format(d)
-    elif how in iso_hows and ver == 'v29':
-        fname = '{}/../refs/gencode_v29_transcript_metadata.tsv'.format(d)
-    elif how == 'gene' and ver == 'v40_cerberus':
-        fname = '{}/../refs/cerberus/v40_gene_metadata.tsv'.format(d)
-    elif how in iso_hows and ver == 'v40_cerberus':
-        fname = '{}/../refs/cerberus/v40_transcript_metadata.tsv'.format(d)
 
-    elif how == 'gene' and ver == 'vM25_cerberus':
-        fname = '/Users/fairliereese/Documents/programming/mortazavi_lab/data/mousewg/refs/cerberus/vM25_gene_metadata.tsv'
-    elif how in iso_hows and ver == 'vM25_cerberus':
-        fname = '/Users/fairliereese/Documents/programming/mortazavi_lab/data/mousewg/refs/cerberus/vM25_transcript_metadata.tsv'
+    # automatically pull the file we need, otherwise use the user-specified file
+    if not fname:
+        d = os.path.dirname(__file__)
+        if how == 'gene' and ver == 'v29':
+            fname = '{}/../refs/gencode_v29_gene_metadata.tsv'.format(d)
+        elif how in iso_hows and ver == 'v29':
+            fname = '{}/../refs/gencode_v29_transcript_metadata.tsv'.format(d)
+        elif how == 'gene' and ver == 'v40_cerberus':
+            fname = '{}/../refs/cerberus/v40_gene_metadata.tsv'.format(d)
+        elif how in iso_hows and ver == 'v40_cerberus':
+            fname = '{}/../refs/cerberus/v40_transcript_metadata.tsv'.format(d)
 
+        elif how == 'gene' and ver == 'vM25_cerberus':
+            fname = '/Users/fairliereese/Documents/programming/mortazavi_lab/data/mousewg/refs/cerberus/vM25_gene_metadata.tsv'
+        elif how in iso_hows and ver == 'vM25_cerberus':
+            fname = '/Users/fairliereese/Documents/programming/mortazavi_lab/data/mousewg/refs/cerberus/vM25_transcript_metadata.tsv'
 
     df = pd.read_csv(fname, sep='\t')
 
