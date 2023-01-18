@@ -111,8 +111,8 @@ cerberus:
   ics:
     cfg: lr_bulk/cerberus/agg_ics_config.csv
     agg: lr_bulk/cerberus/agg_ics.tsv
-  ref: lr_bulk/cerberus/cerberus_ref.h5 # does not contain full transcripts
-  annot: lr_bulk/cerberus/cerberus_annot.h5 # does contain full transcripts
+  ref: lr_bulk/cerberus/cerberus_ref.h5
+  annot: lr_bulk/cerberus/cerberus_annot.h5
   update_ab: lr_bulk/cerberus/cerberus_filtered_abundance.tsv
   update_gtf: lr_bulk/cerberus/cerberus.gtf
   t_info: lr_bulk/cerberus/cerberus_transcript_metadata.tsv
