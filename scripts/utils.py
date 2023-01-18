@@ -1223,7 +1223,7 @@ def get_gtf_info(how='gene',
             per meta biotype reported in gencode
     """
     iso_hows = ['iso', 'tss', 'tes', 'ic']
-    
+
     # automatically pull the file we need, otherwise use the user-specified file
     if not fname:
         d = os.path.dirname(__file__)
@@ -1385,6 +1385,7 @@ def get_mouse_metadata_from_ab(df):
     print(len(meta.index))
 
     return meta
+
 def get_feat_psi(df, feat, **kwargs):
     """
     Calculate psi values for each feature
@@ -1397,6 +1398,7 @@ def get_feat_psi(df, feat, **kwargs):
 
     # add feat type to kwargs
     kwargs['feat'] = feat
+    min_tpm = kwargs['min_tpm']
 
     # get tpm of each feature
     df, ids = get_tpm_table(df, **kwargs)
@@ -2845,39 +2847,39 @@ def calculate_human_triplets(swan_file,
                              obs_col='sample',
                              min_tpm=1,
                              gene_subset='polya'):
-    
+
     # read in sg and h5
     ca = cerberus.read(h5)
     sg = swan.read(swan_file)
     filt_ab_df = pd.read_csv(filt_ab, sep='\t')
     major_df = pd.read_csv(major_isos, sep='\t')
     mm_samples = get_mouse_match_samples()
-    
+
     # triplets for each source
     df = ca.get_source_triplets(sg=sg)
     ca.add_triplets(df)
-    
+
     # observed triplets
     df, tids = get_tpm_table(filt_ab_df,
                how='iso',
                min_tpm=min_tpm)
     df = ca.get_subset_triplets(tids, 'obs_det', sg=sg)
     ca.add_triplets(df)
-    
+
     # sample-level observed triplets
     df = ca.get_expressed_triplets(sg,
                                    obs_col=obs_col,
                                    min_tpm=min_tpm,
                                    source='sample_det')
     ca.add_triplets(df)
-    
+
     # observed major triplets
     tids = major_df.tid.unique().tolist()
     df = ca.get_subset_triplets(tids,
                                 source='obs_major',
                                 sg=sg)
     ca.add_triplets(df)
-    
+
     # sample-level major triplets
     df = ca.get_expressed_triplets(sg,
                                    obs_col=obs_col,
@@ -2885,7 +2887,7 @@ def calculate_human_triplets(swan_file,
                                    source='sample_major',
                                    subset=major_df)
     ca.add_triplets(df)
-    
+
     # mouse-match observed triplets
     df = get_det_table(filt_ab_df,
                    groupby=obs_col,
@@ -2899,7 +2901,7 @@ def calculate_human_triplets(swan_file,
                                 source='obs_mm_det',
                                 sg=sg)
     ca.add_triplets(df)
-    
+
     # mouse-match observed major triplets
     subset = major_df.loc[major_df[obs_col].isin(mm_samples)]
     tids = subset.tid.unique().tolist()
@@ -2907,7 +2909,7 @@ def calculate_human_triplets(swan_file,
                                 source='obs_mm_major',
                                 sg=sg)
     ca.add_triplets(df)
-    
+
     # remove non-polya geness
     df, _, _ = get_gtf_info(how='gene',
                             ver='v40_cerberus',
@@ -2915,31 +2917,26 @@ def calculate_human_triplets(swan_file,
     df['gid_stable'] = cerberus.get_stable_gid(df, 'gid')
     polya_gids = df.gid_stable.tolist()
     ca.triplets = ca.triplets.loc[ca.triplets.gid.isin(polya_gids)]
-    
+
     # write stuff out
-    ca.write(ofile)   
+    ca.write(ofile)
     # also write out triplets separately to tsv
     ca.triplets.to_csv(ofile_tsv, sep='\t', index=False)
-    
-def get_cerberus_psi(filt_ab, 
+
+def get_cerberus_psi(filt_ab,
                      min_tpm,
                      gene_subset):
     feats = ['tss', 'ic', 'tes']
     for feat in feats:
         df = pd.read_csv(filt_ab, sep='\t')
-        df = get_feat_psi(df, 
-                          feat, 
-                          how=feat, 
+        df = get_feat_psi(df,
+                          feat,
+                          how=feat,
                           gene_subset=gene_subset,
                           min_tpm=min_tpm)
 
         # # make a plot
-        # sns.displot(data=df, x='psi', kind='kde')    
+        # sns.displot(data=df, x='psi', kind='kde')
         # save a file
         fname = '{}_psi.tsv'.format(feat)
         df.to_csv(fname, sep='\t', index=False)
-    
-    
-    
-    
-    
