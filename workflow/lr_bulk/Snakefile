@@ -804,7 +804,7 @@ rule cerberus_annotate_transcriptome:
 rule cerberus_annotate_gtex:
     input:
         gtf = config['gtex']['filt_gtf'],
-        ref = config['cerberus']['annot']
+        ref = config['cerberus']['triplets']['h5']
     resources:
         mem_gb = 56,
         threads = 1
