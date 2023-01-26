@@ -70,7 +70,8 @@ rule all:
         config['ref']['vM21']['cerberus']['t_info'],
         config['ref']['vM25']['cerberus']['gtf'],
         config['ref']['vM21']['cerberus']['gtf'],
-        config['swan']['meta']
+        config['swan']['meta'],
+        config['talon']['gene_ab']
         # config['swan']['sg_unfilt']
         # expand(
         #   expand(config['swan']['die'], zip,
