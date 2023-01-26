@@ -41,8 +41,10 @@ lapa:
     filt_gtf: mouse/lr_bulk/lapa/mouse_lapa.gtf
 
     # tss / tes clusters from lapa
-    tss: /dfs7/samlab/mcelik/mousewg/data/results/lapa/tss/tss_clusters.bed
-    tes: /dfs7/samlab/mcelik/mousewg/data/results/lapa/tes/polyA_clusters.bed
+    # these have been updated and I didn't use them but it didn't matter
+    # because these are not used downstream
+    tss: /share/crsp/lab/seyedam/share/mousewg/data/results/lapa/tss/tss_clusters.bed
+    tes: /share/crsp/lab/seyedam/share/mousewg/data/results/lapa/tes/polyA_clusters.bed
 
 raw:
   bam: mouse/lr_bulk/processing/{sample}.bam
@@ -57,9 +59,9 @@ talon:
   cfg_6: mouse/lr_bulk/talon/talon_config_6.csv
   db: mouse/lr_bulk/talon/mouse.db
   db_update: mouse/lr_bulk/talon/talon_update.db
-  ab: mouse/lr_bulk/talon/mouse_talon_abundance.tsv
   read_annot: mouse/lr_bulk/talon/mouse_talon_read_annot.tsv
   ab: mouse/lr_bulk/talon/mouse_talon_abundance.tsv
+  gene_ab: mouse/lr_bulk/talon/mouse_talon_gene_abundance.tsv
   pass_list: mouse/lr_bulk/talon/mouse_pass_list.csv
   filt_ab: mouse/lr_bulk/talon/mouse_talon_abundance_filtered.tsv
   filt_gtf: mouse/lr_bulk/talon/mouse_talon.gtf

@@ -1729,7 +1729,6 @@ def filter_gtex_gtf(gtf, oname):
 def get_det_feats(h5,
                   filt_ab,
                   feat,
-                  source,
                   **kwargs):
 
     """
@@ -1740,7 +1739,6 @@ def get_det_feats(h5,
         h5 (str): Path to cerberus annotation
         filt_ab (str): Path to filtered abundance file
         feat (str): {'tss', 'ic', 'tes'}
-        source (str): Source to consider in cerberus obj
 
     Returns:
         ids (list of str): List of feature ids
@@ -2941,9 +2939,73 @@ def get_cerberus_psi(filt_ab,
         df.rename({feat: 'feat_id', f'tpm_{feat}': 'feat_tpm'}, axis=1, inplace=True)
         out_df = pd.concat([out_df, df])
 
+    out_df.to_csv(ofile, sep='\t', index=False)
+    
+def plot_feat_len_hist(cerberus_h5,
+                       filt_ab,
+                       feat,
+                       gene_subset,
+                       min_tpm,
+                       ofile):
+    ca = cerberus.read(cerberus_h5)
+    
+    ids = get_det_feats(cerberus_h5, 
+                        filt_ab,
+                        feat, 
+                        how=feat,
+                        gene_subset=gene_subset,
+                        min_tpm=min_tpm)
+    if feat == 'tss':
+        df = ca.tss.loc[ca.tss.Name.isin(ids)]
+    elif feat == 'tes':
+        df = ca.tes.loc[ca.tes.Name.isin(ids)]
+    df['region_len'] = abs(df.Start-df.End)
+    print(df.region_len.min())
+
+    sns.set_context('paper', font_scale=2)
+    mpl.rcParams['font.family'] = 'Arial'
+    mpl.rcParams['pdf.fonttype'] = 42
+
+    c_dict, order = get_feat_colors(feat)
+    color = c_dict[feat]
+
+    ax = sns.displot(df, x='region_len', kind='hist',
+             linewidth=0,
+             color=color, 
+             alpha=1,
+             binwidth=25,
+             edgecolor=None,
+             log_scale=(False, True))
+
+    
+    ax = plt.gca()
+    ylim = ax.get_ylim()
+    ax.set_ylim(1**-4, ylim[1])
+
+    df.region_len.max()
+    ylabel = f'# {feat.upper()}s'
+    xlabel = f'{feat.upper()} length (bp)'
+
+    ax.set(xlabel=xlabel, ylabel=ylabel)
+    plt.savefig(ofile, dpi=700, bbox_inches='tight')    
+    
+
+def get_gene_counts_matrix(ab, ofile):
+    """
+    Get a gene-level counts matrix from a TALON ab file
+    """
+    df = pd.read_csv(ab, sep='\t')
+    
+    # drop columns that do not pertain to gene info
+    drop_cols = ['transcript_ID', 'annot_transcript_id', 'annot_transcript_name',
+                 'n_exons', 'length', 'transcript_novelty', 'ISM_subtype']
+    df.drop(drop_cols, axis=1, inplace=True)
+
+    # sum across all relevant gene metadata cols
+    gb_cols = ['gene_ID', 'annot_gene_id', 'annot_gene_name', 'gene_novelty']
+    df = df.groupby(gb_cols).sum().reset_index()
+    
     df.to_csv(ofile, sep='\t', index=False)
-    
-    
     
     
     

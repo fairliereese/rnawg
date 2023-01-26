@@ -251,6 +251,17 @@ rule talon_known_nic_nnc_gtf:
             --whitelist {input.known_nic_nnc_pass_list} \
             --o {params.prefix}"
 
+rule talon_gene_counts:
+    input:
+        ab = config['talon']['ab']
+    output:
+        gene_ab = config['talon']['gene_ab']
+    resources:
+        mem_gb = 64,
+        threads = 1
+    run:
+        get_gene_counts_matrix(input.ab, output.gene_ab)
+
 #### Swan stuff ####
 # rule swan_filter:
 #     input:

@@ -36,6 +36,7 @@ talon:
   read_annot: lr_bulk/talon/human_talon_read_annot.tsv
   pass_list: lr_bulk/talon/human_pass_list.csv
   ab: lr_bulk/talon/human_talon_abundance.tsv
+  gene_ab: lr_bulk/talon/human_talon_gene_abundance.tsv
   filt_ab: lr_bulk/talon/human_talon_abundance_filtered.tsv
   filt_gtf: lr_bulk/talon/human_talon.gtf
   known_nic_nnc_pass_list: lr_bulk/talon/human_known_nic_nnc_pass_list.csv
