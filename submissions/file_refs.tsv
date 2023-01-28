@@ -1,7 +1,7 @@
-aliases	dataset	submitted_file_name	file_format	file_format_type	file_format_specifications	assembly	lab	award
-ali-mortazavi:gencode_v40	ENCSR813QFB	/data/homezvol1/freese/mortazavi_lab/ref/gencode.v40/gencode.v40.annotation.gtf.gz	gtf			GRCh38	/labs/ali-mortazavi	/awards/UM1HG009443
-ali-mortazavi:gencode_vM25	ENCSR813QFB	/dfs6/pub/freese/mortazavi_lab/data/rnawg/refs/gencode_vM25.gtf	gtf			mm10	/labs/ali-mortazavi	/awards/UM1HG009443
-ali-mortazavi:gtex_gtf	ENCSR813QFB	/dfs6/pub/freese/mortazavi_lab/data/rnawg/lr_bulk/gtex/flair_filter_transcripts_no_novel_genes.gtf.gz	gtf			GRCh38	/labs/ali-mortazavi	/awards/UM1HG009443
-ali-mortazavi:polya_atlas	ENCSR813QFB	/dfs7/samlab/mcelik/rnawg/data/resources/polyasite_atlas/atlas.clusters_formatted.bed.gz	bed	bed9+	ali-mortazavi:rnawg_polya_atlas_file_format	GRCh38	/labs/ali-mortazavi	/awards/UM1HG009443
-ali-mortazavi:fantom_cage	ENCSR813QFB	/dfs7/samlab/mcelik/rnawg/data/results/fantom/hg38_fantom.bed.gz	bed	bed9		GRCh38	/labs/ali-mortazavi	/awards/UM1HG009443
-ali-mortazavi:mouse_polya_atlas	ENCSR813QFB	/dfs7/samlab/mcelik/mousewg/data/resources/polyasite_atlas/atlas.clusters_formatted.bed.gz	bed	bed9+	ali-mortazavi:rnawg_polya_atlas_file_format	mm10	/labs/ali-mortazavi	/awards/UM1HG009443
+aliases	dataset	output_type	submitted_file_name	file_format	file_format_type	file_format_specifications	assembly	lab	award
+ali-mortazavi:gencode_v40	ENCSR813QFB	transcriptome reference	/data/homezvol1/freese/mortazavi_lab/ref/gencode.v40/gencode.v40.annotation.gtf.gz	gtf			GRCh38	/labs/ali-mortazavi	/awards/UM1HG009443
+ali-mortazavi:gencode_vM25	ENCSR813QFB	transcriptome reference	/dfs6/pub/freese/mortazavi_lab/data/rnawg/refs/gencode_vM25.gtf.gz	gtf			mm10	/labs/ali-mortazavi	/awards/UM1HG009443
+ali-mortazavi:gtex_gtf	ENCSR813QFB	transcriptome reference	/dfs6/pub/freese/mortazavi_lab/data/rnawg/lr_bulk/gtex/flair_filter_transcripts_no_novel_genes.gtf.gz	gtf			GRCh38	/labs/ali-mortazavi	/awards/UM1HG009443
+ali-mortazavi:polya_atlas	ENCSR813QFB	polyA sites	/dfs7/samlab/mcelik/rnawg/data/resources/polyasite_atlas/atlas.clusters_formatted.bed.gz	bed	bed9+	ali-mortazavi:rnawg_polya_atlas_file_format	GRCh38	/labs/ali-mortazavi	/awards/UM1HG009443
+ali-mortazavi:fantom_cage	ENCSR813QFB	transcription start sites	/dfs7/samlab/mcelik/rnawg/data/results/fantom/hg38_fantom.bed.gz	bed	bed9		GRCh38	/labs/ali-mortazavi	/awards/UM1HG009443
+ali-mortazavi:mouse_polya_atlas	ENCSR813QFB	transcription start sites	/dfs7/samlab/mcelik/mousewg/data/resources/polyasite_atlas/atlas.clusters_formatted.bed.gz	bed	bed9+	ali-mortazavi:rnawg_polya_atlas_file_format	mm10	/labs/ali-mortazavi	/awards/UM1HG009443
