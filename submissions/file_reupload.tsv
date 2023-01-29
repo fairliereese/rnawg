@@ -1,0 +1,9 @@
+record_id	submitted_file_name	md5sum
+ali-mortazavi:rnawg_mouse_lapa_tss_plus_signal	/share/crsp/lab/seyedam/share/mousewg/data/results/lapa/tss/counts/all_tss_counts_pos.bw	8093675c0349b8ab24f719a2b196cf1d
+ali-mortazavi:rnawg_mouse_lapa_tss_minus_signal	/share/crsp/lab/seyedam/share/mousewg/data/results/lapa/tss/counts/all_tss_counts_neg.bw	b421b5aed5fbe1f94d0523f7a6d8e02c
+ali-mortazavi:rnawg_mouse_lapa_tss_plus_norm_signal	/share/crsp/lab/seyedam/share/mousewg/data/results/lapa/tss/ratio/all_tss_ratio_pos.bw	e8bcc9928279b39cc12d432b83450e3f
+ali-mortazavi:rnawg_mouse_lapa_tss_minus_norm_signal	/share/crsp/lab/seyedam/share/mousewg/data/results/lapa/tss/ratio/all_tss_ratio_neg.bw	f44df6d7a437a4067e0e043191e49d9f
+ali-mortazavi:rnawg_mouse_lapa_tes_plus_signal	/share/crsp/lab/seyedam/share/mousewg/data/results/lapa/tes/counts/all_polyA_counts_pos.bw	7c1f0fa2e9b133eae249d77f2709bde0
+ali-mortazavi:rnawg_mouse_lapa_tes_minus_signal	/share/crsp/lab/seyedam/share/mousewg/data/results/lapa/tes/counts/all_polyA_counts_neg.bw	58a89885dc4829a3290f7638f075020d
+ali-mortazavi:rnawg_mouse_lapa_tes_plus_norm_signal	/share/crsp/lab/seyedam/share/mousewg/data/results/lapa/tes/ratio/all_polyA_ratio_pos.bw	1a11e7155e2e66c6865f3718d5a9a875
+ali-mortazavi:rnawg_mouse_lapa_tes_minus_norm_signal	/share/crsp/lab/seyedam/share/mousewg/data/results/lapa/tes/ratio/all_polyA_ratio_neg.bw	110b3a784ae778de58aa6d00c46047df

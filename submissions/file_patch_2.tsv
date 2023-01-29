@@ -1,0 +1,7 @@
+record_id	file_format_type
+ali-mortazavi:rnawg_mouse_cerberus_tss_bed	bed3+
+ali-mortazavi:rnawg_mouse_cerberus_tes_bed	bed3+
+ali-mortazavi:rnawg_cerberus_tss_bed	bed3+
+ali-mortazavi:rnawg_cerberus_tes_bed	bed3+
+ali-mortazavi:rnawg_cage_bed	bed3+
+ali-mortazavi:rnawg_rampage_bed	bed3+
