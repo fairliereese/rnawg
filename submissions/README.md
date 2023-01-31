@@ -96,4 +96,46 @@ df.to_bed(ofile)
 
 ```bash
 gzip -c /dfs7/samlab/mcelik/mousewg/data/resources/polyasite_atlas/atlas.clusters_formatted_canon_only.bed > /dfs7/samlab/mcelik/mousewg/data/resources/polyasite_atlas/atlas.clusters_formatted_canon_only.bed.gz
+eu_register.py -m prod -p file -i file_patch_3.tsv --patch -w # done
+```
+
+Shorten regions beyond chr boundaries
+```python
+import pyranges as pr
+import pandas as pd
+
+ofile = '/dfs6/pub/freese/mortazavi_lab/data/rnawg/lr_bulk/cerberus/agg_tes_shortened.bed'
+
+df = pr.read_bed('/dfs6/pub/freese/mortazavi_lab/data/rnawg/lr_bulk/cerberus/agg_tes.bed').as_df()
+chr_sizes = pd.read_csv('/dfs6/pub/freese/mortazavi_lab/ref/hg38/encode_chrom_sizes.tsv', sep='\t',
+ header=None, names=['Chromosome', 'length'])
+
+# merge chrom sizes with bed regions
+df = df.merge(chr_sizes, how='left', on='Chromosome')
+
+# which regions have stops beyond lengths?
+df.loc[df.End > df.length, 'End'] = df.loc[df.End > df.length, 'length']
+
+df = pr.PyRanges(df)
+df.to_bed(ofile)
+```
+
+```bash
+gzip -c /dfs6/pub/freese/mortazavi_lab/data/rnawg/lr_bulk/cerberus/agg_tes_shortened.bed > /dfs6/pub/freese/mortazavi_lab/data/rnawg/lr_bulk/cerberus/agg_tes_shortened.bed.gz
+eu_register.py -m prod -p file -i file_patch_4.tsv --patch -w
+```
+
+```python
+import encode_utils as eu
+from encode_utils.connection import Connection
+conn = Connection("www.encodeproject.org")
+
+file_id = 'ali-mortazavi:rnawg_cerberus_tes_bed'
+file_path = '/dfs6/pub/freese/mortazavi_lab/data/rnawg/lr_bulk/cerberus/agg_tes_shortened.bed.gz'
+conn.upload_file(file_id=file_id, file_path=file_path)
+```
+
+Upload new document for LRGASP libraries
+```bash
+eu_register.py -m prod -p document -i lrgasp_doc.tsv
 ```
