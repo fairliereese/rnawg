@@ -1,0 +1,4 @@
+aliases	attachment	description	document_type	lab	award
+ali-mortazavi:protocol_computational_lr_ss_ont_demux_alignment_v1	{"path": "/dfs6/pub/freese/mortazavi_lab/data/rnawg/submissions/ont_lr_ss_preproc_protocol_v1.pdf"}	"Computational protocol for preprocessing, demultiplexing, and alignment for ONT long read Split-seq"	general protocol	/labs/ali-mortazavi	/awards/UM1HG009443
+ali-mortazavi:protocol_computational_lr_ss_pb_demux_alignment_v2.1	{"path": "/dfs6/pub/freese/mortazavi_lab/data/rnawg/submissions/pb_lr_ss_preproc_protocol_2.1.pdf"}	"Computational protocol for preprocessing, demultiplexing, and alignment for PacBio long read Split-seq"	general protocol	/labs/ali-mortazavi	/awards/UM1HG009443
+ali-mortazavi:protocol_experimental_lr_ss_ont_v1	{"path": "/dfs6/pub/freese/mortazavi_lab/data/rnawg/submissions/ont_lr_ss_experimental_protocol_v1.pdf"}		general protocol	/labs/ali-mortazavi	/awards/UM1HG009443
