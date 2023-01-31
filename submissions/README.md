@@ -137,5 +137,10 @@ conn.upload_file(file_id=file_id, file_path=file_path)
 
 Upload new document for LRGASP libraries
 ```bash
-eu_register.py -m prod -p document -i lrgasp_doc.tsv
+eu_register.py -m prod -p document -i lrgasp_doc.tsv # done
+```
+
+Patch LRGASP and HL60 libraries
+```bash
+eu_register.py -m prod -p library -i hl60_lrgasp_library_patch.tsv --patch -w
 ```
