@@ -71,7 +71,8 @@ rule all:
         config['ref']['vM25']['cerberus']['gtf'],
         config['ref']['vM21']['cerberus']['gtf'],
         config['swan']['meta'],
-        config['talon']['gene_ab']
+        config['talon']['gene_ab'],
+        config['talon']['known_novel_gtf']
         # config['swan']['sg_unfilt']
         # expand(
         #   expand(config['swan']['die'], zip,
@@ -162,6 +163,48 @@ rule talon_abundance:
             --db {input.db} \
             -a {params.annot} \
             -b {params.build} \
+            --o {params.prefix}"
+
+rule talon_known_filter:
+    input:
+        db = config['talon']['db']
+    params:
+        annot = 'gencode_vM21',
+        build = 'mm10'
+    output:
+        pass_list = config['talon']['known_novel_pass_list']
+    resources:
+        mem_gb = 128,
+        threads = 1
+    shell:
+        "talon_filter_transcripts \
+            --db {input.db} \
+            -a {params.annot} \
+            --includeAnnot \
+            --maxFracA 0.5 \
+            --minCount 5 \
+            --minDatasets 2 \
+            --o {output.pass_list}"
+
+rule talon_known_gtf:
+    input:
+        db = config['talon']['db'],
+        pass_list = config['talon']['known_novel_pass_list']
+    params:
+        prefix = config['talon']['known_novel_gtf'].split('_talon.gtf')[0],
+        annot = 'gencode_vM21',
+        build = 'mm10'
+    output:
+        filt_gtf = config['talon']['known_novel_gtf']
+    resources:
+        mem_gb = 128,
+        threads = 1
+    shell:
+        "talon_create_GTF \
+            --db {input.db} \
+            -a {params.annot} \
+            -b {params.build} \
+            --whitelist {input.pass_list} \
             --o {params.prefix}"
 
 rule talon_filter:

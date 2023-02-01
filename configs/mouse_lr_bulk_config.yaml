@@ -65,6 +65,8 @@ talon:
   pass_list: mouse/lr_bulk/talon/mouse_pass_list.csv
   filt_ab: mouse/lr_bulk/talon/mouse_talon_abundance_filtered.tsv
   filt_gtf: mouse/lr_bulk/talon/mouse_talon.gtf
+  known_novel_pass_list: mouse/lr_bulk/talon/mouse_vM21_novel_pass_list.csv
+  known_novel_gtf: mouse/lr_bulk/talon/mouse_vM21_novel_talon.gtf
   known_nic_nnc_pass_list: mouse/lr_bulk/talon/mouse_known_nic_nnc_pass_list.csv
   known_nic_nnc_gtf: mouse/lr_bulk/talon/mouse_known_nic_nnc_talon.gtf
 
