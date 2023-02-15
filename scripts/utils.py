@@ -12,6 +12,7 @@ import cerberus
 import scipy
 import scipy.stats as st
 import swan_vis as swan
+from pandarallel import pandarallel
 
 def get_lr_samples():
     """
@@ -1223,7 +1224,7 @@ def get_gtf_info(how='gene',
             per meta biotype reported in gencode
     """
     iso_hows = ['iso', 'tss', 'tes', 'ic']
-    
+
     # automatically pull the file we need, otherwise use the user-specified file
     if not fname:
         d = os.path.dirname(__file__)
@@ -1398,7 +1399,7 @@ def get_feat_psi(df, feat, **kwargs):
 
     # add feat type to kwargs
     kwargs['feat'] = feat
-    
+
     min_tpm = kwargs['min_tpm']
 
     # get tpm of each feature
@@ -2846,39 +2847,39 @@ def calculate_human_triplets(swan_file,
                              obs_col='sample',
                              min_tpm=1,
                              gene_subset='polya'):
-    
+
     # read in sg and h5
     ca = cerberus.read(h5)
     sg = swan.read(swan_file)
     filt_ab_df = pd.read_csv(filt_ab, sep='\t')
     major_df = pd.read_csv(major_isos, sep='\t')
     mm_samples = get_mouse_match_samples()
-    
+
     # triplets for each source
     df = ca.get_source_triplets(sg=sg)
     ca.add_triplets(df)
-    
+
     # observed triplets
     df, tids = get_tpm_table(filt_ab_df,
                how='iso',
                min_tpm=min_tpm)
     df = ca.get_subset_triplets(tids, 'obs_det', sg=sg)
     ca.add_triplets(df)
-    
+
     # sample-level observed triplets
     df = ca.get_expressed_triplets(sg,
                                    obs_col=obs_col,
                                    min_tpm=min_tpm,
                                    source='sample_det')
     ca.add_triplets(df)
-    
+
     # observed major triplets
     tids = major_df.tid.unique().tolist()
     df = ca.get_subset_triplets(tids,
                                 source='obs_major',
                                 sg=sg)
     ca.add_triplets(df)
-    
+
     # sample-level major triplets
     df = ca.get_expressed_triplets(sg,
                                    obs_col=obs_col,
@@ -2886,7 +2887,7 @@ def calculate_human_triplets(swan_file,
                                    source='sample_major',
                                    subset=major_df)
     ca.add_triplets(df)
-    
+
     # mouse-match observed triplets
     df = get_det_table(filt_ab_df,
                    groupby=obs_col,
@@ -2900,7 +2901,7 @@ def calculate_human_triplets(swan_file,
                                 source='obs_mm_det',
                                 sg=sg)
     ca.add_triplets(df)
-    
+
     # mouse-match observed major triplets
     subset = major_df.loc[major_df[obs_col].isin(mm_samples)]
     tids = subset.tid.unique().tolist()
@@ -2908,7 +2909,7 @@ def calculate_human_triplets(swan_file,
                                 source='obs_mm_major',
                                 sg=sg)
     ca.add_triplets(df)
-    
+
     # remove non-polya geness
     df, _, _ = get_gtf_info(how='gene',
                             ver='v40_cerberus',
@@ -2916,13 +2917,13 @@ def calculate_human_triplets(swan_file,
     df['gid_stable'] = cerberus.get_stable_gid(df, 'gid')
     polya_gids = df.gid_stable.tolist()
     ca.triplets = ca.triplets.loc[ca.triplets.gid.isin(polya_gids)]
-    
+
     # write stuff out
-    ca.write(ofile)   
+    ca.write(ofile)
     # also write out triplets separately to tsv
     ca.triplets.to_csv(ofile_tsv, sep='\t', index=False)
-    
-def get_cerberus_psi(filt_ab, 
+
+def get_cerberus_psi(filt_ab,
                      min_tpm,
                      gene_subset,
                      ofile):
@@ -2930,9 +2931,9 @@ def get_cerberus_psi(filt_ab,
     feats = ['tss', 'ic', 'tes']
     for feat in feats:
         df = pd.read_csv(filt_ab, sep='\t')
-        df = get_feat_psi(df, 
-                          feat, 
-                          how=feat, 
+        df = get_feat_psi(df,
+                          feat,
+                          how=feat,
                           gene_subset=gene_subset,
                           min_tpm=min_tpm)
         df['feat'] = feat
@@ -2940,7 +2941,7 @@ def get_cerberus_psi(filt_ab,
         out_df = pd.concat([out_df, df])
 
     out_df.to_csv(ofile, sep='\t', index=False)
-    
+
 def plot_feat_len_hist(cerberus_h5,
                        filt_ab,
                        feat,
@@ -2948,10 +2949,10 @@ def plot_feat_len_hist(cerberus_h5,
                        min_tpm,
                        ofile):
     ca = cerberus.read(cerberus_h5)
-    
-    ids = get_det_feats(cerberus_h5, 
+
+    ids = get_det_feats(cerberus_h5,
                         filt_ab,
-                        feat, 
+                        feat,
                         how=feat,
                         gene_subset=gene_subset,
                         min_tpm=min_tpm)
@@ -2971,13 +2972,13 @@ def plot_feat_len_hist(cerberus_h5,
 
     ax = sns.displot(df, x='region_len', kind='hist',
              linewidth=0,
-             color=color, 
+             color=color,
              alpha=1,
              binwidth=25,
              edgecolor=None,
              log_scale=(False, True))
 
-    
+
     ax = plt.gca()
     ylim = ax.get_ylim()
     ax.set_ylim(1**-4, ylim[1])
@@ -2987,15 +2988,15 @@ def plot_feat_len_hist(cerberus_h5,
     xlabel = f'{feat.upper()} length (bp)'
 
     ax.set(xlabel=xlabel, ylabel=ylabel)
-    plt.savefig(ofile, dpi=700, bbox_inches='tight')    
-    
+    plt.savefig(ofile, dpi=700, bbox_inches='tight')
+
 
 def get_gene_counts_matrix(ab, ofile):
     """
     Get a gene-level counts matrix from a TALON ab file
     """
     df = pd.read_csv(ab, sep='\t')
-    
+
     # drop columns that do not pertain to gene info
     drop_cols = ['transcript_ID', 'annot_transcript_id', 'annot_transcript_name',
                  'n_exons', 'length', 'transcript_novelty', 'ISM_subtype']
@@ -3004,8 +3005,75 @@ def get_gene_counts_matrix(ab, ofile):
     # sum across all relevant gene metadata cols
     gb_cols = ['gene_ID', 'annot_gene_id', 'annot_gene_name', 'gene_novelty']
     df = df.groupby(gb_cols).sum().reset_index()
-    
+
     df.to_csv(ofile, sep='\t', index=False)
+
+
+def remove_t_map_cols(h5, ofile):
+    ca = cerberus.read(h5)
+    drop_cols = ['tss_first_sd_issue', 'tes_last_sa_issue']
+    ca.t_map.drop(drop_cols, axis=1, inplace=True)
+    ca.write(h5)
+
+
+def get_human_centroids(ca, source=None, ver=None, gene_subset=None):
     
+    # compute centroid for each sample / gene pairing for the different sources
+    df = ca.triplets.loc[(ca.triplets.source == source)].copy(deep=True)
+    df = cerberus.compute_simplex_coords(df, 'splicing_ratio')
+    keep_cols = ['gname', 'gid', 'tss_ratio', 'tes_ratio', 'spl_ratio', 'n_iso']
+    df = df[keep_cols]
+    df = df.groupby(['gname', 'gid']).mean().reset_index()
+    df = assign_sector(df)
+
+    # only protein coding genes
+    gene_df, _, _ = get_gtf_info(how='gene', ver=ver, add_stable_gid=True)
+    gene_df = gene_df[['gid_stable', 'biotype']]
+    df = df.merge(gene_df, how='left', left_on='gid', right_on='gid_stable')
+    df = df.loc[df.biotype==gene_subset]
+
+    return df
+
+def get_centroid_dist(h5,
+                      source=None,
+                      ver=None,
+                      gene_subset=None):
     
+    ca = cerberus.read(h5)
+    cent_df = get_human_centroids(ca,
+                              source=source,
+                              ver=ver,
+                              gene_subset=gene_subset)
     
+    # individual genes
+    df = ca.triplets.loc[(ca.triplets.source == source)].copy(deep=True)
+    keep_cols = ['gname', 'gid',
+                 'tss_ratio', 'tes_ratio',
+                 'spl_ratio', 'n_iso',
+                 'gene_tpm']
+    if 'sample' in source:
+        keep_cols += 'sample'
+
+    # only protein coding genes
+    gene_df, _, _ = get_gtf_info(how='gene',
+                                 ver=ver,
+                                 add_stable_gid=True)
+    gene_df = gene_df[['gid_stable', 'biotype']]
+    df = df.merge(gene_df, how='left',
+                  left_on='gid', right_on='gid_stable')
+    df = df.loc[df.biotype==gene_subset]
+    
+    df = df.merge(cent_df, how='left', on=['gname', 'gid'], 
+              suffixes=('', '_gene_avg'))
+    
+    # compute distances
+    pandarallel.initialize(nb_workers=8, verbose=1)
+    df['dist'] = df.parallel_apply(simplex_dist,
+                                   args=('', '_gene_avg'),
+                                   axis=1)
+    df.dist = df.dist.fillna(0)
+
+    # compute z_scores 
+    df['z_score'] = st.zscore(df.dist.tolist())
+    
+    return df
