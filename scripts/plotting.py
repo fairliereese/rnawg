@@ -4551,9 +4551,8 @@ def plot_obs_human_simplex_with_centroid(h5, gene, fig_dir, **kwargs):
     ca = cerberus.read(h5)
     
     # add centroid as coord
-    cent_df = get_human_centroids(ca, **kwargs)
-    cent_df['source'] = 'sample_det_centroid'
-    ca.triplets = pd.concat([ca.triplets, cent_df], axis=0)
+    ca = get_centroids(ca,
+                       **kwargs)
     
     # human
     c_dict, order = get_biosample_colors()

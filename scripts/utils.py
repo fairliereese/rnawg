@@ -3077,3 +3077,93 @@ def get_centroid_dist(h5,
     df['z_score'] = st.zscore(df.dist.tolist())
     
     return df
+
+def get_centroids(ca, 
+                  source='sample_det',
+                  gene_subset=None, 
+                  ver=None,
+                  **kwargs):
+    
+    # subset on source
+    df = ca.triplets.loc[ca.triplets.source == source].copy(deep=True)
+    
+    # limit only to columns that are important
+    keep_cols = ['gname', 'gid',
+                 'n_tss', 'n_tes', 'n_ic', 'splicing_ratio',
+                 'tss_ratio', 'tes_ratio', 'spl_ratio',
+                 'n_iso']
+    df = df[keep_cols]
+    
+    # get centroid
+    df = df.groupby(['gname', 'gid']).mean().reset_index()
+    df = assign_sector(df)
+    
+    # limit to target genes
+    if gene_subset:
+        gene_df, _, _ = get_gtf_info(how='gene',
+                                     ver=ver,
+                                     add_stable_gid=True)
+        gene_df = gene_df[['gid_stable', 'biotype']]
+        df = df.merge(gene_df, how='left',
+                      left_on='gid', right_on='gid_stable')
+        df = df.loc[df.biotype==gene_subset] 
+        df.drop(['biotype', 'gid_stable'], axis=1, inplace=True)
+    
+    # add the centroids to the ca.triplet
+    df['source'] = source+'_centroid'
+    ca.triplets = pd.concat([ca.triplets, df], axis=0)
+    
+    return ca
+
+def compute_dists(ca, source1, source2,
+                  rm_1_iso_1=False,
+                  rm_1_iso_2=False,
+                  gene_subset=None, ver=None):
+    """
+    Compute the distance between source1 and source2. 
+    Also compute the Z-score.
+    """
+    
+    # get triplets for each source
+    df1 = ca.triplets.loc[ca.triplets.source == source1].copy(deep=True)
+    df2 = ca.triplets.loc[ca.triplets.source == source2].copy(deep=True)
+    
+    # if requested, remove triplets w/ only one isoform
+    if rm_1_iso_1: 
+        df1 = df1.loc[df1.n_iso > 1]
+    if rm_1_iso_2:
+        df2 = df2.loc[df2.n_iso > 1]
+        
+    # limit to target genes
+    if gene_subset:
+        gene_df, _, _ = get_gtf_info(how='gene',
+                                     ver=ver,
+                                     add_stable_gid=True)
+        gene_df = gene_df[['gid_stable', 'biotype']]
+        
+        # df1
+        df1 = df1.merge(gene_df, how='left',
+                        left_on='gid', right_on='gid_stable')
+        df1 = df1.loc[df1.biotype==gene_subset]
+        
+        # df2
+        df2 = df2.merge(gene_df, how='left',
+                        left_on='gid', right_on='gid_stable')
+        df2 = df2.loc[df2.biotype==gene_subset]
+    
+    # merge dfs on gene info
+    df = df1.merge(df2, how='inner', 
+                   on=['gname', 'gid'],
+                   suffixes=(f'_{source1}', f'_{source2}'))
+    
+    # compute distances
+    pandarallel.initialize(nb_workers=8, verbose=1)
+    df['dist'] = df.parallel_apply(simplex_dist,
+                                   args=(f'_{source1}', f'_{source2}'),
+                                   axis=1)
+    df.dist = df.dist.fillna(0)
+
+    # compute z_scores 
+    df['z_score'] = st.zscore(df.dist.tolist())
+    
+    return df
