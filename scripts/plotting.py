@@ -1342,7 +1342,7 @@ def plot_biosamp_det(df,
     # finally, calculate the number of biosamples / libraries these
     # genes or transcripts are expressed >= min TPM
     df = df.transpose()
-    df['n_samples'] = df.astype(int).sum(axis=1)
+    df['n_samples'] = df.astype(int).sum(axis=1)    
 
     # and make a beautiful plot
     plt.figure(figsize=(6,4))
@@ -3360,8 +3360,8 @@ def plot_browser_isos(ca, sg, gene, obs_col, obs_condition, filt_ab, major_set,
     # small_text = 6/(6.11/16)
     small_text = 20.3
     big_text = 6.71/(6.11/16)
-    print('small text size: {}'.format(small_text))
-    print('big text size: {}'.format(big_text))
+    # print('small text size: {}'.format(small_text))
+    # print('big text size: {}'.format(big_text))
     
     
     # height spacing b/w models
@@ -4696,3 +4696,230 @@ def plot_density_simplices(h5,
     # create the bar plots
     fname = 'figures/{}_genes_per_sector.pdf'.format(gs_label)
     make_sector_source_bar_plots(plot_df, fname)
+    
+def plot_major_iso_simplex(h5, gene):
+    ca = cerberus.read(h5)
+    
+    # plotting settings
+    c_dict, order = get_biosample_colors()
+    c_dict[np.nan] = 'k'
+    mm_tissues = ['adrenal gland', 'heart',
+                  'muscle', 'brain', 'pgp1_excite_neuron',
+                  'pgp1_astro', 'h9_osteocyte']
+    mmap = {'v40': '*', 'v29': 'x', 'obs_det': '^', 'cerberus': '2', 'obs_major': '^'}
+    subset = {'source': ['v40', 'obs_det', 'sample_major']}
+    
+    fname = f'figures/simplex_{gene.lower()}_major.pdf'
+    
+    df = ca.plot_simplex(gene=gene,
+            hue='sample',
+            cmap=c_dict,
+            size='gene_tpm', 
+            log_size=True,
+            sectors=True,
+            marker_style='source',
+            mmap=mmap,
+            legend=False,
+            jitter=True,
+            subset={'source': ['v40', 'obs_det', 'sample_major']},
+            size_scale=0.2,
+            fname=fname)    
+    
+def plot_obs_obs_major_density_simplex(h5, gene):
+    
+    ca = cerberus.read(h5)
+    
+    # sample_det
+    c_dict, order = get_biosample_colors()
+    c_dict[np.nan] = 'k'
+    mmap = {'v40': '*', 'v29': 'x', 'obs_det': '^', 'cerberus': '2', 'sample_det_centroid': 's'} 
+    subset = {'source': ['v40', 'obs_det', 'sample_det']}
+    fname=f'figures/simplex_{gene.lower()}_det.pdf'
+    df = ca.plot_simplex(top='splicing_ratio', 
+                gene=gene,
+                hue='sample',
+                cmap=c_dict,
+                density=True,
+                density_scale=50,
+                density_cmap='Purples',
+                size='gene_tpm', 
+                log_size=True,
+                sectors=True,
+                marker_style='source',
+                mmap=mmap,
+                legend=False,
+                jitter=True,
+                subset=subset,
+                size_scale=0.2,
+                fname=fname)
+    
+    
+    # sample_major
+    mmap = {'v40': '*', 'v29': 'x', 'obs_major': '^', 'cerberus': '2', 'sample_det_centroid': 's'} 
+    subset = {'source': ['v40', 'obs_major', 'sample_major']}
+    fname=f'figures/simplex_{gene.lower()}_major.pdf'
+    df = ca.plot_simplex(top='splicing_ratio', 
+                gene=gene,
+                hue='sample',
+                cmap=c_dict,
+                density=True,
+                density_scale=50,
+                density_cmap='Purples',
+                size='gene_tpm', 
+                log_size=True,
+                sectors=True,
+                marker_style='source',
+                mmap=mmap,
+                legend=False,
+                jitter=True,
+                subset=subset,
+                size_scale=0.2,
+                fname=fname)
+    
+def sector_sankey(h5,
+                  source1, source2,
+                  ofile,
+                  ver=None,
+                  gene_subset=None):
+    
+    ca = cerberus.read(h5)
+    
+    # limit to sources
+    df1 = ca.triplets.loc[ca.triplets.source==source1].copy(deep=True)
+    df2 = ca.triplets.loc[ca.triplets.source==source2].copy(deep=True)
+                
+    # merge on gitd
+    df = df1.merge(df2, how='outer', on='gid', suffixes=(f'_{source1}', f'_{source2}'))
+    
+    # limit to gene subset
+    if gene_subset:
+        gene_df, _, _ = get_gtf_info(how='gene', ver=ver)
+        gene_df['gid_stable'] = cerberus.get_stable_gid(gene_df, 'gid')
+        df = df.merge(gene_df[['gid_stable', 'biotype_category']],
+                          how='left', left_on='gid', right_on='gid_stable')
+        df = df.loc[df.biotype_category == gene_subset]
+        df.drop(['biotype_category', 'gid_stable'], axis=1, inplace=True)
+        
+    # count numer of things
+    gb_cols = [f'sector_{source1}', f'sector_{source2}']
+    keep_cols = gb_cols + ['gid']
+    df = df[keep_cols].groupby(gb_cols).count().reset_index()
+    
+    fig = plot_sankey(df,
+                      source='sector_obs_det',
+                      sink='sector_obs_major',
+                      counts='gid',
+                      color='sector',
+                      title='')
+    h = 700
+    w = 1.8792590838529746*h
+    pio.write_image(fig, ofile, width=w, height=h)
+    
+    return df
+
+def plot_sr_brain_tissue_cell_line_umap(ab,
+                                        lib_metadata,
+                                        min_tpm,
+                                        gene_subset,
+                                        sample,
+                                        fname):
+    df = pd.read_csv(ab, sep='\t')
+    df, gids = get_tpm_table(df,
+                     how='sr',
+                     min_tpm=min_tpm,
+                     sample=sample,
+                     gene_subset=gene_subset)
+    df = df.transpose()
+
+    X = df.values
+
+    # obs table w/ sample info
+    obs = df.index.to_frame()
+    obs.rename({0: 'dataset'}, axis=1, inplace=True)
+    obs['biosample'] = obs.dataset.str.rsplit('_', n=2, expand=True)[0]
+    tissue_df = get_tissue_metadata()
+    tissue_df = tissue_df[['tissue', 'biosample']]
+    obs = obs.merge(tissue_df, how='left', on='biosample')
+    obs.loc[obs.tissue.isnull(), 'tissue'] = obs.loc[obs.tissue.isnull(), 'biosample']
+    obs.drop('biosample', axis=1, inplace=True)
+    obs.rename({'tissue': 'sample'}, axis=1, inplace=True)
+    obs['sample'].unique()
+    obs['dataset'] = obs['dataset'].astype('string')
+
+    # var
+    var = pd.DataFrame(data=df.columns.tolist(), columns=['gid'])
+    var['gid'] = var['gid'].astype('string')
+
+    adata = anndata.AnnData(obs=obs, var=var, X=X)
+
+    # limit only to samples that are in the long-read
+    c_dict, order = get_biosample_colors()
+    adata = adata[adata.obs['sample'].isin(order)]
+    
+    meta = pd.read_csv(lib_metadata, sep='\t')
+    meta = meta[['sample', 'tissue_or_cell_line']].drop_duplicates()
+
+    # add colors
+    # map values in order specific to
+    obs_col = 'sample'
+    cmap, order = get_biosample_colors()
+    adata.obs[obs_col] = adata.obs[obs_col].astype('category')
+    obs_order = list(adata.obs_names)
+    sample_order = adata.obs[obs_col].cat.categories.tolist()
+    sample_colors = [cmap[s] for s in sample_order]
+    adata.uns['{}_colors'.format(obs_col)] = sample_colors
+
+    # also store rgb values in dict for use with gen_report
+    for key, item in cmap.items():
+        item = item[1:]
+        r,g,b = tuple(int(item[i:i+2], 16) for i in (0, 2, 4))
+        cmap[key] = (r,g,b)
+    adata.uns['{}_dict'.format(obs_col)] = cmap
+
+    # add tissue / cell line info
+    adata.obs = adata.obs.merge(meta, how='left', on='sample')
+    obs_col = 'brain_tissue_cell_line'
+    adata.obs[obs_col] = adata.obs.tissue_or_cell_line
+    adata.obs.loc[adata.obs['sample']=='brain', obs_col] = 'brain'
+
+    # add colors
+    # map values in order specific to
+    cmap, order = get_tissue_cell_line_colors()
+    cmap2, _ = get_biosample_colors()
+    brain_color = cmap2['brain'] 
+    order += ['brain']
+    cmap['brain'] = brain_color
+    adata.obs[obs_col] = adata.obs[obs_col].astype('category')
+    obs_order = list(adata.obs_names)
+    sample_order = adata.obs[obs_col].cat.categories.tolist()
+    sample_colors = [cmap[s] for s in sample_order]
+    adata.uns['{}_colors'.format(obs_col)] = sample_colors
+    
+    adata.obs.set_index('dataset', inplace=True)
+    adata.var.set_index('gid', inplace=True)
+    
+    # # normalize data matrix to 10,000 count
+    # sc.pp.normalize_total(adata, target_sum=1e4)
+
+    # log 
+    sc.pp.log1p(adata)
+    adata.raw = adata
+
+    # find highly variable genes
+    sc.pp.highly_variable_genes(adata, n_top_genes = 20000, flavor = 'seurat',
+        min_mean=0.0125, max_mean=3, min_disp=0.5)
+    # sc.pp.highly_variable_genes(adata, n_top_genes = 5000, flavor = 'seurat',
+    #     min_mean=0.0125, max_mean=3, min_disp=0.5)
+    sc.pp.scale(adata, max_value=10)
+
+    # sc.tl.pca(adata, use_highly_variable=False)
+    sc.tl.pca(adata, use_highly_variable=True)
+
+    sc.pp.neighbors(adata, metric='cosine')
+    sc.pp.neighbors(adata)
+    sc.tl.umap(adata)
+    
+    sc.pl.umap(adata, color='brain_tissue_cell_line', frameon=True, size=120, show=False)
+
+    f = plt.gcf()
+    f.savefig(fname, dpi=500, bbox_inches='tight')
