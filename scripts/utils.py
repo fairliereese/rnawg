@@ -416,7 +416,7 @@ def get_sample_datasets(sample=None, groupby=None):
     elif sample == 'tissue' or sample == 'cell_line':
         datasets = df.loc[df.biosample_type == sample, 'hr'].tolist()
     elif sample == 'mouse_match':
-        tissues = ['adrenal gland', 'brain', 'muscle', 'heart']
+        tissues = get_mouse_match_samples()
         tissue_df = get_tissue_metadata()
         df['biosample'] = df.hr.str.rsplit('_', n=2, expand=True)[0]
         df = df.merge(tissue_df, how='left', on='biosample')
@@ -1493,6 +1493,12 @@ def get_det_table(df,
     # if min_tpm is 0, just take everything that has at least one read
     else:
         df = (df > min_tpm)
+        
+    # get rid of genes / transcripts w/o any det
+    df = df.transpose()
+    df = df.loc[df.astype(int).sum(axis=1)>min_tpm]
+    df = df.transpose()
+        
     return df
 
 def get_reads_per_sample(df,
@@ -1765,8 +1771,10 @@ def get_sr_tpm_table(df,
     print('Calculating short-read gene TPM values')
 
     df.drop('biotype_category', axis=1, inplace=True)
-
-    meta = pd.read_csv('metadata_polyA_corrected.tsv', sep='\t')
+    
+    d = os.path.dirname(__file__)
+    fname = '{}/../sr_bulk/metadata_polyA_corrected.tsv'.format(d)
+    meta = pd.read_csv(fname, sep='\t')
 
     id_col = 'gid_stable'
 
@@ -3107,6 +3115,7 @@ def get_centroids(ca,
         df = df.merge(gene_df, how='left',
                       left_on='gid', right_on='gid_stable')
         df = df.loc[df.biotype==gene_subset] 
+        
         df.drop(['biotype', 'gid_stable'], axis=1, inplace=True)
     
     # add the centroids to the ca.triplet
@@ -3115,55 +3124,120 @@ def get_centroids(ca,
     
     return ca
 
-def compute_dists(ca, source1, source2,
-                  rm_1_iso_1=False,
-                  rm_1_iso_2=False,
-                  gene_subset=None, ver=None):
+def compute_dists(cas,
+                  sources,
+                  gene_merge=['gname', 'gid'],
+                  rm_1_isos=[False, False],
+                  gene_subsets=[None, None],
+                  ver=[None, None]):
     """
     Compute the distance between source1 and source2. 
     Also compute the Z-score.
     """
     
-    # get triplets for each source
-    df1 = ca.triplets.loc[ca.triplets.source == source1].copy(deep=True)
-    df2 = ca.triplets.loc[ca.triplets.source == source2].copy(deep=True)
+    def preproc_ca(ca,
+                   source,
+                   rm_1_iso,
+                   gene_subset,
+                   ver):
+        """
+        Preprocess cerberus annot according to input settings
+        """
+        
+        # get triplets for source
+        df = ca.triplets.loc[ca.triplets.source == source].copy(deep=True)
+        
+        # if requested, remove triplets w/ only 1 isoform
+        if rm_1_iso: 
+            df = df.loc[df.n_iso > 1]
+        
+        # limit to target genes
+        if gene_subset:
+            gene_df, _, _ = get_gtf_info(how='gene',
+                                         ver=ver,
+                                         add_stable_gid=True)
+            gene_df = gene_df[['gid_stable', 'biotype']]
+            df = df.merge(gene_df, how='left',
+                            left_on='gid', right_on='gid_stable')
+            df = df.loc[df.biotype==gene_subset]
+            
+        return df
     
-    # if requested, remove triplets w/ only one isoform
-    if rm_1_iso_1: 
-        df1 = df1.loc[df1.n_iso > 1]
-    if rm_1_iso_2:
-        df2 = df2.loc[df2.n_iso > 1]
+    if len(cas) > 2:
+        print('Can only compute dists for 2 cerberus annots')
+        return None
+    
+    dfs = []
+    for i in range(len(cas)):
+        dfs.append(preproc_ca(cas[i],
+                               sources[i],
+                               rm_1_isos[i],
+                               gene_subsets[i],
+                               ver[i]))
+    
+                   
         
-    # limit to target genes
-    if gene_subset:
-        gene_df, _, _ = get_gtf_info(how='gene',
-                                     ver=ver,
-                                     add_stable_gid=True)
-        gene_df = gene_df[['gid_stable', 'biotype']]
+    
+    
+#     # get triplets for each source
+#     df1 = ca.triplets.loc[ca.triplets.source == source1].copy(deep=True)
+#     df2 = ca.triplets.loc[ca.triplets.source == source2].copy(deep=True)
+    
+#     # if requested, remove triplets w/ only one isoform
+#     if rm_1_iso_1: 
+#         df1 = df1.loc[df1.n_iso > 1]
+#     if rm_1_iso_2:
+#         df2 = df2.loc[df2.n_iso > 1]
         
-        # df1
-        df1 = df1.merge(gene_df, how='left',
-                        left_on='gid', right_on='gid_stable')
-        df1 = df1.loc[df1.biotype==gene_subset]
+#     # limit to target genes
+#     if gene_subset:
+#         gene_df, _, _ = get_gtf_info(how='gene',
+#                                      ver=ver,
+#                                      add_stable_gid=True)
+#         gene_df = gene_df[['gid_stable', 'biotype']]
         
-        # df2
-        df2 = df2.merge(gene_df, how='left',
-                        left_on='gid', right_on='gid_stable')
-        df2 = df2.loc[df2.biotype==gene_subset]
+#         # df1
+#         df1 = df1.merge(gene_df, how='left',
+#                         left_on='gid', right_on='gid_stable')
+#         df1 = df1.loc[df1.biotype==gene_subset]
+        
+#         # df2
+#         df2 = df2.merge(gene_df, how='left',
+#                         left_on='gid', right_on='gid_stable')
+#         df2 = df2.loc[df2.biotype==gene_subset]
     
     # merge dfs on gene info
-    df = df1.merge(df2, how='inner', 
-                   on=['gname', 'gid'],
-                   suffixes=(f'_{source1}', f'_{source2}'))
+    df = dfs[0].merge(dfs[1], how='inner', 
+                      on=gene_merge,
+                      suffixes=(f'_{sources[0]}', f'_{sources[1]}'))
     
     # compute distances
     pandarallel.initialize(nb_workers=8, verbose=1)
     df['dist'] = df.parallel_apply(simplex_dist,
-                                   args=(f'_{source1}', f'_{source2}'),
+                                   args=(f'_{sources[0]}', f'_{sources[1]}'),
                                    axis=1)
     df.dist = df.dist.fillna(0)
 
     # compute z_scores 
     df['z_score'] = st.zscore(df.dist.tolist())
+    
+    return df
+
+# merge in gids for orthologs
+def get_human_mouse_gid_table(fname):
+    # get matching gids from human and mouse
+    df = pd.read_csv(fname, sep='\t')
+
+    # drop nans in either human or mouse
+    df = df[['Gene stable ID', 'Mouse gene stable ID']]
+    df = df.loc[~df['Gene stable ID'].isnull()]
+    df = df.loc[~df['Mouse gene stable ID'].isnull()]    
+    
+    # remove dupes
+    df = df.drop_duplicates()
+    
+    # only keep 1:1 matches
+    df = df.loc[~df['Gene stable ID'].duplicated(keep=False)]
+    df = df.loc[~df['Mouse gene stable ID'].duplicated(keep=False)]
     
     return df
