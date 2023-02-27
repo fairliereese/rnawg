@@ -144,3 +144,19 @@ Patch LRGASP and HL60 libraries
 ```bash
 eu_register.py -m prod -p library -i hl60_lrgasp_library_patch.tsv --patch -w
 ```
+
+Upload experimental and preprocessing documents for lr ss
+```bash
+eu_register.py -m prod -p document -i lr_ss_docs.tsv
+```
+
+Patch LR SS libraries w/ docs
+```bash
+eu_register.py -m prod -p library -i lr_ss_lib_doc_patch.tsv --patch -w
+
+```
+
+Reupload ONT dRNA fast5s
+```bash
+eu_register.py -m dev -p file -i drna_files.tsv 
+```
