@@ -4420,7 +4420,11 @@ def make_triplet_feat_upset(h5,
     # make the plot
     c_dict, _ = get_feat_colors()
     c = c_dict[feat]
-    fig = plt.figure(figsize=(11,5))
+    # tss should be longer
+    if feat == 'tss':
+        fig = plt.figure(figsize=(22,5))
+    else:
+        fig = plt.figure(figsize=(11,5))
     sns.set_context('paper', font_scale=1.8)
     mpl.rcParams['font.family'] = 'Arial'
     mpl.rcParams['pdf.fonttype'] = 42
@@ -4429,126 +4433,126 @@ def make_triplet_feat_upset(h5,
                     facecolor=c, fig=fig, shading_color='white', element_size=None) 
     plt.savefig(ofile, dpi=500, bbox_inches='tight')   
     
-def plot_density_simplices(h5,
-                           sources,
-                           titles,
-                           gene_subset,
-                           ver):
+# def plot_density_simplices(h5,
+#                            sources,
+#                            titles,
+#                            gene_subset,
+#                            ver):
     
-    def make_sector_source_bar_plots(counts, fname):
-        counts[['source', 'gid']].groupby('source').count()    
-        temp = pd.DataFrame()
-        for source in counts.source.unique():
-            df = assign_gisx_sector(counts)
-            df = df.loc[df.source == source]
-            df = df[['gid', 'source', 'sector']].groupby(['source', 'sector']).count().reset_index()
-            df.rename({'gid': 'n_genes'}, axis=1, inplace=True)
-            df['total_genes'] = df.n_genes.sum()
-            temp = pd.concat([temp, df])
-        temp['perc'] = (temp.n_genes/temp.total_genes)*100
+#     def make_sector_source_bar_plots(counts, fname):
+#         counts[['source', 'gid']].groupby('source').count()    
+#         temp = pd.DataFrame()
+#         for source in counts.source.unique():
+#             df = assign_gisx_sector(counts)
+#             df = df.loc[df.source == source]
+#             df = df[['gid', 'source', 'sector']].groupby(['source', 'sector']).count().reset_index()
+#             df.rename({'gid': 'n_genes'}, axis=1, inplace=True)
+#             df['total_genes'] = df.n_genes.sum()
+#             temp = pd.concat([temp, df])
+#         temp['perc'] = (temp.n_genes/temp.total_genes)*100
 
-        cat1 = 'sector'
-        cat2 = 'source'
-        cat2_order = ['v40', 'obs_det', 'obs_major']
-        cat1_order = ['tss', 'splicing', 'tes', 'mixed', 'simple']
-        parent_c_dict, parent_order = get_sector_colors()
+#         cat1 = 'sector'
+#         cat2 = 'source'
+#         cat2_order = ['v40', 'obs_det', 'obs_major']
+#         cat1_order = ['tss', 'splicing', 'tes', 'mixed', 'simple']
+#         parent_c_dict, parent_order = get_sector_colors()
 
-        sns.set_context('paper', font_scale=2)
-        plt.figure(figsize=(2,20))
-        print('figsize changed')
-        fig, axes = plt.subplots(1, len(cat1_order), figsize=(20,3))
+#         sns.set_context('paper', font_scale=2)
+#         plt.figure(figsize=(2,20))
+#         print('figsize changed')
+#         fig, axes = plt.subplots(1, len(cat1_order), figsize=(20,3))
 
-        # loop through first category
-        for i, c1 in enumerate(cat1_order):
-            beep = temp.loc[temp[cat1] == c1]
+#         # loop through first category
+#         for i, c1 in enumerate(cat1_order):
+#             beep = temp.loc[temp[cat1] == c1]
 
-            c = parent_c_dict[c1]
-            c_dict, order = get_shade_colors(c, cat2_order)
+#             c = parent_c_dict[c1]
+#             c_dict, order = get_shade_colors(c, cat2_order)
 
-            # plotting
-            mpl.rcParams['font.family'] = 'Arial'
-            mpl.rcParams['pdf.fonttype'] = 42
-            # plt.figure(figsize=(3,4))
+#             # plotting
+#             mpl.rcParams['font.family'] = 'Arial'
+#             mpl.rcParams['pdf.fonttype'] = 42
+#             # plt.figure(figsize=(3,4))
 
-            ax = sns.barplot(data=beep, y='perc', x=cat2,
-                             palette=c_dict, order=order,
-                             saturation=1, ax=axes[i])
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
+#             ax = sns.barplot(data=beep, y='perc', x=cat2,
+#                              palette=c_dict, order=order,
+#                              saturation=1, ax=axes[i])
+#             ax.spines['right'].set_visible(False)
+#             ax.spines['top'].set_visible(False)
 
-            xlabel = ''
-            if c1 in ['tss', 'tes']:
-                c1 = c1.upper()
-            ylabel = '% genes in {} sector'.format(c1)
+#             xlabel = ''
+#             if c1 in ['tss', 'tes']:
+#                 c1 = c1.upper()
+#             ylabel = '% genes in {} sector'.format(c1)
 
-            _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-            ax.tick_params(axis="x", rotation=45)    
-            ax.set_xticklabels(['v40', 'Obs.', 'Obs. major'])
+#             _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+#             ax.tick_params(axis="x", rotation=45)    
+#             ax.set_xticklabels(['v40', 'Obs.', 'Obs. major'])
 
-            def add_perc_2(ax):
-                ylim = ax.get_ylim()[1]
-                n_cats = len(ax.patches)
-                for p in ax.patches:
-                    percentage = '{:.1f}%'.format(p.get_height())
-                    x = p.get_x() + p.get_width() / 2
-                    y = p.get_y() + p.get_height() + ylim*0.01
-                    ax.annotate(percentage, (x, y), size=16, horizontalalignment='center')
+#             def add_perc_2(ax):
+#                 ylim = ax.get_ylim()[1]
+#                 n_cats = len(ax.patches)
+#                 for p in ax.patches:
+#                     percentage = '{:.1f}%'.format(p.get_height())
+#                     x = p.get_x() + p.get_width() / 2
+#                     y = p.get_y() + p.get_height() + ylim*0.01
+#                     ax.annotate(percentage, (x, y), size=16, horizontalalignment='center')
 
-            add_perc_2(ax)
-        plt.savefig(fname, dpi=500, layout='tight', bbox_inches="tight")
+#             add_perc_2(ax)
+#         plt.savefig(fname, dpi=500, layout='tight', bbox_inches="tight")
         
 
-    # add biotype to subset on 
-    ca = cerberus.read(h5)
-    gene_df, _, _ = get_gtf_info(how='gene', ver=ver, add_stable_gid=True)
-    gene_df = gene_df[['gid_stable', 'biotype_category']]
-    gene_df.rename({'gid_stable': 'gid'}, axis=1, inplace=True)
-    ca.triplets = ca.triplets.merge(gene_df, how='left', on='gid')
+#     # add biotype to subset on 
+#     ca = cerberus.read(h5)
+#     gene_df, _, _ = get_gtf_info(how='gene', ver=ver, add_stable_gid=True)
+#     gene_df = gene_df[['gid_stable', 'biotype_category']]
+#     gene_df.rename({'gid_stable': 'gid'}, axis=1, inplace=True)
+#     ca.triplets = ca.triplets.merge(gene_df, how='left', on='gid')
     
-    gs_label = gene_subset
-    if gene_subset == 'polya':
-        gs = get_polya_cats()
-    else: 
-        gs = [gene_subset]
+#     gs_label = gene_subset
+#     if gene_subset == 'polya':
+#         gs = get_polya_cats()
+#     else: 
+#         gs = [gene_subset]
 
-    plot_df = pd.DataFrame()
-    for source, title in zip(sources, titles):
+#     plot_df = pd.DataFrame()
+#     for source, title in zip(sources, titles):
 
-        # subset dict
-        subset = {'source': source, 'biotype_category': gs}
-        print(subset)
+#         # subset dict
+#         subset = {'source': source, 'biotype_category': gs}
+#         print(subset)
 
-        # if we're looking at gencode, only take detected genes
-        if source == 'v40':
-            df = pd.read_csv(ab, sep='\t')
-            df, inds = get_tpm_table(df,
-                                     how='gene',
-                                     gene_subset=gs_label,
-                                     min_tpm=min_tpm)
-            subset['gid'] = inds
+#         # if we're looking at gencode, only take detected genes
+#         if source == 'v40':
+#             df = pd.read_csv(ab, sep='\t')
+#             df, inds = get_tpm_table(df,
+#                                      how='gene',
+#                                      gene_subset=gs_label,
+#                                      min_tpm=min_tpm)
+#             subset['gid'] = inds
 
-        fname = 'figures/simplex_{}_{}.pdf'.format(source, gs_label)
-        temp = ca.plot_simplex(top='splicing_ratio',
-            subset=subset,
-            density=True,
-            density_scale=100,
-            density_cmap='Purples',
-            log_density=True,
-            sectors=True,
-            scatter=False,
-            legend=False,
-            title=title,
-            size_scale=0.2,
-            density_cbar=False,
-            fname=fname)
+#         fname = 'figures/simplex_{}_{}.pdf'.format(source, gs_label)
+#         temp = ca.plot_simplex(top='splicing_ratio',
+#             subset=subset,
+#             density=True,
+#             density_scale=100,
+#             density_cmap='Purples',
+#             log_density=True,
+#             sectors=True,
+#             scatter=False,
+#             legend=False,
+#             title=title,
+#             size_scale=0.2,
+#             density_cbar=False,
+#             fname=fname)
 
-        # add sectors from this subset to plot_df
-        temp = assign_gisx_sector(temp)
-        plot_df = pd.concat([temp, plot_df])
+#         # add sectors from this subset to plot_df
+#         temp = assign_gisx_sector(temp)
+#         plot_df = pd.concat([temp, plot_df])
 
-    # create the bar plots
-    fname = 'figures/{}_genes_per_sector.pdf'.format(gs_label)
-    make_sector_source_bar_plots(plot_df, fname)
+#     # create the bar plots
+#     fname = 'figures/{}_genes_per_sector.pdf'.format(gs_label)
+#     make_sector_source_bar_plots(plot_df, fname)
     
 def plot_obs_human_simplex_with_centroid(h5, gene, fig_dir, **kwargs):
     ca = cerberus.read(h5)
