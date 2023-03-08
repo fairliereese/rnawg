@@ -1,4 +1,4 @@
-alias	derived_from
+record_id	derived_from
 ali-mortazavi:rnawg_cerberus_tes_bed	zhiping-weng:GRCh38-cCREs.DCC
 ali-mortazavi:rnawg_cerberus_tss_bed	zhiping-weng:GRCh38-cCREs.DCC
 ali-mortazavi:rnawg_cerberus_gtf	zhiping-weng:GRCh38-cCREs.DCC
