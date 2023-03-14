@@ -1307,9 +1307,9 @@ def plot_avg_isos_per_gene(df,
     plt.savefig(fname, dpi=300, bbox_inches='tight')
 
 
-
 def plot_biosamp_det(df,
                      opref='figures/',
+                     figsize=(6,6),
                      **kwargs):
 
     """
@@ -1345,7 +1345,13 @@ def plot_biosamp_det(df,
     df['n_samples'] = df.astype(int).sum(axis=1)    
 
     # and make a beautiful plot
-    plt.figure(figsize=(6,4))
+    plt.figure(figsize=figsize)
+    height = figsize[1]
+    width = figsize[0]
+    aspect = width/height
+    # print(height)
+    # print(aspect)
+    # https://stackoverflow.com/questions/65415646/how-to-change-the-figure-size-of-a-displot
     sns.set_context('paper', font_scale=2)
     mpl.rcParams['font.family'] = 'Arial'
     mpl.rcParams['pdf.fonttype'] = 42
@@ -1366,7 +1372,7 @@ def plot_biosamp_det(df,
             
     ax = sns.displot(data=df, x='n_samples', kind='hist',
                  color=color, binwidth=1, linewidth=0,
-                 alpha=1)
+                 alpha=1,height=height, aspect=aspect)
 
     # titles
     if how == 'gene' or how == 'sr':
@@ -2432,6 +2438,12 @@ def plot_ends_per_ic(df, ca,
     # plt.savefig(fname, dpi=300, bbox_inches='tight')
     plt.savefig(fname, dpi=700)
     
+    # do a lil math
+    temp['one_end'] = temp[feat]==1
+    temp2 = temp[['ic', 'one_end']].groupby('one_end').count().reset_index()
+    n = temp2.ic.sum(axis=0)
+    n_num = temp2.loc[temp2.one_end == True, 'ic'].values[0]
+    print(f'{(n_num/n)*100:.2f}% ({n_num}/{n} of unique ics have 1 {feat}')
     
     return temp
     
@@ -2695,6 +2707,8 @@ def plot_brain_tissue_cell_line_umap(swan_file,
         r,g,b = tuple(int(item[i:i+2], 16) for i in (0, 2, 4))
         cmap[key] = (r,g,b)
     adata.uns['{}_dict'.format(obs_col)] = cmap
+    
+    sc.set_figure_params(figsize=(3,3))
 
     sc.pl.umap(adata, color=obs_col, frameon=True, size=120, show=False)
     f = plt.gcf()
@@ -3097,7 +3111,7 @@ def plot_n_isos_per_gene(df,
     sns.set_context('paper', font_scale=2)
     mpl.rcParams['font.family'] = 'Arial'
     mpl.rcParams['pdf.fonttype'] = 42
-    plt.figure(figsize=(5,4))
+    plt.figure(figsize=(6,4))
 
     c_dict, order = get_talon_nov_colors(cats=['Known'])
     c = c_dict['Known']
@@ -3137,7 +3151,7 @@ def plot_n_isos_per_gene(df,
     for i, o in enumerate(order):
         leg.legendHandles[i].set_color(shade_dict[o])
     
-    ax.tick_params(axis="x", rotation=45)
+    # ax.tick_params(axis="x", rotation=45)
 
 
     fname = f'{opref}/isos_per_gene_support.png'
@@ -3197,7 +3211,7 @@ def plot_n_feat_per_gene(h5,
     df.loc[df[feat_col] >= max_ends, feat_col] = '{}+'.format(max_ends)
     df = df.groupby(gb_cols).sum().reset_index()
     
-    pdb.set_trace()
+    # pdb.set_trace()
 
     sns.set_context('paper', font_scale=2)
     mpl.rcParams['font.family'] = 'Arial'
@@ -4060,6 +4074,7 @@ def plot_triplet_feats_per_gene(h5,
                                 gene_subset,
                                 min_tpm, 
                                 opref='figures/'):
+    dfs = dict()
     for feat in ['tss', 'ic', 'tes']:
         ids = get_det_feats(h5, 
                             filt_ab,
@@ -4071,8 +4086,10 @@ def plot_triplet_feats_per_gene(h5,
                              feat=feat,
                              show_pc=True,
                              subset=ids)
+        dfs[feat] = df
         fname = opref+feat+'.pdf'
         plt.savefig(fname, dpi=500, layout='tight', bbox_inches='tight')
+    return dfs
 
         
 def plot_transcript_det_by_biotype(filt_ab,
@@ -4217,6 +4234,8 @@ def plot_transcripts_by_triplet_feat_novelty(filt_ab,
     ax.tick_params(axis="x", rotation=45)
 
     plt.savefig(ofile, dpi=500, bbox_inches='tight')
+    
+    return df
 
 
     
@@ -5314,3 +5333,101 @@ def plot_n_samples_vs_n_feats(temp, feat, opref):
     
     fname = f'{opref}/n_{feat}s_per_n_samples_expressed.pdf'
     plt.savefig(fname, dpi=500, bbox_inches='tight')
+    
+def plot_n_predom_transcripts(pi_tpm_file,
+                              ver,
+                              gene_subset,
+                              fname,
+                              max_isos=None,
+                              figsize=(6,6)):
+    df = pd.read_csv(pi_tpm_file, sep='\t')
+    
+    # only predominant transcripts
+    df = df.loc[df.triplet_rank==1]
+
+    # count number of unique predominant transcripts
+    df = df[['tid', 'gid']].groupby(['gid']).nunique().reset_index()
+    df.rename({'tid': 'n_predom_ts'}, axis=1, inplace=True)
+    
+    # limit to gene subset
+    if gene_subset:
+        gene_df, _, _ = get_gtf_info(how='gene',
+                                     ver=ver,
+                                     add_stable_gid=True)
+        gene_df = gene_df[['gid_stable', 'biotype', 'gname']]
+        df = df.merge(gene_df, how='left',
+                      left_on='gid', right_on='gid_stable')
+        df = df.loc[df.biotype==gene_subset] 
+        df.drop(['biotype', 'gid_stable'], axis=1, inplace=True)
+        
+    sns.set_context('paper', font_scale=2)
+    mpl.rcParams['font.family'] = 'Arial'
+    mpl.rcParams['pdf.fonttype'] = 42
+    color = get_talon_nov_colors(['Known'])[0]['Known']    
+    
+    if max_isos:
+        df.loc[df.n_predom_ts>=max_isos, 'n_predom_ts'] = max_isos
+        xticks = [i for i in range(0, max_isos+1, 5)]
+        xtick_labels = [str(xtick) for xtick in xticks]
+        xtick_labels[-1] = f'{max_isos}+'
+        
+    
+    # and make a beautiful plot
+    plt.figure(figsize=figsize)
+    height = figsize[1]
+    width = figsize[0]
+    aspect = width/height
+    
+    ax = sns.displot(df, x='n_predom_ts', kind='hist',
+             discrete=True,
+             color=color,
+             linewidth=0,
+             alpha=1,
+             height=height,
+                     aspect=aspect)
+    xlabel = '# predominant transcripts'
+    ylabel = '# genes'
+    _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
+    if max_isos:
+            sub_ax = plt.gca()
+            sub_ax.set_xticks(xticks)
+            sub_ax.set_xticklabels(xtick_labels)
+    
+    # ax.tick_params(axis="x", rotation=90)
+
+    print(f'Median predominant transcripts / gene: {df.n_predom_ts.median()}')
+
+    df['one_iso'] = df.n_predom_ts == 1
+    temp = df[['n_predom_ts', 'one_iso']].groupby('one_iso').count().reset_index()
+    n = temp.n_predom_ts.sum(axis=0)
+    n_num = temp.loc[temp.one_iso == False, 'n_predom_ts'].values[0]
+    print(n)
+    print(n_num)
+    print(f'{n_num}/{n} {(n_num/n)*100:.2f}% protein-coding genes have >1 predominant isoforms across samples')
+    
+#     import pdb;
+#     pdb.set_trace()
+    
+#     ax = sns.displot(df, x='n_predom_ts', kind='hist',
+#                  discrete=True,
+#                  color=color,
+#                  linewidth=0,
+#                  alpha=1)
+#                  alpha=1)
+#     xlabel = '# predominant transcripts'
+#     ylabel = '# genes'
+#     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
+#     plt.savefig(fname, dpi=500, bbox_inches='tight')
+    
+#     print(f'Median predominant transcripts / gene: {df.n_predom_ts.median()}')
+    
+#     df['one_iso'] = df.n_predom_ts == 1
+#     temp = df[['n_predom_ts', 'one_iso']].groupby('one_iso').count().reset_index()
+#     n = temp.n_predom_ts.sum(axis=0)
+#     n_num = temp.loc[temp.one_iso == False, 'n_predom_ts'].values[0]
+#     print(n)
+#     print(n_num)
+#     print(f'{n_num}/{n} {(n_num/n)*100:.2f}% protein-coding genes have >1 predominant isoforms across samples')
+    
+    return df
