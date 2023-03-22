@@ -158,5 +158,10 @@ eu_register.py -m prod -p library -i lr_ss_lib_doc_patch.tsv --patch -w
 
 Reupload ONT dRNA fast5s
 ```bash
-eu_register.py -m dev -p file -i drna_files.tsv 
+eu_register.py -m dev -p file -i drna_files.tsv
+```
+
+Patch LR files w/ cCREs
+```bash
+eu_register.py -m prod -p file -i lr_ccre_patch.tsv --patch 
 ```

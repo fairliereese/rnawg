@@ -2351,7 +2351,7 @@ def plot_feat_len_hist(cerberus_h5,
     
     ax = plt.gca()
     ylim = ax.get_ylim()
-    ax.set_ylim(1**-4, ylim[1])
+    ax.set_ylim(10**-.3, ylim[1])
 
     df.region_len.max()
     ylabel = f'# detected {feat.upper()}s'
@@ -2359,6 +2359,15 @@ def plot_feat_len_hist(cerberus_h5,
 
     ax.set(xlabel=xlabel, ylabel=ylabel)
     plt.savefig(ofile, dpi=700, bbox_inches='tight') 
+    
+    # some math
+    bounds_list = [(0,500), (250,df.region_len.max())]
+    for bounds in bounds_list:
+        n_num = len(df.loc[(df.region_len>=bounds[0])&(df.region_len<=bounds[1])].index)
+        n = len(df.index)
+        print(f'{(n_num/n)*100:.2f}% of regions ({n_num}/{n}) are b/w {bounds[0]} and {bounds[1]} bp long')
+    
+    return df
     
 def plot_ends_per_ic(df, ca,
                      feat,
@@ -2431,7 +2440,7 @@ def plot_ends_per_ic(df, ca,
     
     ax = plt.gca()
     ylim = ax.get_ylim()
-    ax.set_ylim(1**-4, ylim[1])
+    ax.set_ylim(10**-.3, ylim[1])
 
     # _ = ax.set_yscale("log")
 
@@ -4606,9 +4615,10 @@ def plot_density_simplices(h5,
                            sources,
                            titles,
                            gene_subset,
-                           ver):
+                           ver,
+                           species='human'):
     
-    def make_sector_source_bar_plots(counts, fname):
+    def make_sector_source_bar_plots(counts, fname, species='human'):
         counts[['source', 'gid']].groupby('source').count()    
         temp = pd.DataFrame()
         for source in counts.source.unique():
@@ -4622,7 +4632,10 @@ def plot_density_simplices(h5,
 
         cat1 = 'sector'
         cat2 = 'source'
-        cat2_order = ['v40', 'obs_det', 'obs_major']
+        if species == 'human':
+            cat2_order = ['v40', 'obs_det', 'obs_major']
+        elif species == 'mouse':
+            cat2_order = ['vM25', 'obs_det', 'obs_major']
         cat1_order = ['tss', 'splicing', 'tes', 'mixed', 'simple']
         parent_c_dict, parent_order = get_sector_colors()
 
@@ -4655,8 +4668,11 @@ def plot_density_simplices(h5,
             ylabel = '% genes in {} sector'.format(c1)
 
             _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-            ax.tick_params(axis="x", rotation=45)    
-            ax.set_xticklabels(['v40', 'Obs.', 'Obs. major'])
+            ax.tick_params(axis="x", rotation=45)
+            if species == 'human':
+                ax.set_xticklabels(['v40', 'Obs.', 'Obs. major'])
+            elif species == 'mouse':
+                ax.set_xticklabels(['vM25', 'Obs.', 'Obs. major'])
 
             def add_perc_2(ax):
                 ylim = ax.get_ylim()[1]
@@ -4692,12 +4708,13 @@ def plot_density_simplices(h5,
         print(subset)
 
         # if we're looking at gencode, only take detected genes
-        if source == 'v40':
+        if source in ['v40', 'vM25']:
             df = pd.read_csv(ab, sep='\t')
             df, inds = get_tpm_table(df,
                                      how='gene',
                                      gene_subset=gs_label,
-                                     min_tpm=min_tpm)
+                                     min_tpm=min_tpm,
+                                     species=species)
             subset['gid'] = inds
 
         fname = 'figures/simplex_{}_{}.pdf'.format(source, gs_label)
@@ -4721,7 +4738,7 @@ def plot_density_simplices(h5,
 
     # create the bar plots
     fname = 'figures/{}_genes_per_sector.pdf'.format(gs_label)
-    make_sector_source_bar_plots(plot_df, fname)
+    make_sector_source_bar_plots(plot_df, fname, species)
     
 def plot_major_iso_simplex(h5, gene):
     ca = cerberus.read(h5)
@@ -5363,7 +5380,18 @@ def plot_n_predom_transcripts(pi_tpm_file,
     sns.set_context('paper', font_scale=2)
     mpl.rcParams['font.family'] = 'Arial'
     mpl.rcParams['pdf.fonttype'] = 42
-    color = get_talon_nov_colors(['Known'])[0]['Known']    
+    color = get_talon_nov_colors(['Known'])[0]['Known'] 
+    
+    # a wee bit of math
+    print(f'Median predominant transcripts / gene: {df.n_predom_ts.median()}')
+    df['one_iso'] = df.n_predom_ts == 1
+    temp = df[['n_predom_ts', 'one_iso']].groupby('one_iso').count().reset_index()
+    n = temp.n_predom_ts.sum(axis=0)
+    n_num = temp.loc[temp.one_iso == False, 'n_predom_ts'].values[0]
+    print(n)
+    print(n_num)
+    print(f'{n_num}/{n} {(n_num/n)*100:.2f}% protein-coding genes have >1 predominant isoforms across samples')
+    
     
     if max_isos:
         df.loc[df.n_predom_ts>=max_isos, 'n_predom_ts'] = max_isos
@@ -5388,46 +5416,14 @@ def plot_n_predom_transcripts(pi_tpm_file,
     xlabel = '# predominant transcripts'
     ylabel = '# genes'
     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-    plt.savefig(fname, dpi=500, bbox_inches='tight')
-    if max_isos:
-            sub_ax = plt.gca()
-            sub_ax.set_xticks(xticks)
-            sub_ax.set_xticklabels(xtick_labels)
     
+    if max_isos:
+        sub_ax = plt.gca()
+        sub_ax.set_xticks(xticks)
+        sub_ax.set_xticklabels(xtick_labels)
+    
+    plt.savefig(fname, dpi=500, bbox_inches='tight')
+
     # ax.tick_params(axis="x", rotation=90)
 
-    print(f'Median predominant transcripts / gene: {df.n_predom_ts.median()}')
-
-    df['one_iso'] = df.n_predom_ts == 1
-    temp = df[['n_predom_ts', 'one_iso']].groupby('one_iso').count().reset_index()
-    n = temp.n_predom_ts.sum(axis=0)
-    n_num = temp.loc[temp.one_iso == False, 'n_predom_ts'].values[0]
-    print(n)
-    print(n_num)
-    print(f'{n_num}/{n} {(n_num/n)*100:.2f}% protein-coding genes have >1 predominant isoforms across samples')
-    
-#     import pdb;
-#     pdb.set_trace()
-    
-#     ax = sns.displot(df, x='n_predom_ts', kind='hist',
-#                  discrete=True,
-#                  color=color,
-#                  linewidth=0,
-#                  alpha=1)
-#                  alpha=1)
-#     xlabel = '# predominant transcripts'
-#     ylabel = '# genes'
-#     _ = ax.set(xlabel=xlabel, ylabel=ylabel)
-#     plt.savefig(fname, dpi=500, bbox_inches='tight')
-    
-#     print(f'Median predominant transcripts / gene: {df.n_predom_ts.median()}')
-    
-#     df['one_iso'] = df.n_predom_ts == 1
-#     temp = df[['n_predom_ts', 'one_iso']].groupby('one_iso').count().reset_index()
-#     n = temp.n_predom_ts.sum(axis=0)
-#     n_num = temp.loc[temp.one_iso == False, 'n_predom_ts'].values[0]
-#     print(n)
-#     print(n_num)
-#     print(f'{n_num}/{n} {(n_num/n)*100:.2f}% protein-coding genes have >1 predominant isoforms across samples')
-    
     return df

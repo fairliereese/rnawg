@@ -463,15 +463,15 @@ rule cerberus_gtf_to_ends:
     input:
         gtf = get_cerberus_gtf_input
     params:
-        slack =  50,
+        slack = 50,
         dist = 50
     resources:
         mem_gb = 64,
         threads = 1
     output:
         bed = config['cerberus']['gtf']['ends'],
-                # source=['v40', 'v29', 'lapa'],
-                # mode=['tss', 'tes'])
+                source=['v40', 'v29', 'lapa'],
+                mode=['tss', 'tes'])
     shell:
         "cerberus gtf_to_bed \
             --gtf {input.gtf} \
