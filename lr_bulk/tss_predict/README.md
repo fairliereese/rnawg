@@ -1,5 +1,6 @@
-# Machine learning models predict the support for long-read TSS peaks by other TSS-annotating assays and in a cross-cell type manner
-## This section contains the code to train/test logistic regression models to predict the overlap (support) for a peak in different TSS assays
+## Machine learning models predict the support for long-read TSS peaks by other TSS-annotating assays and in a cross-cell type manner
+
+This section contains the code to train/test logistic regression models to predict the overlap (support) for a peak in different TSS assays
 The overall order for preprocessing, training and testing the logit models:
 
 ```
