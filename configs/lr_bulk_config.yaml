@@ -42,6 +42,8 @@ talon:
   known_nic_nnc_pass_list: lr_bulk/talon/human_known_nic_nnc_pass_list.csv
   known_nic_nnc_gtf: lr_bulk/talon/human_known_nic_nnc_talon.gtf
 
+  novel_pass_list: lr_bulk/talon/human_novel_gene_pass_list.tsv
+
 
 bru:
   meta:

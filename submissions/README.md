@@ -163,5 +163,21 @@ eu_register.py -m dev -p file -i drna_files.tsv
 
 Patch LR files w/ cCREs
 ```bash
-eu_register.py -m prod -p file -i lr_ccre_patch.tsv --patch 
+eu_register.py -m prod -p file -i lr_ccre_patch.tsv --patch
+```
+
+Patch human LR data w/ correct filtered ab
+```bash
+eu_register.py -m prod -p file -i lr_human_filt_ab.tsv
+```
+
+Upload new h5 files that have the triplets in them
+```bash
+eu_register.py -m prod -p file -i lr_h5.tsv
+```
+
+
+Upload new h5 files that have the triplets for lncrnas and pseudogenes in them
+```bash
+eu_register.py -m prod -p file -i lr_h5_2.tsv
 ```

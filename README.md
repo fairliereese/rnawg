@@ -1,6 +1,14 @@
-Data used for RNAWG paper
+Data processing and analysis used for RNAWG paper.
 
-### Long-read RNA-seq data for human cell line and tissue data (updated 1/18/23)
+Table of contents:
+* [Human LR-RNA-seq](https://github.com/fairliereese/rnawg/tree/master/lr_bulk)
+* [Mouse LR-RNA-seq](https://github.com/fairliereese/rnawg/tree/master/mouse/lr_bulk)
+* [Human short-read RNA-seq](https://github.com/fairliereese/rnawg/tree/master/sr_bulk)
+* [Human microRNA-seq](https://github.com/fairliereese/rnawg/tree/master/miRNA)
+* [Snakemake files](https://github.com/fairliereese/rnawg/tree/master/workflow)
+
+
+<!-- ### Long-read RNA-seq data for human cell line and tissue data (updated 1/18/23)
 --------------------------------------------------------------------------------
 Downloadable links and file descriptions available at each of the links below.
 * [TALON unfiltered abundance matrix](https://sandbox.zenodo.org/record/1078180)
@@ -27,7 +35,7 @@ Downloadable links and file descriptions available at each of the links below.
 * [TALON unfiltered abundance matrix](https://sandbox.zenodo.org/record/1095610)
 * [TALON filtered abundance matrix](https://sandbox.zenodo.org/record/1095608)
 * [TALON filtered GTF](https://sandbox.zenodo.org/record/1095599)
-* [TALON read annot](https://sandbox.zenodo.org/record/1095614)
+* [TALON read annot](https://sandbox.zenodo.org/record/1095614) -->
 
 <!-- * [cerberus filtered abundance matrix](https://sandbox.zenodo.org/record/1092240)
 * [cerberus filtered GTF](https://sandbox.zenodo.org/record/1092266)

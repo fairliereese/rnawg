@@ -411,7 +411,11 @@ def plot_perc_samples_mane(temp,
 
     ax = sns.catplot(temp, x='bin', y='mp_perc', kind='bar', 
                      color=c_dict[feat], saturation=1)
-    plt.gcf().set_size_inches(1.3333*6,0.7639*5)
+    if obs_col == 'dataset':
+        plt.gcf().set_size_inches(1.3333*6,0.7639*5)
+    elif obs_col == 'sample':
+        plt.gcf().set_size_inches(1.3333*6,0.7639*6)
+        
     ylabel = '# genes'
     if obs_col == 'dataset':
         label_col = 'librarie'
@@ -421,7 +425,11 @@ def plot_perc_samples_mane(temp,
         xlabel = '% of {}s where predominant\n{} is from MANE'.format(label_col, feat.upper())
     else:
         xlabel = '% of {}s where predominant\ntranscript is MANE'.format(label_col)
-    ax.set(ylabel=ylabel, xlabel=xlabel, ylim=(0, 7263))
+    if obs_col == 'dataset':
+        ax.set(ylabel=ylabel, xlabel=xlabel, ylim=(0, 7263))
+    elif obs_col == 'sample':
+        ax.set(ylabel=ylabel, xlabel=xlabel, ylim=(0, 5000))
+    
     ax.tick_params(axis='x', rotation=90)
     _ = plt.xticks(fontsize=16)
 

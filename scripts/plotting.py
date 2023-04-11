@@ -3847,8 +3847,8 @@ def plot_mouse_cell_line_tissue_read_len_v_ref(read_annot,
 
     df = pd.read_csv(read_annot, usecols=[1,8], sep='\t') 
     meta = pd.read_csv(meta_file, sep='\t')
-    cell_lines = meta.loc[meta.classification == 'cell_line', 'dataset'].tolist()
-    tissues = meta.loc[meta.classification == 'tissue', 'dataset'].tolist()
+    cell_lines = meta.loc[meta.tissue_or_cell_line == 'cell_line', 'dataset'].tolist()
+    tissues = meta.loc[meta.tissue_or_cell_line == 'tissue', 'dataset'].tolist()
     df['source'] = False
     df.loc[df.dataset.isin(cell_lines), 'source'] = 'Reads from cell lines'
     df.loc[df.dataset.isin(tissues), 'source'] = 'Reads from tissues'
@@ -4636,6 +4636,8 @@ def plot_density_simplices(h5,
             cat2_order = ['v40', 'obs_det', 'obs_major']
         elif species == 'mouse':
             cat2_order = ['vM25', 'obs_det', 'obs_major']
+        else: 
+            cat2_order = sources
         cat1_order = ['tss', 'splicing', 'tes', 'mixed', 'simple']
         parent_c_dict, parent_order = get_sector_colors()
 
@@ -4689,6 +4691,7 @@ def plot_density_simplices(h5,
 
     # add biotype to subset on 
     ca = cerberus.read(h5)
+    pdb.set_trace()
     gene_df, _, _ = get_gtf_info(how='gene', ver=ver, add_stable_gid=True)
     gene_df = gene_df[['gid_stable', 'biotype_category']]
     gene_df.rename({'gid_stable': 'gid'}, axis=1, inplace=True)
@@ -5194,7 +5197,7 @@ def get_counts_per_sample_per_gene(filt_ab, obs_col, feat, min_tpm, gene_subset)
     
     return df
 
-def plot_feats_per_sample_gene(temp, feat, obs_col):
+def plot_feats_per_sample_gene(temp, feat, obs_col, fig_dir):
     sns.set_context('paper', font_scale=2)
     mpl.rcParams['font.family'] = 'Arial'
     mpl.rcParams['pdf.fonttype'] = 42
@@ -5243,7 +5246,7 @@ def plot_feats_per_sample_gene(temp, feat, obs_col):
     fname = f'{fig_dir}/{feat}_gene_hist.pdf'
     plt.savefig(fname, dpi=500)
 
-def plot_feats_per_sample_gene_ecdf(temp, feat, obs_col):
+def plot_feats_per_sample_gene_ecdf(temp, feat, obs_col, fig_dir):
     from matplotlib.lines import Line2D
 
     c_dict, order = get_feat_triplet_colors_2(feat)
