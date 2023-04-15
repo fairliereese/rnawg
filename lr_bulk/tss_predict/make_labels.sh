@@ -1,24 +1,26 @@
-### Assigns binary labels to peak regions in TSS assays based on their presence in assays
+### Assigns binary labels to peak regions reported by LR assays and methods (Cerb/LAPA)
+# based on the peak presence in other assays (i.e RAMPAGE & CAGE)
 
-# pacbio_type="Cerberus"
-pacbio_type="LAPA"
+# LR_type="Cerberus"
+# LR_type="LAPA"
+LR_type=$1
 
-input_dir=data_dir/processed_beds/"$pacbio_type"/
-output_dir=data_dir/labeled_beds/all_chrs/"$pacbio_type"/
-jamboree_assays=data_dir/all_chr_jamboree/
+input_dir=data_dir/processed_beds/"$LR_type"/
+output_dir=data_dir/labeled_beds/all_chr/"$LR_type"/
+inp_assay_dir=data_dir/all_chr/
 
-for inp_bed in "$input_dir"*bed; do
+for inp_bed in "$input_dir"*.bed; do
+		echo $inp_bed
     experiment=$(basename $inp_bed)
     experiment=${experiment%%.bed}
 	cell_line=${experiment%%_ENCSR*}  # GM12878
     assay1="CAGE"
     assay2="RAMPAGE"
-#    echo $experiment
-#    echo $cell_line
-#    echo "////////////////////////"
+    echo $experiment
+    echo $cell_line
+	echo "------"
     for other_assay in $assay1 $assay2; do
-        echo $other_assay
-        other_assay_file="$jamboree_assays"/Allchr."$other_assay"-"$cell_line".txt
+        other_assay_file="$inp_assay_dir"/Allchr."$other_assay"-"$cell_line".txt
         tmp_other_assay_intersect="$output_dir"/"$experiment"."$other_assay".intersect.tmp
         tmp_other_assay_notintersect="$output_dir"/"$experiment"."$other_assay".notintersect.tmp
         bedtools intersect -wa -a <(sort -k1,1 -k2,2n $inp_bed) -b "$other_assay_file" | sort -k1,1 -k2,2n | uniq > $tmp_other_assay_intersect

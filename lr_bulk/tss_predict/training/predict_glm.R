@@ -6,17 +6,19 @@ library(reshape2)
 library(stringr)
 library(PRROC)
 
-pacbio_type <- "Cerberus"
-# pacbio_type <- "LAPA"
-data_dir <- "data_dir/labeled_beds/split_chrs_with_DHS"
-test_dir <- file.path(data_dir, pacbio_type, "test")
-eval_dir <- file.path(data_dir, pacbio_type, "test_with_labels")
+# LR_type <- "Cerberus"
+# LR_type <- "LAPA"
+LR_type <- commandArgs(trailingOnly = T)[1]
+
+data_dir <- "../data_dir/labeled_beds/split_chr_with_DHS"
+test_dir <- file.path(data_dir, LR_type, "test")
+eval_dir <- file.path(data_dir, LR_type, "test_with_labels")
 
 training_dir <- "training"
-model_dir <- file.path(training_dir, "models/individual_exper_same_cell_line", pacbio_type)
-pred_dir <- file.path(training_dir, "predicts/individual_exper_same_cell_line", pacbio_type)
+model_dir <- file.path("models/individual_exper_same_cell_line", LR_type)
+pred_dir <- file.path("predicts/individual_exper_same_cell_line", LR_type)
 
-plot_dir <- file.path("plots/individual_exper_same_cell_line/", pacbio_type)
+plot_dir <- file.path("plots/individual_exper_same_cell_line/", LR_type)
 
 test_beds <- list.files(test_dir, pattern = "*.bed", full.name = T)
 
@@ -46,11 +48,11 @@ for (test_bed in test_beds) {
 		PRROC_obj <- roc.curve(scores.class0 = pred, weights.class0 = binary_labels, curve = T)
 		auroc_plot_file <- file.path(plot_dir, paste0(experiment, "_AUROC.pdf"))
 		pdf(auroc_plot_file, 7, 7)
-		auroc_plot_title <- paste(experiment, "-", pacbio_type, "- AUROC:", round(PRROC_obj$auc, 3))
+		auroc_plot_title <- paste(experiment, "-", LR_type, "- AUROC:", round(PRROC_obj$auc, 3))
 		plot(PRROC_obj, color=F, main =auroc_plot_title, auc.main = F, cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
 		dev.off()
 		auc_df <- rbind(auc_df, c(experiment, PRROC_obj$auc))
 }
 colnames(auc_df) <- c("Experiment", "AUROC")
 auc_df <- auc_df %>% mutate(AUROC = as.numeric(AUROC))
-write.table(auc_df, paste0(model_dir, "/auc.txt"), col.names = T, row.names = F, quote = F, sep = "\t") 
+write.table(auc_df, paste0(pred_dir, "/auc.txt"), col.names = T, row.names = F, quote = F, sep = "\t") 

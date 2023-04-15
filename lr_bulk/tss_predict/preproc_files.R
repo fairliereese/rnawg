@@ -1,10 +1,13 @@
-### change column names based on the input type and filter out peaks based on chromosomal location
+### change column names based on the input type and
+# filter out peaks based on chromosomal location and
+# sort .bed files based on chr location
 
 library(dplyr)
 library(stringr)
 
 # data_type <- "LAPA"
-data_type <- "Cerberus"
+# data_type <- "Cerberus"
+data_type <- commandArgs(trailingOnly = T)[1]
 
 data_dir <- "data_dir/"
 bed_dir <- paste0(data_dir, "raw_beds/", data_type, "/") 
