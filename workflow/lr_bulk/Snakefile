@@ -33,41 +33,42 @@ rule all:
         # config['swan']['sg'],
         # config['lapa']['nov_ab'],
         # config['lapa']['filt_gtf'],
-        expand(config['cerberus']['gtf']['ends'],
-                source=['v40', 'v29', 'lapa', 'gtex'],
-                mode=['tss', 'tes']),
-        config['cerberus']['tss']['lapa'],
-        config['cerberus']['tes']['lapa'],
-        config['cerberus']['tss']['cfg'],
-        config['cerberus']['tes']['cfg'],
-        config['polyasite_atlas']['formatted'],
-        config['cerberus']['tes']['pas'],
-        config['cerberus']['tss']['agg'],
-        config['cerberus']['tes']['agg'],
-        expand(config['cerberus']['gtf']['ics'],
-               source=['v40', 'v29', 'lapa', 'gtex']),
-        config['cerberus']['ics']['agg'],
-        config['cerberus']['ref'],
-        config['cerberus']['annot'],
-        config['cerberus']['update_gtf'],
-        config['ref']['v29']['cerberus']['annot'],
-        config['ref']['v40']['cerberus']['annot'],
-        config['ref']['v29']['cerberus']['gtf'],
-        config['ref']['v40']['cerberus']['gtf'],
-        config['cerberus']['update_gtf'],
-        config['cerberus']['update_ab'],
-        config['ref']['v40']['t_info'],
-        config['ref']['v40']['cerberus']['t_info'],
-        config['ref']['v40']['cerberus']['g_info'],
-        config['cerberus']['t_info'],
-        config['swan']['sg_unfilt'],
-        config['swan']['sg_unfilt_meta'],
-        config['gtex']['cerberus']['annot'],
-        config['swan']['major_isos'],
-        config['cerberus']['triplets']['h5'],
-        config['swan']['major_isos_library'],
-        config['cerberus']['suppa']['psi'],
-        config['talon']['gene_ab']
+        # expand(config['cerberus']['gtf']['ends'],
+        #         source=['v40', 'v29', 'lapa', 'gtex'],
+        #         mode=['tss', 'tes']),
+        # config['cerberus']['tss']['lapa'],
+        # config['cerberus']['tes']['lapa'],
+        # config['cerberus']['tss']['cfg'],
+        # config['cerberus']['tes']['cfg'],
+        # config['polyasite_atlas']['formatted'],
+        # config['cerberus']['tes']['pas'],
+        # config['cerberus']['tss']['agg'],
+        # config['cerberus']['tes']['agg'],
+        # expand(config['cerberus']['gtf']['ics'],
+        #        source=['v40', 'v29', 'lapa', 'gtex']),
+        # config['cerberus']['ics']['agg'],
+        # config['cerberus']['ref'],
+        # config['cerberus']['annot'],
+        # config['cerberus']['update_gtf'],
+        # config['ref']['v29']['cerberus']['annot'],
+        # config['ref']['v40']['cerberus']['annot'],
+        # config['ref']['v29']['cerberus']['gtf'],
+        # config['ref']['v40']['cerberus']['gtf'],
+        # config['cerberus']['update_gtf'],
+        # config['cerberus']['update_ab'],
+        # config['ref']['v40']['t_info'],
+        # config['ref']['v40']['cerberus']['t_info'],
+        # config['ref']['v40']['cerberus']['g_info'],
+        # config['cerberus']['t_info'],
+        # config['swan']['sg_unfilt'],
+        # config['swan']['sg_unfilt_meta'],
+        # config['gtex']['cerberus']['annot'],
+        # config['swan']['major_isos'],
+        # config['cerberus']['triplets']['h5'],
+        # config['swan']['major_isos_library'],
+        # config['cerberus']['suppa']['psi'],
+        # config['talon']['gene_ab'],
+        config['pp']['orf_fa']
 
 #### refs ####
 rule dl_v40:
@@ -469,16 +470,16 @@ rule cerberus_gtf_to_ends:
         mem_gb = 64,
         threads = 1
     output:
-        bed = config['cerberus']['gtf']['ends'],
-                source=['v40', 'v29', 'lapa'],
-                mode=['tss', 'tes'])
+        bed = expand(config['cerberus']['gtf']['ends'],source=['v40', 'v29', 'lapa'],mode=['tss', 'tes'])
     shell:
-        "cerberus gtf_to_bed \
+        """
+        cerberus gtf_to_bed \
             --gtf {input.gtf} \
             --mode {wildcards.mode} \
             --dist {params.dist} \
             --slack {params.slack} \
-            -o {output.bed}"
+            -o {output.bed}
+        """
 
 
 def format_lapa_ends(bed, o):
@@ -505,21 +506,21 @@ def format_lapa_ends(bed, o):
     df = pr.PyRanges(df)
     df = df.to_bed(o, chain=True)
     return df
-#
-# rule format_lapa_ends:
-#     input:
-#         bed = [config['lapa']['tss'],
-#                config['lapa']['tes'],
-#                config['pas']['tes']]
-#     resources:
-#         mem_gb = 4,
-#         threads = 1
-#     output:
-#         bed_formatted = [config['cerberus']['tss']['lapa'],
-#                          config['cerberus']['tes']['lapa'],
-#                          config['cerberus']['tes']['pas']]
-#     run:
-#         format_lapa_ends(input.bed, output.bed_formatted)
+
+rule format_lapa_ends:
+    input:
+        bed = [config['lapa']['tss'],
+               config['lapa']['tes'],
+               config['pas']['tes']]
+    resources:
+        mem_gb = 4,
+        threads = 1
+    output:
+        bed_formatted = [config['cerberus']['tss']['lapa'],
+                         config['cerberus']['tes']['lapa'],
+                         config['cerberus']['tes']['pas']]
+    run:
+        format_lapa_ends(input.bed, output.bed_formatted)
 
 rule format_lapa_tss:
     input:
@@ -544,16 +545,16 @@ rule format_lapa_tes:
         format_lapa_ends(input.bed, output.bed_formatted)
 
 
-rule format_lapa_ends:
-    input:
-        bed = config['pas']['tes']
-    resources:
-        mem_gb = 4,
-        threads = 1
-    output:
-        bed_formatted = config['cerberus']['tes']['pas']
-    run:
-        format_lapa_ends(input.bed, output.bed_formatted)
+# rule format_lapa_ends:
+#     input:
+#         bed = config['pas']['tes']
+#     resources:
+#         mem_gb = 4,
+#         threads = 1
+#     output:
+#         bed_formatted = config['cerberus']['tes']['pas']
+#     run:
+#         format_lapa_ends(input.bed, output.bed_formatted)
 
 rule format_polya_atlas:
     input:
@@ -1159,60 +1160,66 @@ rule get_cerberus_psi:
                          params.min_tpm,
                          params.gene_subset,
                          output.ofile)
-
-# # TODO - should only be isos >=1tpm from polya genes
-# rule swan_filt:
-
-
-# #### Protein prediction ####
-# rule tama_gtf_to_bed:
-#     input:
-#         gtf = config['talon']['known_nic_nnc_gtf']
-#     params:
-#         gtf_to_bed = config['pp']['gtf_to_bed']
-#     resources:
-#         mem_gb = 32
-#     output:
-#         bed = config['pp']['gtf_bed']
-#     shell:
-#         "python {params.gtf_to_bed} \
-#           {input.gtf} \
-#           {output.bed}
-#         "
 #
-# rule tama_bed_to_fasta:
-#     input:
-#         bed = config['pp']['gtf_bed'],
-#         ref = config['ref']['hg38']
-#     output:
-#         fa = config['pp']['fa']
-#     resources:
-#         mem_gb = 32
-#     shell:
-#         "module load bedtools2
-#          bedtools getfasta \
-#           -name \
-#           -split \
-#           -s \
-#           -fi {input.ref} \
-#           -bed {input.bed} \
-#           -fo {output.fa}
-#         "
+# # # TODO - should only be isos >=1tpm from polya genes
+# # rule swan_filt:
 #
-# rule tama_orf_nmd:
-#     input:
-#         fa = config['pp']['fa']
-#     params:
-#         orf_nmd = config['pp']['orf_nmd']
-#     resources:
-#         mem_gb = 32
-#     output:
-#         orf_fa = config['pp']['orf_fa']
-#     shell:
-#         "python {params.orf_nmd} \
-#             -f {input.fa} \
-#             -o {output.orf_fa}
-#         "
+
+#### Protein prediction ####
+rule tama_gtf_to_bed:
+    input:
+        gtf = config['cerberus']['update_gtf']
+    params:
+        tama_dir = config['pp']['tama_dir']
+    resources:
+        threads = 4,
+        mem_gb = 32
+    output:
+        bed = config['pp']['gtf_bed']
+    shell:
+        """
+        python {params.tama_dir}/format_converter/tama_format_gtf_to_bed12_ensembl.py \
+          {input.gtf} \
+          {output.bed}
+        """
+
+rule tama_bed_to_fasta:
+    input:
+        bed = config['pp']['gtf_bed'],
+        ref = config['ref']['hg38']
+    output:
+        fa = config['pp']['fa']
+    resources:
+        threads = 4,
+        mem_gb = 32
+    shell:
+        """
+        module load bedtools2
+        bedtools getfasta \
+            -name \
+            -split \
+            -s \
+            -fi {input.ref} \
+            -bed {input.bed} \
+            -fo {output.fa}
+        """
+
+rule tama_orf_nmd:
+    input:
+        fa = config['pp']['fa']
+    params:
+        tama_dir = config['pp']['tama_dir']
+    resources:
+        threads = 4,
+        mem_gb = 32
+    output:
+        orf_fa = config['pp']['orf_fa']
+    shell:
+        """
+        python {params.tama_dir}/orf_nmd_predictions/tama_orf_seeker.py \
+            -f {input.fa} \
+            -o {output.orf_fa}
+        """
 #
 # rule blast:
 #     input:

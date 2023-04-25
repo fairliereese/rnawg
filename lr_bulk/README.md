@@ -97,3 +97,11 @@ config=talon/talon_config.csv
 oprefix=talon/human
 sbatch ../scripts/sbatch_talon_bulk.sh -d talon/human.db talon/talon_config_11.csv $oprefix # running 4/12/22
 ``` -->
+```bash
+snakemake \
+  -s workflow/lr_bulk/Snakefile \
+  -j 10 \
+  --latency-wait 120 \
+  --cluster "sbatch -A seyedam_lab --mem={resources.mem_gb}GB -c {resources.threads} --mail-user=freese@uci.edu --mail-type=START,END,FAIL --time=72:00:00" \
+  -n
+```

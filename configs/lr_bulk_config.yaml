@@ -65,8 +65,9 @@ swan:
   major_isos_library: lr_bulk/cerberus/swan/major_isos_library.tsv
 
 pp:
-  gtf_to_bed: ~/mortazavi_lab/bin/tama/tama_go/format_converter/tama_format_gtf_to_bed12_ensembl.py
-  orf_nmd: ~/mortazavi_lab/bin/tama/tama_go/orf_nmd_predictions/tama_orf_seeker.py
+  tama_dir: ~/mortazavi_lab/bin/tama/tama_go/
+  # gtf_to_bed: ~/mortazavi_lab/bin/tama/tama_go/format_converter/tama_format_gtf_to_bed12_ensembl.py
+  # orf_nmd: ~/mortazavi_lab/bin/tama/tama_go/orf_nmd_predictions/tama_orf_seeker.py
   blastp: ~/mortazavi_lab/bin/ncbi-blast-2.12.0+/bin/./blastp
   blastp_parse: ~/mortazavi_lab/bin/tama/tama_go/orf_nmd_predictions/tama_orf_blastp_parser.py
   gtf_bed: lr_bulk/protein_pred/human_tama.bed

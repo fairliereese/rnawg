@@ -232,10 +232,27 @@ def formatLine(line):
     return line
 
 def parseLine(row, use_department):
-    if row["Middle"] == "":
-        name = "%s %s" % (row["First"], row["Last"])
+
+    m = row['Middle']
+    if m == "":
+        middle = " "
     else:
-        name = "%s %s. %s" % (row["First"], row["Middle"], row["Last"])
+        if len(m)==1:
+            middle = ' {}. '.format(m)
+        else:
+            middle = ' {} '.format(m)
+    if len(row['First']) == 1:
+        first = '{}.'.format(row['First'])
+    else:
+        first = row['First']
+
+    name = '{}{}{}'.format(first, middle, row['Last'])
+    # import pdb
+    # pdb.set_trace()
+    # if row["Middle"] == "":
+    #     name = "%s %s" % (row["First"], row["Last"])
+    # else:
+    #     name = "%s %s. %s" % (row["First"], row["Middle"], row["Last"])
 
     affil_list = []
     if row["Institution"] != "":
