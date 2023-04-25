@@ -1,10 +1,11 @@
 ### Splitting peak regions into test set (chr2 & chr3) and train set (All chr except chr2 & chr3)
 
-pacbio_type="Cerberus"
-#pacbio_type="LAPA"
+# LR_type="Cerberus"
+# LR_type="LAPA"
+LR_type=$1
 
-input_dir=data_dir/labeled_beds/all_chrs_with_DHS/"$pacbio_type"/
-output_dir=data_dir/labeled_beds/split_chrs_with_DHS/"$pacbio_type"/
+input_dir=data_dir/labeled_beds/all_chr_with_DHS/"$LR_type"/
+output_dir=data_dir/labeled_beds/split_chr_with_DHS/"$LR_type"/
 
 train_dir="$output_dir"/train/
 test_dir="$output_dir"/test/

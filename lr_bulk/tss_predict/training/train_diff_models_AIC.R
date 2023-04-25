@@ -13,15 +13,16 @@ theme_update(axis.text = element_text(color = "black"),
                 panel.border = element_rect(color = "black", fill = NA, size = 1))
 
 
-pacbio_type <- "Cerberus"
-# pacbio_type <- "LAPA"
+# LR_type <- "Cerberus"
+# LR_type <- "LAPA"
+LR_type <- commandArgs(trailingOnly = T)[1]
 
-train_dir <- file.path("data_dir/labeled_beds/split_chrs_with_DHS", pacbio_type, "train")
-# model_dir <- file.path("training", "models/diff_models_AIC_individual_exper_same_cell_line", pacbio_type)
-model_dir <- file.path("training", "models/diff_models_AIC_individual_exper_same_cell_line")
-
+train_dir <- file.path("../data_dir/labeled_beds/split_chr_with_DHS", LR_type, "train")
+# model_dir <- file.path("training", "models/diff_models_AIC_individual_exper_same_cell_line", LR_type)
+model_dir <- file.path("models/diff_models_AIC_individual_exper_same_cell_line")
+print(model_dir)  ###
 train_beds <- list.files(train_dir, pattern = "*.bed", full.name = T)
-
+print(train_beds) ###
 model_params_list <- list(c("TPM", "DHS", "length"),
 					 c("TPM", "DHS"),
 					 c("TPM", "length"),
@@ -57,8 +58,9 @@ for (model_params in model_params_list) {
 	}
 }
 colnames(aic_df) <- c("Experiment", "Model", "AIC")
+print(aic_df)
 aic_df <- aic_df %>% mutate(AIC = as.numeric(AIC))
-write.table(aic_df, file.path(model_dir, paste0(pacbio_type, "_AIC.out")), row.names = F , col.names = T, quote = F, sep = "\t")
+write.table(aic_df, file.path(model_dir, paste0(LR_type, "_AIC.out")), row.names = F , col.names = T, quote = F, sep = "\t")
 
 aic_rank_df <- data.frame()
 for (train_bed in train_beds) {
@@ -71,14 +73,14 @@ for (train_bed in train_beds) {
 agg <- aggregate(Order ~ Model, aic_rank_df, mean) %>% arrange(desc(Order)) %>%
 		mutate(Model = factor(Model, levels = Model))
 
-plot_png <- file.path("plots", paste0(pacbio_type, "_AIC.png"))
-plot_pdf <- file.path("plots", paste0(pacbio_type, "_AIC.pdf"))
+plot_png <- file.path("plots", paste0(LR_type, "_AIC.png"))
+plot_pdf <- file.path("plots", paste0(LR_type, "_AIC.pdf"))
 
 ggplot(agg) + geom_bar(aes(x = Model, y = Order), size = 0.6, fill="chocolate3", color="black", stat = "identity") + 
 	scale_y_continuous(breaks = scales::pretty_breaks(n=7)) +
 	labs(x = "Logit Model Parameters",
 		 y = paste0("Avg. AIC Rank (", length(train_beds), " Samples)"),
-		 title = paste("AIC of Logit Models Trained on", pacbio_type)) +
+		 title = paste("AIC of Logit Models Trained on", LR_type)) +
 	theme(axis.text.x=element_text(angle = +30, vjust = 0.5))
 ggsave(plot_png, width=7, height=7)
 ggsave(plot_pdf, width=7, height=7)

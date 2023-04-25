@@ -6,17 +6,19 @@ library(reshape2)
 library(stringr)
 library(PRROC)
 
-pacbio_type <- "Cerberus"
-# pacbio_type <- "LAPA"
-data_dir <- "data_dir/labeled_beds/split_chrs_with_DHS"
-test_dir <- file.path(data_dir, pacbio_type, "test")
-eval_dir <- file.path(data_dir, pacbio_type, "test_with_labels")
+# LR_type <- "Cerberus"
+# LR_type <- "LAPA"
+LR_type <- commandArgs(trailingOnly = T)[1]
+
+data_dir <- "../data_dir/labeled_beds/split_chr_with_DHS"
+test_dir <- file.path(data_dir, LR_type, "test")
+eval_dir <- file.path(data_dir, LR_type, "test_with_labels")
 
 training_dir <- "training"
-model_dir <- file.path(training_dir, "models/individual_exper_same_cell_line", pacbio_type)
-pred_dir <- file.path(training_dir, "predicts/individual_exper_diff_cell_line", pacbio_type)
+model_dir <- file.path("models/individual_exper_same_cell_line", LR_type)
+pred_dir <- file.path("predicts/individual_exper_diff_cell_line", LR_type)
 
-plot_dir <- file.path("plots/individual_exper_diff_cell_line/", pacbio_type)
+plot_dir <- file.path("plots/individual_exper_diff_cell_line/", LR_type)
 
 test_beds <- list.files(test_dir, pattern = "*.bed", full.name = T)
 
@@ -61,9 +63,9 @@ for (test_bed in test_beds) {
 		PRROC_obj <- roc.curve(scores.class0 = pred, weights.class0 = binary_labels, curve = T)
 		auroc_plot_file <- file.path(plot_dir, paste0(experiment, "_AUROC_diff_cell_line.pdf"))
 		pdf(auroc_plot_file, 7, 7)
-		#auroc_plot_title <- paste("Train on", other_cell_line, ", prediction on", experiment, "-", pacbio_type, "- AUROC:", round(PRROC_obj$auc, 2))
+		#auroc_plot_title <- paste("Train on", other_cell_line, ", prediction on", experiment, "-", LR_type, "- AUROC:", round(PRROC_obj$auc, 2))
 		other_cell_line_name <- str_extract(other_cell_line, "GM12878|K562")
-		auroc_plot_title <- paste("Train on", other_cell_line_name, ", prediction on", cell_line, "-", pacbio_type,
+		auroc_plot_title <- paste("Train on", other_cell_line_name, ", prediction on", cell_line, "-", LR_type,
 								  "\nAUROC:", round(PRROC_obj$auc, 3))
 		plot(PRROC_obj, color=F, main = auroc_plot_title,
 			 auc.main = F, cex.lab=1.5, cex.axis=1.5, cex.main=1.3, cex.sub=1.3)
