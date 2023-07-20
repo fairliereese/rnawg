@@ -68,7 +68,9 @@ rule all:
         # config['swan']['major_isos_library'],
         # config['cerberus']['suppa']['psi'],
         # config['talon']['gene_ab'],
-        config['pp']['orf_fa']
+        # config['pp']['orf_fa']
+        config['lapa']['spike_ab'],
+        config['lapa']['spike_gtf']
 
 #### refs ####
 rule dl_v40:
@@ -435,6 +437,39 @@ rule filter_lapa_ab:
         df = pd.read_csv(input.nov_ab, sep='\t')
         df = df.loc[df.annot_transcript_id.isin(tids)]
         df.to_csv(output.filt_ab, sep='\t', index=False)
+
+
+rule spike_lapa:
+    input:
+        nov_ab = config['lapa']['nov_ab'],
+        nov_gtf = config['lapa']['nov_gtf']
+    resources:
+        mem_gb = 64,
+        threads = 1
+    output:
+        filt_ab = config['lapa']['spike_ab'],
+        filt_gtf = config['lapa']['spike_gtf'],
+    run:
+        # get only transcripts that map to ERCC / SIRV chromosomes
+        df = pr.read_gtf(input.nov_gtf, duplicate_attr=True).as_df()
+        df = df.loc[df.Chromosome.str.contains('SIRV')]
+        df = df.loc[df.Chromosome.str.contains('ERCC')]
+
+        # remove genes with no transcripts
+        df = filter_no_t_genes(df)
+
+        # get tids
+        tids = df.transcript_id.unique().tolist()
+
+        # write out
+        df = pr.PyRanges(df)
+        df.to_gtf(output.filt_gtf)
+
+        # filter df
+        df = pd.read_csv(input.nov_ab)
+        df = df.loc[df.annot_transcript_id.isin(tids)]
+        df.to_csv(output.spike_ab, sep='\t', index=False)
+
 
 def get_cerberus_gtf_input(wildcards):
     if 'v40' == wildcards.source:
@@ -1220,7 +1255,7 @@ rule tama_orf_nmd:
             -f {input.fa} \
             -o {output.orf_fa}
         """
-#
+
 # rule blast:
 #     input:
 #         orf_fa = config['pp']['orf_fa']
@@ -1258,10 +1293,3 @@ rule tama_orf_nmd:
 #           -b {input.blastp} \
 #           -o {output.parsed}
 #         "
-
-
-#### modifying lapa output ####
-# rule add_rescue_isms:
-#     input:
-#         ab = config['lapa']['ab']
-#         gtf = config['']

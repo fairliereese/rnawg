@@ -94,6 +94,10 @@ lapa:
     filt_ab: lr_bulk/lapa/human_abundance_filtered.tsv
     filt_gtf: lr_bulk/lapa/human_lapa.gtf
 
+    # spikes-only GTF and ab
+    spike_ab: lr_bulk/lapa/human_spike_abundance_filtered.tsv
+    spike_gtf: lr_bulk/lapa/human_spike.gtf
+
     # tss / tes clusters from lapa
     tss: /dfs7/samlab/mcelik/rnawg/data/results/lapa/tss/tss_clusters.bed
     tes: /dfs7/samlab/mcelik/rnawg/data/results/lapa/tes/polyA_clusters.bed
